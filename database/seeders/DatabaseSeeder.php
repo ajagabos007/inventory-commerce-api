@@ -22,15 +22,15 @@ class DatabaseSeeder extends Seeder
             StoreSeeder::class,
             AttributeSeeder::class,
 
-//            ProductSeeder::class,
+            //            ProductSeeder::class,
             StaffSeeder::class,
-//            InventorySeeder::class,
+            //            InventorySeeder::class,
             DiscountSeeder::class,
-//            SaleSeeder::class,
-//            SaleInventorySeeder::class,
-//            StockTransferSeeder::class,
-//            StockTransferInventorySeeder::class,
-//            ScrapeSeeder::class,
+            //            SaleSeeder::class,
+            //            SaleInventorySeeder::class,
+            //            StockTransferSeeder::class,
+            //            StockTransferInventorySeeder::class,
+            //            ScrapeSeeder::class,
         ]);
     }
 }

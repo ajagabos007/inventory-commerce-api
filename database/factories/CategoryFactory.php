@@ -19,7 +19,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $name= fake()->unique()->name(),
+            'name' => $name = fake()->unique()->name(),
             'slug' => SlugService::createSlug(Category::class, 'slug', $name),
 
             'parent_id' => null,

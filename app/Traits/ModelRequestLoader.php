@@ -2,58 +2,47 @@
 
 namespace App\Traits;
 
+use Beansoft\LaraBase\Models\Role;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use ReflectionMethod;
+use ReflectionNamedType;
 
 trait ModelRequestLoader
 {
     /**
      * Apply includes and appends to the model instance based on the request.
      *
-     * @param  Illuminate\Http\Request|null  $request
-     * @return $this
+     * @return Role|ModelRequestLoader
      */
-    public function applyRequestIncludesAndAppends(?Request $request = null): self
+    public function loadFromRequest(?Request $request = null): self
     {
         if (! $this instanceof Model) {
             return $this;
         }
 
-        if (is_null($request)) {
-            $request = request();
-        }
+        $request ??= request();
 
         // Handle includes (relationships)
-        if ($request->has('include')) {
-            $relations = [];
-            $relationCounts = [];
+        if ($request->filled('include')) {
+            $includes = array_filter(
+                array_map('trim', explode(',', $request->input('include'))),
+                fn (string $relation) => $this->hasRelationship($relation)
+            );
 
-            foreach (explode(',', $request->input('include')) as $relation) {
-                if (\str_contains($relation, 'Count')) {
-                    $rel_count = str_replace('Count', '', $relation);
-                    $relationCounts[] = $rel_count;
-                } else {
-                    $relations[] = $relation;
+            if (! empty($includes)) {
+                foreach ($includes as $include) {
+                    $this->{$include};
                 }
-            }
-
-            try {
-                if (! empty($relations)) {
-                    $this->load($relations);
-                }
-                if (! empty($relationCounts)) {
-                    $this->loadCount($relationCounts);
-                }
-            } catch (\Throwable $th) {
-                // Optionally handle exception
             }
         }
 
         // Handle appends (attributes)
-        if ($request->has('append')) {
+        if ($request->filled('append')) {
             $appends = array_filter(
-                explode(',', $request->input('append')),
-                fn ($attribute) => $this->hasAttribute($attribute)
+                array_map('trim', explode(',', $request->input('append'))),
+                fn (string $attribute) => $this->hasAttribute($attribute)
             );
 
             if (! empty($appends)) {
@@ -62,5 +51,34 @@ trait ModelRequestLoader
         }
 
         return $this;
+    }
+
+    /**
+     * Determine if the model has the given relationship.
+     */
+    private function hasRelationship(string $relationship): bool
+    {
+        $segments = explode('.', $relationship);
+        $model = $this;
+
+        foreach ($segments as $segment) {
+            if (! method_exists($model, $segment)) {
+                return false;
+            }
+
+            $reflection = new ReflectionMethod($model, $segment);
+            $returnType = $reflection->getReturnType();
+
+            if (! $returnType instanceof ReflectionNamedType ||
+                ! is_subclass_of($returnType->getName(), Relation::class)) {
+                return false;
+            }
+
+            /** @var Relation $relationInstance */
+            $relationInstance = $model->{$segment}();
+            $model = $relationInstance->getModel(); // Move deeper into nested relation
+        }
+
+        return true;
     }
 }

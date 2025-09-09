@@ -4,10 +4,11 @@ namespace App\Enums;
 
 use App\Traits\Enumerable;
 
-enum Type: string
+enum ScrapeType: string
 {
     use Enumerable;
 
     case RETURNED = 'returned';
     case DAMAGED = 'damaged';
+
 }

@@ -19,9 +19,10 @@ class Store extends Model
 {
     /** @use HasFactory<\Database\Factories\StoreFactory> */
     use HasFactory;
-    use Sluggable;
+
     use HasUuids;
     use ModelRequestLoader;
+    use Sluggable;
 
     /**
      * The attributes that are mass assignable.
@@ -38,15 +39,13 @@ class Store extends Model
 
     /**
      * Return the sluggable configuration array for this model.
-     *
-     * @return array
      */
     public function sluggable(): array
     {
         return [
             'slug' => [
-                'source' => 'name'
-            ]
+                'source' => 'name',
+            ],
         ];
     }
 

@@ -4,14 +4,14 @@ namespace App\Models;
 
 use App\Observers\CategoryObserver;
 use App\Traits\ModelRequestLoader;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[ObservedBy([CategoryObserver::class])]
 class Category extends Model
@@ -34,19 +34,24 @@ class Category extends Model
         'parent_id',
     ];
 
-
     /**
      * Return the sluggable configuration array for this model.
-     *
-     * @return array
      */
     public function sluggable(): array
     {
         return [
             'slug' => [
-                'source' => 'name'
-            ]
+                'source' => 'name',
+            ],
         ];
+    }
+
+    /**
+     * Get the parent categorizable model (product ...).
+     */
+    public function categorizable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     /**
@@ -63,31 +68,5 @@ class Category extends Model
     public function subCategories(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
-    }
-
-    /**
-     * Get the products
-     */
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class, 'category_id');
-    }
-
-    /**
-     * Get the daily gold prices for this category
-     */
-    public function dailyGoldPrices(): HasMany
-    {
-        return $this->hasMany(DailyGoldPrice::class, 'category_id');
-    }
-
-    /**
-     * Scope a query for today
-     */
-    public function scopeWithoutTodayGoldPrice(Builder $query): Builder
-    {
-        return $query->whereDoesntHave('dailyGoldPrices', function (Builder $query) {
-            $query->today();
-        });
     }
 }

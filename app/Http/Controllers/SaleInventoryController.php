@@ -34,7 +34,7 @@ class SaleInventoryController extends Controller
     public function index()
     {
         $paginate = request()->has('paginate') ? request()->paginate : true;
-        $per_page = request()->has('per_page') ? request()->per_page : 15;
+        $perPage = request()->has('per_page') ? request()->per_page : 15;
 
         $sale_inventorys = QueryBuilder::for(SaleInventory::class)
             ->defaultSort('-created_at')
@@ -99,14 +99,14 @@ class SaleInventoryController extends Controller
             /**
              * Ensure per_page is integer and >= 1
              */
-            if (! is_numeric($per_page)) {
-                $per_page = 15;
+            if (! is_numeric($perPage)) {
+                $perPage = 15;
             } else {
-                $per_page = intval($per_page);
-                $per_page = $per_page >= 1 ? $per_page : 15;
+                $perPage = intval($perPage);
+                $perPage = $perPage >= 1 ? $perPage : 15;
             }
 
-            $sale_inventorys = $sale_inventorys->paginate($per_page)
+            $sale_inventorys = $sale_inventorys->paginate($perPage)
                 ->appends(request()->query());
 
         } else {

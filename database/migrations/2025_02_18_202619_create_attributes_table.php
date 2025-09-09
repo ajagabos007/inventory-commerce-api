@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->string('slug')->unique();
-            $table->string('type')->default('text'); //'text', 'number', 'boolean', 'date', 'color', 'image'
+            $table->string('type')->default('text');
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAttributeValueRequest;
 use App\Http\Requests\UpdateAttributeValueRequest;
+use App\Http\Resources\AttributeValueResource;
 use App\Models\AttributeValue;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class AttributeValueController extends Controller
 {
@@ -13,15 +15,50 @@ class AttributeValueController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $paginate = request()->has('paginate') ? request()->paginate : true;
+        $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $attributeValues = QueryBuilder::for(AttributeValue::class)
+            ->defaultSort('value')
+            ->allowedSorts(
+                'value',
+                'display_value',
+                'sort_order',
+                'created_at',
+                'updated_at',
+            )
+            ->allowedFilters([
+                'value',
+                'display_value',
+                'sort_order',
+                'attribute_id',
+            ])
+            ->allowedIncludes([
+                'attributeValue',
+            ]);
+
+        $attributeValues->when(request()->filled('q'), function ($query) {
+            $query->search(request()->q);
+        });
+
+        /**
+         * Check if pagination is not disabled
+         */
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
+
+            $attributeValues = $attributeValues->paginate($perPage)
+                ->appends(request()->query());
+
+        } else {
+            $attributeValues = $attributeValues->get();
+        }
+
+        return AttributeValueResource::collection($attributeValues)->additional([
+            'status' => 'success',
+            'message' => 'Attribute values retrieved successfully',
+        ]);
     }
 
     /**
@@ -29,7 +66,13 @@ class AttributeValueController extends Controller
      */
     public function store(StoreAttributeValueRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $attributeValue = AttributeValue::create($validated);
+
+        return (new AttributeValueResource($attributeValue))->additional([
+            'message' => 'Attribute value created successfully',
+        ]);
     }
 
     /**
@@ -37,15 +80,11 @@ class AttributeValueController extends Controller
      */
     public function show(AttributeValue $attributeValue)
     {
-        //
-    }
+        $attributeValue->loadFromRequest();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AttributeValue $attributeValue)
-    {
-        //
+        return (new AttributeValueResource($attributeValue))->additional([
+            'message' => 'Attribute value retrieved successfully',
+        ]);
     }
 
     /**
@@ -53,7 +92,13 @@ class AttributeValueController extends Controller
      */
     public function update(UpdateAttributeValueRequest $request, AttributeValue $attributeValue)
     {
-        //
+        $validated = $request->validated();
+
+        $attributeValue->update($validated);
+
+        return (new AttributeValueResource($attributeValue))->additional([
+            'message' => 'Attribute value updated successfully',
+        ]);
     }
 
     /**
@@ -61,6 +106,10 @@ class AttributeValueController extends Controller
      */
     public function destroy(AttributeValue $attributeValue)
     {
-        //
+        $attributeValue->delete();
+
+        return (new AttributeValueResource(null))->additional([
+            'message' => 'Attribute value deleted successfully',
+        ]);
     }
 }

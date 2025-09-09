@@ -12,4 +12,17 @@ enum NotificationLevel: string
     case SUCCESS = 'success';
     case WARNING = 'warning';
     case ERROR = 'error';
+
+    /**
+     * Get user-friendly label
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::INFO => 'Info',
+            self::SUCCESS => 'Success',
+            self::WARNING => 'Warning',
+            self::ERROR => 'Error',
+        };
+    }
 }

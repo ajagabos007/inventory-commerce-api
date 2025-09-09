@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ActiveSessionController;
+use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CategoryController;
@@ -9,12 +11,13 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DailyGoldPriceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\EnumController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\POS\CartController;
 use App\Http\Controllers\POS\CheckoutController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleInventoryController;
@@ -50,12 +53,14 @@ Route::controller(\App\Http\Controllers\Auth\ResetPasswordController::class)->gr
     Route::match(['PUT', 'PATCH'], 'reset-password', 'resetPassword')->name('reset-password');
 });
 
+Route::get('enums', EnumController::class)->name('api.enums');
+
 /*
 |--------------------------------------------------------------------------
 | Auth Users' Routes : for only logged in users
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
     Route::post('email/verification-token', [VerificationController::class, 'sendEmailVerificationToken'])
@@ -76,10 +81,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->middleware('filter.merge.auth-user.tokenable');
     });
 
+    Route::apiResource('attributes', AttributeController::class);
+    Route::apiResource('attribute-values', AttributeValueController::class);
+
     /**
      * Admin routes
      */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
+        Route::controller(EnumController::class)->group(function () {
+            Route::delete('enums/cache', 'clearCache')->name('enums.cache.clear');
+            Route::get('enums/cache/stats', 'getCacheStats')->name('enums.cache.stats');
+        });
+
         Route::prefix('users/{user}')->name('users.')->group(function () {
             Route::controller(UserController::class)->group(function () {
                 Route::post('deactivate', 'deactivate')->name('deactivate');

@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
-use function PHPUnit\Framework\containsOnlyNull;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class AttributeSeeder extends Seeder
 {
@@ -14,60 +13,60 @@ class AttributeSeeder extends Seeder
     {
         $attributes = [
             [
-                'name'   => 'Color',
+                'name' => 'Color',
                 'values' => ['Black', 'White', 'Red', 'Blue', 'Silver'],
             ],
             [
-                'name'   => 'Size',
+                'name' => 'Size',
                 'values' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             ],
             [
-                'name'   => 'Storage',
+                'name' => 'Storage',
                 'values' => ['64GB', '128GB', '256GB', '512GB', '1TB'],
             ],
             [
-                'name'   => 'RAM',
+                'name' => 'RAM',
                 'values' => ['4GB', '8GB', '16GB', '32GB'],
             ],
 
             [
-                'name'   => 'Shade',
+                'name' => 'Shade',
                 'values' => ['Ivory', 'Beige', 'Sand', 'Honey', 'Caramel', 'Chestnut', 'Mocha'],
             ],
             [
-                'name'   => 'Finish',
+                'name' => 'Finish',
                 'values' => ['Matte', 'Glossy', 'Satin', 'Velvet', 'Shimmer'],
             ],
             [
-                'name'   => 'Skin Type',
+                'name' => 'Skin Type',
                 'values' => ['Normal', 'Oily', 'Dry', 'Combination', 'Sensitive'],
             ],
             [
-                'name'   => 'Fragrance Note',
+                'name' => 'Fragrance Note',
                 'values' => ['Citrus', 'Floral', 'Woody', 'Oriental', 'Fresh'],
             ],
             [
-                'name'   => 'SPF',
+                'name' => 'SPF',
                 'values' => ['SPF 15', 'SPF 30', 'SPF 50'],
             ],
             [
-                'name'   => 'Volume',
+                'name' => 'Volume',
                 'values' => ['10ml', '30ml', '50ml', '100ml'],
             ],
             [
-                'name'   => 'Formulation',
+                'name' => 'Formulation',
                 'values' => ['Liquid', 'Powder', 'Cream', 'Gel', 'Stick'],
             ],
             [
-                'name'   => 'Hair Type',
+                'name' => 'Hair Type',
                 'values' => ['Straight', 'Wavy', 'Curly', 'Coily'],
             ],
             [
-                'name'   => 'Color Family',
+                'name' => 'Color Family',
                 'values' => ['Red', 'Pink', 'Nude', 'Coral', 'Berry', 'Plum'],
             ],
             [
-                'name'   => 'Coverage',
+                'name' => 'Coverage',
                 'values' => ['Sheer', 'Medium', 'Full'],
             ],
         ];
@@ -81,14 +80,14 @@ class AttributeSeeder extends Seeder
             $attribute_values = [];
 
             foreach ($attr['values'] as $val) {
-                $attribute_values [] =[
-                    'id'          => Str::uuid(),
-                    'attribute_id'=> $attribute->id,
-                    'value'       => $val,
+                $attribute_values[] = [
+                    'id' => Str::uuid(),
+                    'attribute_id' => $attribute->id,
+                    'value' => $val,
                 ];
             }
 
-            if(count($attribute_values) == 0){
+            if (count($attribute_values) == 0) {
                 continue;
             }
             AttributeValue::upsert(

@@ -28,11 +28,11 @@ return new class extends Migration
             $table->decimal('price_per_gram', 10, 2);
             $table->unsignedInteger('quantity')->default(1);
             $table->decimal('total_price', 10, 2);
-//            $table->foreignUuid('daily_gold_price_id')
-//                ->nullable()
-//                ->constrained('daily_gold_prices')
-//                ->onUpdate('cascade')
-//                ->onDelete('set null');
+            //            $table->foreignUuid('daily_gold_price_id')
+            //                ->nullable()
+            //                ->constrained('daily_gold_prices')
+            //                ->onUpdate('cascade')
+            //                ->onDelete('set null');
             $table->json('metadata')->nullable();
 
             $table->unique(['sale_id', 'inventory_id']);

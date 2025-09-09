@@ -10,6 +10,6 @@ class ProductVariant extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductVariantFactory> */
     use HasFactory;
-    use HasUuids;
 
+    use HasUuids;
 }

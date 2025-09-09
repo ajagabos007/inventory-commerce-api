@@ -9,5 +9,4 @@ class Attributatable extends Model
 {
     //
     use HasUuids;
-
 }

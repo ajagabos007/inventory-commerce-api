@@ -17,9 +17,8 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->text('short_description')->nullable();
-            $table->decimal('cost_price', total: 8, places: 2)->nullable();
-            $table->decimal('compare_price', total: 8, places: 2)->nullable();
-            $table->decimal('price', total: 8, places: 2)->default(0.00);
+            $table->string('display_price')->nullable();
+            $table->string('display_compare_price')->nullable();
 
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);

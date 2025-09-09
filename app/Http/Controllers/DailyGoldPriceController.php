@@ -29,7 +29,7 @@ class DailyGoldPriceController extends Controller
     public function index()
     {
         $paginate = request()->has('paginate') ? request()->paginate : true;
-        $per_page = request()->has('per_page') ? request()->per_page : 15;
+        $perPage = request()->has('per_page') ? request()->per_page : 15;
 
         $daily_gold_prices = QueryBuilder::for(DailyGoldPrice::class)
             ->defaultSort('-recorded_on')
@@ -87,14 +87,14 @@ class DailyGoldPriceController extends Controller
             /**
              * Ensure per_page is integer and >= 1
              */
-            if (! is_numeric($per_page)) {
-                $per_page = 15;
+            if (! is_numeric($perPage)) {
+                $perPage = 15;
             } else {
-                $per_page = intval($per_page);
-                $per_page = $per_page >= 1 ? $per_page : 15;
+                $perPage = intval($perPage);
+                $perPage = $perPage >= 1 ? $perPage : 15;
             }
 
-            $daily_gold_prices = $daily_gold_prices->paginate($per_page)
+            $daily_gold_prices = $daily_gold_prices->paginate($perPage)
                 ->appends(request()->query());
 
         } else {

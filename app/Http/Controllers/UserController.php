@@ -27,7 +27,7 @@ class UserController extends Controller
     public function index()
     {
         $paginate = request()->has('paginate') ? request()->paginate : true;
-        $per_page = request()->has('per_page') ? request()->per_page : 15;
+        $perPage = request()->has('per_page') ? request()->per_page : 15;
 
         $users = QueryBuilder::for(User::forRequestStores())
             ->defaultSort('-created_at')
@@ -91,14 +91,14 @@ class UserController extends Controller
             /**
              * Ensure per_page is integer and >= 1
              */
-            if (! is_numeric($per_page)) {
-                $per_page = 15;
+            if (! is_numeric($perPage)) {
+                $perPage = 15;
             } else {
-                $per_page = intval($per_page);
-                $per_page = $per_page >= 1 ? $per_page : 15;
+                $perPage = intval($perPage);
+                $perPage = $perPage >= 1 ? $perPage : 15;
             }
 
-            $users = $users->paginate($per_page)
+            $users = $users->paginate($perPage)
                 ->appends(request()->query());
 
         } else {

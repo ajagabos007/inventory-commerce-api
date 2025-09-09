@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\ModelRequestLoader;
+use Database\Factories\AttributeValueFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,9 +13,11 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class AttributeValue extends Model
 {
-    /** @use HasFactory<\Database\Factories\AttributeValueFactory> */
+    /** @use HasFactory<AttributeValueFactory> */
     use HasFactory;
+
     use HasUuids;
+    use ModelRequestLoader;
 
     /**
      * The attributes that are mass assignable.
@@ -22,10 +27,11 @@ class AttributeValue extends Model
     protected $fillable = [
         'attribute_id',
         'value',
+        'display_value',
         'sort_order',
     ];
 
-    public function attribute():BelongsTo
+    public function attribute(): BelongsTo
     {
         return $this->belongsTo(Attribute::class);
     }
@@ -38,5 +44,14 @@ class AttributeValue extends Model
     public function productVariants(): MorphToMany
     {
         return $this->morphedByMany(ProductVariant::class, 'attributable');
+    }
+
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where('value', 'like', "%{$term}%")
+            ->orWhere('display_value', 'like', "%{$term}%")
+            ->orWhereHas('attribute', function ($query) use ($term) {
+                $query->search($term);
+            });
     }
 }

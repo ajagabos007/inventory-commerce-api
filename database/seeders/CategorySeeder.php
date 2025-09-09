@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use App\Models\Category;
 use Cviebrock\EloquentSluggable\Services\SlugService;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        if(Category::exists()){
-            return ;
+        if (Category::exists()) {
+            return;
         }
 
         $categories = [
@@ -54,10 +54,9 @@ class CategorySeeder extends Seeder
             ],
         ];
 
-
         foreach ($categories as $main => $subs) {
             $mainCategory = Category::create([
-                'id'   => Str::uuid(),
+                'id' => Str::uuid(),
                 'name' => $main,
                 'slug' => SlugService::createSlug(Category::class, 'slug', $main),
                 'parent_id' => null,
@@ -66,7 +65,7 @@ class CategorySeeder extends Seeder
             foreach ($subs as $sub => $children) {
                 // if $children is array of strings, treat as leaf
                 $subCategory = Category::create([
-                    'id'   => Str::uuid(),
+                    'id' => Str::uuid(),
                     'name' => $sub,
                     'slug' => SlugService::createSlug(Category::class, 'slug', $sub),
                     'parent_id' => $mainCategory->id,
@@ -74,7 +73,7 @@ class CategorySeeder extends Seeder
 
                 foreach ($children as $child) {
                     Category::create([
-                        'id'   => Str::uuid(),
+                        'id' => Str::uuid(),
                         'name' => $child,
                         'slug' => SlugService::createSlug(Category::class, 'slug', $child),
                         'parent_id' => $subCategory->id,

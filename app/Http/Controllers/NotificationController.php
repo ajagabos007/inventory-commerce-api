@@ -22,7 +22,7 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $paginate = request()->has('paginate') ? request()->paginate : true;
-        $per_page = request()->has('per_page') ? request()->per_page : 15;
+        $perPage = request()->has('per_page') ? request()->per_page : 15;
 
         $notifications = QueryBuilder::for(auth()->user()->notifications())
             ->defaultSort('-created_at')
@@ -73,14 +73,14 @@ class NotificationController extends Controller
             /**
              * Ensure per_page is integer and >= 1
              */
-            if (! is_numeric($per_page)) {
-                $per_page = 15;
+            if (! is_numeric($perPage)) {
+                $perPage = 15;
             } else {
-                $per_page = intval($per_page);
-                $per_page = $per_page >= 1 ? $per_page : 15;
+                $perPage = intval($perPage);
+                $perPage = $perPage >= 1 ? $perPage : 15;
             }
 
-            $notifications = $notifications->paginate($per_page)
+            $notifications = $notifications->paginate($perPage)
                 ->appends(request()->query());
 
         } else {

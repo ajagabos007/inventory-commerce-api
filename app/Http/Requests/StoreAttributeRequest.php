@@ -2,7 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\AttributeType;
+use App\Models\Attribute;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAttributeRequest extends FormRequest
 {
@@ -11,18 +15,26 @@ class StoreAttributeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('create', Attribute::class);
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            //
+            'name' => [
+                'required',
+                'string',
+                'max:191',
+                'unique:attributes,name',
+            ],
+            'type' => ['nullable', Rule::in(AttributeType::values(), 'i')],
+            'values' => ['nullable', 'array'],
+            'values*' => ['required_with:values', 'string'],
         ];
     }
 }

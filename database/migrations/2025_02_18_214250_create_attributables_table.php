@@ -15,12 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('attribute_value_id');
             $table->foreign('attribute_value_id')
-                            ->references('id')
-                            ->on('attribute_values')
-                            ->cascadeOnDelete();
+                ->references('id')
+                ->on('attribute_values')
+                ->cascadeOnDelete();
 
             $table->uuidMorphs('attributable');
-            $table->unique(['attribute_value_id','attributable_id','attributable_type'], 'unique_attributable' );
+            $table->unique(['attribute_value_id', 'attributable_id', 'attributable_type'], 'unique_attributable');
             $table->timestamps();
         });
     }

@@ -4,10 +4,17 @@ namespace App\Policies;
 
 use App\Models\Attribute;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class AttributePolicy
 {
+    /**
+     * Perform pre-authorization checks.
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        return $user->hasAnyRole('admin') ? true : null;
+    }
+
     /**
      * Determine whether the user can view any models.
      */

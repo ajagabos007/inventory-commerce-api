@@ -25,18 +25,18 @@ class ProductSeeder extends Seeder
 
         $end_time = now();
 
-//        $products = Product::whereBetween('created_at', [
-//            $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-//        ])
-//            ->lazy();
-//
-//        foreach ($products as $item) {
-//            if ($item->created_at == $item->updated_at) {
-//                Event::dispatch('eloquent.created: '.$item::class, $item);
-//            } else {
-//                Event::dispatch('eloquent.updated: '.$item::class, $item);
-//            }
-//        }
+        //        $products = Product::whereBetween('created_at', [
+        //            $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
+        //        ])
+        //            ->lazy();
+        //
+        //        foreach ($products as $item) {
+        //            if ($item->created_at == $item->updated_at) {
+        //                Event::dispatch('eloquent.created: '.$item::class, $item);
+        //            } else {
+        //                Event::dispatch('eloquent.updated: '.$item::class, $item);
+        //            }
+        //        }
 
     }
 }

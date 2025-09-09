@@ -14,6 +14,19 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+
+            ['name' => 'attribute.viewAny'],
+            ['name' => 'attribute.view'],
+            ['name' => 'attribute.create'],
+            ['name' => 'attribute.update'],
+            ['name' => 'attribute.delete'],
+
+            ['name' => 'attribute-value.viewAny'],
+            ['name' => 'attribute-value.view'],
+            ['name' => 'attribute-value.create'],
+            ['name' => 'attribute-value.update'],
+            ['name' => 'attribute-value.delete'],
+
             // Inventory
             ['name' => 'stock.create'],
             ['name' => 'stock.update'],
@@ -24,7 +37,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'sale.create'],
 
             // Transfers
-            ['name' => 'stock_transfer.view'],
+            ['name' => 'attribute.view'],
             ['name' => 'stock_transfer.create'],
             ['name' => 'stock_transfer.receive'],
 

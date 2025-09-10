@@ -39,7 +39,6 @@ class Category extends Model
         'parent_id',
     ];
 
-
     /**
      * The accessors to append to the model's array form.
      *
@@ -85,9 +84,6 @@ class Category extends Model
 
     /**
      * Search Category
-     * @param Builder $query
-     * @param string $term
-     * @return Builder
      */
     public function scopeSearch(Builder $query, string $term): Builder
     {
@@ -127,13 +123,13 @@ class Category extends Model
             file_put_contents($tmp_file_path, $file_data);
 
             $extension = explode('/', $mime_type)[1];
-            $file_name = ($this->slug ?? uniqid()).'.'.$extension;
+            $file_name = uniqid().'.'.$extension;
 
             $image = new UploadedFile($tmp_file_path, $file_name, $mime_type, null, true);
         }
         tap($this->image_path, function ($previous) use ($image, $storagePath) {
 
-            $storagePath = str_contains($storagePath, 'categories' ) ? $storagePath : 'categories/'.$storagePath;
+            $storagePath = str_contains($storagePath, 'categories') ? $storagePath : 'categories/'.$storagePath;
 
             $this->forceFill([
                 'image_path' => $image->storePublicly(
@@ -150,8 +146,6 @@ class Category extends Model
 
     /**
      * Delete the category image
-     *
-     * @return void
      */
     public function deleteImage(): void
     {
@@ -168,8 +162,6 @@ class Category extends Model
 
     /**
      * Get the default profile photo URL if no profile photo has been uploaded.
-     *
-     * @return string
      */
     protected function defaultImageUrl(): string
     {

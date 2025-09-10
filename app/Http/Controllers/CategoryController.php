@@ -6,8 +6,6 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\AllowedInclude;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -82,7 +80,7 @@ class CategoryController extends Controller
         $validated = $request->validated();
         $category = Category::create($validated);
 
-        if (array_key_exists('image', $validated) && !blank($validated['image'])) {
+        if (array_key_exists('image', $validated) && ! blank($validated['image'])) {
             $category->updateImage($validated['image']);
         }
 
@@ -118,14 +116,12 @@ class CategoryController extends Controller
         $category->update($validated);
 
         if (array_key_exists('image', $validated)) {
-            if(blank($validated['image'])){
+            if (blank($validated['image'])) {
                 $category->deleteImage();
-            }
-            else {
+            } else {
                 $category->updateImage($validated['image']);
             }
         }
-
 
         return (new CategoryResource($category))->additional([
             'message' => 'Category updated successfully',
@@ -139,7 +135,7 @@ class CategoryController extends Controller
     {
         $category->delete();
 
-       return (new CategoryResource(null))->additional([
+        return (new CategoryResource(null))->additional([
             'message' => 'Category deleted successfully',
         ]);
     }

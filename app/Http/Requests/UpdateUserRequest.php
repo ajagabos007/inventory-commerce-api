@@ -31,7 +31,7 @@ class UpdateUserRequest extends FormRequest
             'profile_photo' => [
                 'sometimes',
                 'required',
-                new Base64File($allowed_mimetypes = ['image/jpeg', 'image/png', 'image/svg+xml','image/webp'], $allowed_extensions = [], $max_size_kb = 2048),
+                new Base64File($allowed_mimetypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'], $allowed_extensions = [], $max_size_kb = 2048),
             ],
         ];
     }

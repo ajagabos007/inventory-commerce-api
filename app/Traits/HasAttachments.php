@@ -15,8 +15,6 @@ trait HasAttachments
 {
     /**
      * Get the model's attachments.
-     *
-     * @return MorphMany
      */
     public function attachments(): MorphMany
     {
@@ -25,8 +23,6 @@ trait HasAttachments
 
     /**
      * Get the model's attachment.
-     *
-     * @return MorphOne
      */
     public function attachment(): MorphOne
     {
@@ -36,10 +32,8 @@ trait HasAttachments
     /**
      * Attach Attachment to a Model
      *
-     * @param UploadedFile $file
-     * @param array<string,string> $options
-     * @param string $baseFolder
-     * @return Attachment
+     * @param  array<string,string>  $options
+     *
      * @throws Exception
      */
     public function attachUploadedFile(UploadedFile $file, array $options = [], string $baseFolder = ''): Attachment

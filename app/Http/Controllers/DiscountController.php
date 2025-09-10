@@ -107,7 +107,7 @@ class DiscountController extends Controller
         $validated = $request->validated();
         $discount = Discount::create($validated);
 
-        $discount->applyRequestIncludesAndAppends();
+        $discount->loadFromRequest();
 
         $discount_resource = (new DiscountResource($discount))->additional([
             'message' => 'Discount created successfully',
@@ -121,7 +121,7 @@ class DiscountController extends Controller
      */
     public function show(Discount $discount)
     {
-        $discount->applyRequestIncludesAndAppends();
+        $discount->loadFromRequest();
 
         $discount_resource = (new DiscountResource($discount))->additional([
             'message' => 'Discount retrieved successfully',
@@ -138,7 +138,7 @@ class DiscountController extends Controller
         $validated = $request->validated();
         $discount->update($validated);
 
-        $discount->applyRequestIncludesAndAppends();
+        $discount->loadFromRequest();
 
         $discount_resource = (new DiscountResource($discount))->additional([
             'message' => 'Discount updated successfully',

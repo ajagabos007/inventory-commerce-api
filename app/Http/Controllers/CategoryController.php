@@ -43,46 +43,23 @@ class CategoryController extends Controller
             ])
             ->allowedIncludes([
                 'parentCategory',
+                'subCategories',
                 AllowedInclude::count('productsCount'),
             ]);
 
-        if (request()->has('q')) {
-            $categories->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
-            });
-        }
+        $categories->when(request()->filled('q'), function ($query) {
+            $query->search(request()->q);
+        });
 
         /**
          * Check if pagination is not disabled
          */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
+        /**
+         * Check if pagination is not disabled
+         */
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
 
             $categories = $categories->paginate($perPage)
                 ->appends(request()->query());
@@ -91,12 +68,10 @@ class CategoryController extends Controller
             $categories = $categories->get();
         }
 
-        $categories_collection = CategoryResource::collection($categories)->additional([
+        return CategoryResource::collection($categories)->additional([
             'status' => 'success',
             'message' => 'Categories retrieved successfully',
         ]);
-
-        return $categories_collection;
     }
 
     /**
@@ -107,11 +82,13 @@ class CategoryController extends Controller
         $validated = $request->validated();
         $category = Category::create($validated);
 
-        $category_resource = (new CategoryResource($category))->additional([
+        if (array_key_exists('image', $validated) && !blank($validated['image'])) {
+            $category->updateImage($validated['image']);
+        }
+
+        return (new CategoryResource($category))->additional([
             'message' => 'Category created successfully',
         ]);
-
-        return $category_resource;
     }
 
     /**
@@ -119,13 +96,11 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        $category->applyRequestIncludesAndAppends();
+        $category->loadFromRequest();
 
-        $category_resource = (new CategoryResource($category))->additional([
+        return (new CategoryResource($category))->additional([
             'message' => 'Category retrieved successfully',
         ]);
-
-        return $category_resource;
     }
 
     /**
@@ -142,12 +117,19 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        $category_resource = (new CategoryResource($category))->additional([
+        if (array_key_exists('image', $validated)) {
+            if(blank($validated['image'])){
+                $category->deleteImage();
+            }
+            else {
+                $category->updateImage($validated['image']);
+            }
+        }
+
+
+        return (new CategoryResource($category))->additional([
             'message' => 'Category updated successfully',
         ]);
-
-        return $category_resource;
-
     }
 
     /**
@@ -157,10 +139,8 @@ class CategoryController extends Controller
     {
         $category->delete();
 
-        $category_resource = (new CategoryResource(null))->additional([
+       return (new CategoryResource(null))->additional([
             'message' => 'Category deleted successfully',
         ]);
-
-        return $category_resource;
     }
 }

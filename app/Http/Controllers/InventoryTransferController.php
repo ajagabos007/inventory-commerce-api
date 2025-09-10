@@ -173,7 +173,7 @@ class InventoryTransferController extends Controller
      */
     public function show(InventoryTransfer $inventory_transfer)
     {
-        $inventory_transfer->applyRequestIncludesAndAppends();
+        $inventory_transfer->loadFromRequest();
 
         $inventory_transfer_resource = (new InventoryTransferResource($inventory_transfer))->additional([
             'message' => 'Stock transfer retrieved successfully',

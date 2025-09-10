@@ -260,7 +260,7 @@ class SaleController extends Controller
      */
     public function show(Sale $sale)
     {
-        $sale->applyRequestIncludesAndAppends();
+        $sale->loadFromRequest();
 
         $sale->load('saleInventories.inventory.item.category');
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Category;
+use App\Rules\Base64File;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,11 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:191', Rule::unique('categories', 'name')],
             'parent_id' => ['nullable', 'string', 'exists:categories,id'],
+            'image' => [
+                'sometimes',
+                'required',
+                new Base64File($allowed_mimetypes = ['image/jpeg', 'image/png', 'image/svg+xml','image/webp'], $allowed_extensions = [], $max_size_kb = 2048),
+            ],
         ];
     }
 

@@ -136,7 +136,7 @@ class ProductController extends Controller
      */
     public function show(Product $item)
     {
-        $item->applyRequestIncludesAndAppends();
+        $item->loadFromRequest();
 
         $item_resource = (new ProductResource($item))->additional([
             'message' => 'Product retrieved successfully',

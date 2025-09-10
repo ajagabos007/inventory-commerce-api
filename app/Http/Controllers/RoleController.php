@@ -107,7 +107,7 @@ class RoleController extends Controller
 
         $role = Role::create($validated);
 
-        $role->applyRequestIncludesAndAppends();
+        $role->loadFromRequest();
 
         $role_resource = (new RoleResource($role))->additional([
             'message' => 'Role created successfully',
@@ -121,7 +121,7 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-        $role->applyRequestIncludesAndAppends();
+        $role->loadFromRequest();
 
         $role_resource = (new RoleResource($role))->additional([
             'message' => 'Role retrieved successfully',
@@ -138,7 +138,7 @@ class RoleController extends Controller
         $validated = $request->validated();
         $role->update($validated);
 
-        $role->applyRequestIncludesAndAppends();
+        $role->loadFromRequest();
 
         $role_resource = (new RoleResource($role))->additional([
             'message' => 'Role updated successfully',
@@ -171,7 +171,7 @@ class RoleController extends Controller
 
         $role->syncPermissions($validated['permissions']);
 
-        $role->applyRequestIncludesAndAppends();
+        $role->loadFromRequest();
 
         $role->load('permissions');
 

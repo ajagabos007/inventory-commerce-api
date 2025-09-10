@@ -172,7 +172,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $customer->applyRequestIncludesAndAppends();
+        $customer->loadFromRequest();
 
         $customer_resource = (new CustomerResource($customer))->additional([
             'message' => 'Customer retrieved successfully',

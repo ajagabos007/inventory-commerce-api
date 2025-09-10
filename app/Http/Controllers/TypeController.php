@@ -119,7 +119,7 @@ class TypeController extends Controller
      */
     public function show(Type $type)
     {
-        $type->applyRequestIncludesAndAppends();
+        $type->loadFromRequest();
 
         $type_resource = (new TypeResource($type))->additional([
             'message' => 'Type retrieved successfully',

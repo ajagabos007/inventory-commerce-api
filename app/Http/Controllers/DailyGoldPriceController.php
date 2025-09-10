@@ -129,7 +129,7 @@ class DailyGoldPriceController extends Controller
      */
     public function show(DailyGoldPrice $daily_gold_price)
     {
-        $daily_gold_price->applyRequestIncludesAndAppends();
+        $daily_gold_price->loadFromRequest();
 
         $daily_gold_price_resource = (new DailyGoldPriceResource($daily_gold_price))->additional([
             'message' => 'Daily gold price retrieved successfully',

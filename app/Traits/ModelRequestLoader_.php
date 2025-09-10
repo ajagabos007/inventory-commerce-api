@@ -13,7 +13,7 @@ trait ModelRequestLoader
      * @param  Illuminate\Http\Request|null  $request
      * @return $this
      */
-    public function applyRequestIncludesAndAppends(?Request $request = null): self
+    public function loadFromRequest(?Request $request = null): self
     {
         if (! $this instanceof Model) {
             return $this;

@@ -172,7 +172,7 @@ class StaffController extends Controller
      */
     public function show(Staff $staff)
     {
-        $staff->applyRequestIncludesAndAppends();
+        $staff->loadFromRequest();
 
         $staff_resource = (new StaffResource($staff))->additional([
             'message' => 'Staff retrieved successfully',

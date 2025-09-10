@@ -218,7 +218,7 @@ class ScrapeController extends Controller
      */
     public function show(Scrape $scrape)
     {
-        $scrape->applyRequestIncludesAndAppends();
+        $scrape->loadFromRequest();
 
         $scrape_resource = (new ScrapeResource($scrape))->additional([
             'message' => 'Scrape retrieved successfully',
@@ -235,7 +235,7 @@ class ScrapeController extends Controller
         $validated = $request->validated();
         $scrape->update($validated);
 
-        $scrape->applyRequestIncludesAndAppends();
+        $scrape->loadFromRequest();
 
         $scrape_resource = (new ScrapeResource($scrape))->additional([
             'message' => 'Scrape updated successfully',

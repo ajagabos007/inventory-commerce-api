@@ -137,7 +137,7 @@ class InventoryController extends Controller
     public function show(Inventory $item)
     {
 
-        $item->applyRequestIncludesAndAppends();
+        $item->loadFromRequest();
 
         $inventory_resource = (new InventoryResource($item))->additional([
             'message' => 'Product retrieved successfully',

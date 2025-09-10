@@ -271,7 +271,7 @@ class StockTransferController extends Controller
      */
     public function show(StockTransfer $stock_transfer)
     {
-        $stock_transfer->applyRequestIncludesAndAppends();
+        $stock_transfer->loadFromRequest();
 
         $stock_transfer->loadCount([
             'inventories',

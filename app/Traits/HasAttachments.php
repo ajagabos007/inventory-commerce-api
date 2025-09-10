@@ -14,9 +14,9 @@ use Illuminate\Support\Str;
 trait HasAttachments
 {
     /**
-     * Get the models's attachments.
+     * Get the model's attachments.
      *
-     * @return Illuminate\Database\Eloquent\Relations\MorphMany
+     * @return MorphMany
      */
     public function attachments(): MorphMany
     {
@@ -26,7 +26,7 @@ trait HasAttachments
     /**
      * Get the model's attachment.
      *
-     * @return Illuminate\Database\Eloquent\Relations\MorphOne
+     * @return MorphOne
      */
     public function attachment(): MorphOne
     {
@@ -36,64 +36,67 @@ trait HasAttachments
     /**
      * Attach Attachment to a Model
      *
-     * @param \Illuminate\Http\UploadedAttacFile
-     * @param  array <string, string>  $options
+     * @param UploadedFile $file
+     * @param array<string,string> $options
+     * @param string $baseFolder
+     * @return Attachment
+     * @throws Exception
      */
-    public function attachUploadedFile(UploadedFile $file, array $options = [], string $base_folder = ''): Attachment
+    public function attachUploadedFile(UploadedFile $file, array $options = [], string $baseFolder = ''): Attachment
     {
         if (! file_exists($file)) {
             throw new Exception('Please pass in a file that exists');
         }
 
-        if (\strlen($base_folder) == 0) {
+        if (\strlen($baseFolder) == 0) {
             // set base folder using the model's class name
-            $model_class = Str::of($this::class)->classBasename();
-            $base_folder = Str::kebab(Str::plural($model_class));
+            $modelClass = Str::of($this::class)->classBasename();
+            $baseFolder = Str::kebab(Str::plural($modelClass));
         }
 
-        $base_folder = \strip_tags($base_folder);
-        $base_folder = \stripslashes($base_folder);
+        $baseFolder = \strip_tags($baseFolder);
+        $baseFolder = \stripslashes($baseFolder);
 
-        // remove trailling forward slashes
-        foreach ($explodes = \explode('/', $base_folder) as $key => $value) {
+        // remove trailing forward slashes
+        foreach ($explodes = \explode('/', $baseFolder) as $key => $value) {
             if ($key == array_key_first($explodes)) {
-                $base_folder = '';
+                $baseFolder = '';
             }
 
             if (strlen($value) == 0) {
                 continue;
             }
 
-            if (strlen($base_folder) == 0) {
-                $base_folder = $value;
+            if (strlen($baseFolder) == 0) {
+                $baseFolder = $value;
             } else {
-                $base_folder = $base_folder.'/'.$value;
+                $baseFolder = $baseFolder.'/'.$value;
             }
         }
 
-        // remove trailling backward slashes
-        foreach ($explodes = \explode('\\', $base_folder) as $key => $value) {
+        // remove trailing backward slashes
+        foreach ($explodes = \explode('\\', $baseFolder) as $key => $value) {
             if ($key == array_key_first($explodes)) {
-                $base_folder = '';
+                $baseFolder = '';
             }
 
             if (strlen($value) == 0) {
                 continue;
             }
 
-            if (strlen($base_folder) == 0) {
-                $base_folder = $value;
+            if (strlen($baseFolder) == 0) {
+                $baseFolder = $value;
             } else {
-                $base_folder = $base_folder.'/'.$value;
+                $baseFolder = $baseFolder.'/'.$value;
             }
         }
 
         // reset base folder to uploads if empty
-        if (\strlen($base_folder) == 0) {
-            $base_folder = 'uploads';
+        if (\strlen($baseFolder) == 0) {
+            $baseFolder = 'uploads';
         }
 
-        $directory = $base_folder.'/'.now()->format('Y').'/'.now()->format('m');
+        $directory = $baseFolder.'/'.now()->format('Y').'/'.now()->format('m');
 
         $storage = Storage::disk($this->attachmentDefaultDisk());
         $path = $storage->put($directory, $file);
@@ -131,7 +134,7 @@ trait HasAttachments
      * @param  array <string, string>  $options
      * @return App\Models\Attachment
      */
-    public function updateUploadedFile(UploadedFile $file, array $options = [], string $base_folder = ''): Attachment
+    public function updateUploadedFile(UploadedFile $file, array $options = [], string $baseFolder = ''): Attachment
     {
         if (! file_exists($file)) {
             throw new Exception('Please pass in a file that exists');
@@ -142,7 +145,7 @@ trait HasAttachments
 
         $this->detachAttachments($_attachments);
 
-        return $this->attachUploadedFile($file, $options, $base_folder);
+        return $this->attachUploadedFile($file, $options, $baseFolder);
     }
 
     /**
@@ -151,7 +154,7 @@ trait HasAttachments
      * @param  array <string, string>  $options
      * @return App\Models\Attachment
      */
-    public function updateUploadedBase64File(string $base64_file, array $options = [], string $base_folder = ''): Attachment
+    public function updateUploadedBase64File(string $base64_file, array $options = [], string $baseFolder = ''): Attachment
     {
         $parts = explode(';base64,', $base64_file);
         $file_data = base64_decode($parts[1]);
@@ -172,7 +175,7 @@ trait HasAttachments
         /**
          * @disregard
          */
-        return $this->updateUploadedFile($uploaded_file, $options, $base_folder);
+        return $this->updateUploadedFile($uploaded_file, $options, $baseFolder);
     }
 
     /**

@@ -230,7 +230,7 @@ class SaleInventoryController extends Controller
      */
     public function show(SaleInventory $sale_inventory)
     {
-        $sale_inventory->applyRequestIncludesAndAppends();
+        $sale_inventory->loadFromRequest();
 
         $sale_inventory_resource = (new SaleInventoryResource($sale_inventory))->additional([
             'message' => 'Sale inventory retrieved successfully',
@@ -247,7 +247,7 @@ class SaleInventoryController extends Controller
         $validated = $request->validated();
         $sale_inventory->update($validated);
 
-        $sale_inventory->applyRequestIncludesAndAppends();
+        $sale_inventory->loadFromRequest();
 
         $sale_inventory_resource = (new SaleInventoryResource($sale_inventory))->additional([
             'message' => 'Sale inventory updated successfully',

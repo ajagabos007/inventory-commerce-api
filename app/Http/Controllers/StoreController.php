@@ -139,7 +139,7 @@ class StoreController extends Controller
      */
     public function show(Store $store)
     {
-        $store->applyRequestIncludesAndAppends();
+        $store->loadFromRequest();
 
         $store_resource = (new StoreResource($store))->additional([
             'message' => 'Store retrieved successfully',

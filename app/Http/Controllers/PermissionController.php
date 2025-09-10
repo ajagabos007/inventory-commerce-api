@@ -104,7 +104,7 @@ class PermissionController extends Controller
      */
     public function show(Permission $permission)
     {
-        $permission->applyRequestIncludesAndAppends();
+        $permission->loadFromRequest();
 
         $permission_resource = (new PermissionResource($permission))->additional([
             'message' => 'Permission retrieved successfully',

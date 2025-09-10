@@ -125,7 +125,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->applyRequestIncludesAndAppends();
+        $user->loadFromRequest();
 
         $user_resource = (new UserResource($user))->additional([
             'message' => 'User retreived successfully',
@@ -165,7 +165,7 @@ class UserController extends Controller
          */
         $user = auth()->user();
         if (! is_null($user)) {
-            $user->applyRequestIncludesAndAppends();
+            $user->loadFromRequest();
         }
 
         $user_resource = (new UserResource($user))->additional([
@@ -186,9 +186,6 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
-        /**
-         * @disregard suppress Undefined method 'user'.intelephense(P1013)
-         */
         if (! is_null($user = auth()->user())) {
             $user->update($validated);
 
@@ -298,7 +295,7 @@ class UserController extends Controller
         $user->syncRoles($validated['roles']);
 
         $user->load('roles');
-        $user->applyRequestIncludesAndAppends();
+        $user->loadFromRequest();
 
         $user_resource = (new UserResource($user))->additional([
             'message' => 'User roles synced successfully',
@@ -321,7 +318,7 @@ class UserController extends Controller
         $user->syncPermissions($validated['permissions']);
         $user->load('permissions');
 
-        $user->applyRequestIncludesAndAppends();
+        $user->loadFromRequest();
 
         $user_resource = (new UserResource($user))->additional([
             'message' => 'User direct permissions synced successfully',

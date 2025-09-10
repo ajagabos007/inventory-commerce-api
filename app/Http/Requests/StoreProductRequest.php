@@ -43,7 +43,8 @@ class StoreProductRequest extends FormRequest
             'weight' => ['requiredIf:material,'.Material::GOLD->value, 'numeric'],
             'price' => [Rule::excludeIf($this->input('material') == Material::GOLD->value), 'numeric', 'min:1'],
             'quantity' => ['integer', 'min:1'],
-            'upload_image' => [
+            'images' => ['required', 'array', 'min:1', 'max:4'],
+            'images*' => [
                 'required',
                 'string',
                 new Base64File($allowed_mimetypes = [
@@ -53,12 +54,6 @@ class StoreProductRequest extends FormRequest
                     'image/webp',
                 ], $allowed_extensions = [], $max_size_kb = 2048),
             ],
-            // 'images' => ['required','array'],
-            // 'images.*' => [
-            //     'required',
-            //     'string',
-            //     new Base64File($allowed_mimetypes=['image/jpeg', 'image/png', 'image/svg+xml'],$allowed_extensions=[], $max_size_kb=2048)
-            //  ]
         ];
     }
 

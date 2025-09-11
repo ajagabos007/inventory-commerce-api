@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\Material;
 use App\Rules\Base64File;
-use App\Rules\In;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,21 +24,7 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'material' => [
-                'sometimes', 'required', 'string',
-                new In(Material::values(), $caseSensitive = true),
-                Rule::unique('products', 'material')
-                    ->where('category_id', $this->input('category_id'))
-                    ->where('colour_id', $this->input('colour_id'))
-                    ->where('type_id', $this->input('type_id'))
-                    ->where('weight', $this->input('weight'))
-                    ->ignore($this->item),
-            ],
-            // 'sku' => [
-            //     'nullable','string','max:191',
-            //     Rule::unique('products', 'sku')
-            //     ->ignore($this->item)
-            // ],
+
             'category_id' => ['sometimes', 'requiredIf:material,'.Material::GOLD->value, 'exists:categories,id'],
             'colour_id' => ['sometimes', 'requiredIf:material,'.Material::GOLD->value, 'exists:colours,id'],
             'type_id' => ['sometimes', 'required', 'exists:types,id'],

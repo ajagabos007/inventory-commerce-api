@@ -6,7 +6,6 @@ use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ColourController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DailyGoldPriceController;
 use App\Http\Controllers\DashboardController;
@@ -83,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('attributes', AttributeController::class);
     Route::apiResource('attribute-values', AttributeValueController::class);
+    Route::apiResource('products', ProductController::class);
 
     /**
      * Admin routes
@@ -114,7 +114,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('permissions', PermissionController::class)
             ->only(['index', 'show']);
 
-        Route::apiResource('products', ProductController::class);
         Route::apiResource('discounts', DiscountController::class);
         Route::apiResource('daily-gold-prices', DailyGoldPriceController::class);
     });

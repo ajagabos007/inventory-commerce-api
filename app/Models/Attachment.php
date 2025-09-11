@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\AttachmentObserver;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Storage;
 #[ObservedBy([AttachmentObserver::class])]
 class Attachment extends Model
 {
+    public mixed $ulr;
+
     use HasFactory;
     use HasUuids;
 
@@ -39,8 +42,6 @@ class Attachment extends Model
 
     /**
      * Get the parent attachable model
-     *
-     * @return Illuminate\Database\Eloquent\Relations\MorphTo
      */
     public function attachable(): MorphTo
     {
@@ -54,11 +55,16 @@ class Attachment extends Model
     {
         return Attribute::make(
             get: function () {
-                /**
-                 * @disregard
-                 */
                 return Storage::disk($this->storage)->url($this->path);
             }
         );
+    }
+
+    /**
+     * Scope images
+     */
+    public function scopeImage(Builder $query): Builder
+    {
+        return $query->where('type', 'image');
     }
 }

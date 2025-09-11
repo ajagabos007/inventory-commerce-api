@@ -30,6 +30,14 @@ trait HasAttachments
     }
 
     /**
+     * GEt the  model's attachment that are images
+     */
+    public function images(): MorphMany
+    {
+        return $this->attachments()->where('type', 'image');
+    }
+
+    /**
      * Attach Attachment to a Model
      *
      * @param  array<string,string>  $options
@@ -145,12 +153,13 @@ trait HasAttachments
     /**
      * Attach Attachment to a Model
      *
-     * @param  array <string, string>  $options
-     * @return App\Models\Attachment
+     * @param  array<string, string>  $options
+     *
+     * @throws Exception
      */
-    public function updateUploadedBase64File(string $base64_file, array $options = [], string $baseFolder = ''): Attachment
+    public function updateUploadedBase64File(string $base64File, array $options = [], string $baseFolder = ''): Attachment
     {
-        $parts = explode(';base64,', $base64_file);
+        $parts = explode(';base64,', $base64File);
         $file_data = base64_decode($parts[1]);
         $mime_type = str_replace('data:', '', $parts[0]);
         $file_name = $options['file_name'] ?? null;
@@ -174,9 +183,6 @@ trait HasAttachments
 
     /**
      * Attach Attachment to a Model
-     *
-     *
-     * @return App\Models\Attachment
      */
     public function attachAttachment(Attachment $attachment): Attachment
     {
@@ -187,8 +193,6 @@ trait HasAttachments
 
     /**
      * Delete all/one/multiple attachment(s) associated with the model
-     *
-     * @param App\Models\Attachment | Illuminate\Support\Collection | null
      */
     public function detachAttachments(null|Attachment|Collection $attachment): void
     {
@@ -208,8 +212,6 @@ trait HasAttachments
 
     /**
      * Delete a specific attachment associated with the model
-     *
-     * @param App\Models\Attachment
      */
     public function detachAttachment(Attachment $attachment): void
     {
@@ -222,42 +224,33 @@ trait HasAttachments
 
     /**
      * Get the first attachment relating to the model
-     *
-     * @return App\Models\Attachment | null
      */
-    public function firstAttachment()
+    public function firstAttachment(): ?Attachment
     {
         return $this->attachments()->first();
     }
 
     /**
      * Get the last attachment relating to the model
-     *
-     * @return App\Models\Attachment | null
      */
-    public function lastAttachment()
+    public function lastAttachment(): ?Attachment
     {
         return $this->attachments()->last();
     }
 
     /**
      * Get the latest Attachment relating the model
-     *
-     * @return App\Models\Attachment | null
      */
-    public function latestAttachment()
+    public function latestAttachment(): ?Attachment
     {
         return $this->attachments()->latest()->first();
     }
 
     /**
-     * Get the disk that profile photos should be stored on.
+     * Get the disk that profile photos should be stored on
      */
     protected function attachmentDefaultDisk(): string
     {
-        /**
-         * @disregard
-         */
         $disk = Storage::disk()->getConfig()['driver'];
 
         return $disk == 'local' ? 'public' : $disk;
@@ -266,11 +259,10 @@ trait HasAttachments
     /**
      * Handle attachable delete event
      */
-    public static function bootAttachment()
+    public static function bootAttachment(): void
     {
         static::deleted(function ($model) {
             $model->detachAttachments();
-            dd('ajkds');
         });
     }
 }

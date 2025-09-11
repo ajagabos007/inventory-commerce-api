@@ -27,6 +27,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

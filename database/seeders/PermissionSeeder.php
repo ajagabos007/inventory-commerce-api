@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Permission;
-use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class PermissionSeeder extends Seeder
@@ -26,6 +25,18 @@ class PermissionSeeder extends Seeder
             ['name' => 'attribute-value.create'],
             ['name' => 'attribute-value.update'],
             ['name' => 'attribute-value.delete'],
+
+            ['name' => 'product.viewAny'],
+            ['name' => 'product.view'],
+            ['name' => 'product.create'],
+            ['name' => 'product.update'],
+            ['name' => 'product.delete'],
+
+            ['name' => 'product-variant.viewAny'],
+            ['name' => 'product-variant.view'],
+            ['name' => 'product-variant.create'],
+            ['name' => 'product-variant.update'],
+            ['name' => 'product-variant.delete'],
 
             // Inventory
             ['name' => 'stock.create'],
@@ -68,28 +79,5 @@ class PermissionSeeder extends Seeder
             uniqueBy: ['name'],
             update: []
         );
-
-        $manager = Role::where('name', 'manager')->first();
-        if ($manager) {
-            $manager->givePermissionTo([
-                'sale.view',
-                'sale.create',
-                'stock_transfer.view',
-                'stock_transfer.create',
-                'stock_transfer.receive',
-                'report.view_sales',
-                'store.update',
-            ]);
-        }
-
-        $saleperson = Role::where('name', 'saleperson')->first();
-        if ($saleperson) {
-            $saleperson->givePermissionTo([
-                'sale.view',
-                'sale.create',
-                'stock_transfer.view',
-                'report.view_sales',
-            ]);
-        }
     }
 }

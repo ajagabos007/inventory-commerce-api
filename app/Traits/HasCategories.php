@@ -2,24 +2,18 @@
 
 namespace App\Traits;
 
+use App\Models\Categorizable;
 use App\Models\Category;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 trait HasCategories
 {
     /**
-     * Get the category
-     */
-    public function category(): MorphMany
-    {
-        return $this->morphOne(Category::class, 'categorizable');
-    }
-
-    /**
      * Get the categories
      */
-    public function categories(): MorphMany
+    public function categories(): MorphToMany
     {
-        return $this->morphMany(Category::class, 'categorizable');
+        return $this->morphToMany(Category::class, 'categorizable')
+            ->using(Categorizable::class);
     }
 }

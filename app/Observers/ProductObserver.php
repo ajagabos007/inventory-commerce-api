@@ -9,16 +9,7 @@ class ProductObserver
     /**
      * Handle the Product "created" event.
      */
-    public function creating(Product $item): void
-    {
-        if (empty($product->sku)) {
-            $item->sku = Product::generateSKU();
-        }
-
-        if (empty($item->barcode)) {
-            $item->barcode = $item->generateBarcode();
-        }
-    }
+    public function creating(Product $item): void {}
 
     /**
      * Handle the Product "created" event.
@@ -28,16 +19,7 @@ class ProductObserver
     /**
      * Handle the Product "updating" event.
      */
-    public function updating(Product $item): void
-    {
-        if (empty($item->sku)) {
-            $item->sku = Product::generateSKU();
-        }
-
-        if (empty($item->barcode)) {
-            $item->barcode = $item->generateBarcode();
-        }
-    }
+    public function updating(Product $item): void {}
 
     /**
      * Handle the Product "updated" event.

@@ -4,29 +4,33 @@ namespace App\Models;
 
 use App\Observers\ProductObserver;
 use App\Traits\HasAttachments;
+use App\Traits\HasAttributeValues;
+use App\Traits\HasCategories;
 use App\Traits\ModelRequestLoader;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
-use Milon\Barcode\DNS1D;
 
 #[ObservedBy([ProductObserver::class])]
 class Product extends Model
 {
     use HasAttachments;
 
+    use HasAttributeValues;
+
+    use HasCategories;
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
-
     use HasUuids;
     use ModelRequestLoader;
+    use Sluggable;
 
     /**
      * The attributes that are mass assignable.
@@ -43,15 +47,34 @@ class Product extends Model
     ];
 
     /**
+     * Return the sluggable configuration array for this model.
+     */
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+            ],
+        ];
+    }
+
+    /**
      * Get the item's name
      */
-    protected function dipslayPrice(): Attribute
+    protected function displayPrice(): Attribute
     {
         return Attribute::make(
-            get: function () {}
+            get: function ($display_price) {
 
+                if (! blank($display_price)) {
+                    return $display_price;
+                }
+                $min_price = $this->variants()->min('price');
+                $max_price = $this->variants()->max('price');
+
+                return $min_price == $max_price ? $min_price : $min_price.'-'.$max_price;
+            }
         );
-
     }
 
     /**
@@ -60,18 +83,30 @@ class Product extends Model
     protected function displayComparePrice(): Attribute
     {
         return Attribute::make(
-            get: function () {}
+            get: function ($display_compare_price) {
 
+                if (! blank($display_compare_price)) {
+                    return $display_compare_price;
+                }
+
+                $min_compare_price = $this->variants()->min('compare_price');
+                $max_compare_price = $this->variants()->max('compare_price');
+
+                return $min_compare_price == $max_compare_price ? $min_compare_price : $min_compare_price.'-'.$max_compare_price;
+            }
         );
-
     }
 
     /**
-     * Get the type
+     * Search scope
      */
-    public function type(): BelongsTo
+    public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $this->belongsTo(Type::class, 'type_id');
+        return $query->where('slug', 'like', "%{$term}%")
+            ->orWhere('description', 'like', "%{$term}%")
+            ->orWhere('short_description', 'like', "%{$term}%")
+            ->orWhere('display_price', 'like', "%{$term}%")
+            ->orWhere('display_compare_price', 'like', "%{$term}%");
     }
 
     /**
@@ -89,56 +124,5 @@ class Product extends Model
     {
         return $this->belongsToMany(Store::class, Inventory::class)
             ->withPivot('quantity')->using(Inventory::class);
-    }
-
-    /**
-     * Generate item barcode
-     *
-     * @return string|null
-     */
-    public function generateBarcode()
-    {
-
-        if ($this->barcode != null && ! empty($this->barcode)) {
-            // If barcode already exists, return it
-            if (Str::startsWith($this->barcode, 'data:image/jpeg;base64,')) {
-                return $this->barcode;
-            }
-        }
-
-        if (! empty($this->sku)) {
-            return;
-        }
-
-        $this->sku = Product::generateSKU();
-
-        /**
-         * @see https://github.com/milon/barcode
-         */
-        return 'data:image/png;base64,'.(new DNS1D)->getBarcodePNG($this->sku, 'c128', $w = 1, $h = 33, [0, 0, 0], true);
-    }
-
-    /**
-     * Generate a unique invoice number.
-     *
-     * @throws \RuntimeException
-     */
-    public static function generateSKU(): string
-    {
-        $maxAttempts = 100;
-        $attempt = 0;
-
-        do {
-            $sku = strtoupper(Str::random(6));
-            $exists = self::where('sku', $sku)->exists();
-            $attempt++;
-            sleep(1); // Sleep for a short duration to avoid rapid retries;
-        } while ($exists && $attempt < $maxAttempts);
-
-        if ($exists) {
-            throw new \RuntimeException("Unable to generate a unique sku after {$attempt} attempts.");
-        }
-
-        return $sku;
     }
 }

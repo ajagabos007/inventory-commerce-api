@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\AttributeValue;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Store;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
-use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
@@ -19,7 +19,7 @@ class ProductController extends Controller
      */
     public function __construct()
     {
-        $this->authorizeResource(Product::class, 'item');
+        $this->authorizeResource(Product::class, 'product');
     }
 
     /**
@@ -32,61 +32,33 @@ class ProductController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $products = QueryBuilder::for(Product::withSum('inventories', 'quantity'))
+        $products = QueryBuilder::for(Product::class)
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',
                 'created_at',
                 'updated_at',
             )
-            ->allowedFilters([
-                AllowedFilter::exact('category_id'),
-                AllowedFilter::exact('type_id'),
-                AllowedFilter::exact('colour_id'),
-            ])
             ->allowedIncludes([
-                'cateogry',
-                'type',
-                'colour',
+                'images',
+                'variants',
+                'categories',
+            ])
+            ->allowedFilters([
+                'variants.id',
+                'variants.sku',
             ]);
 
-        if (request()->has('q')) {
-            $products->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
-            });
-        }
+        $products->when(request()->filled('q'), function ($query) {
+            $query->search(request()->q);
+        });
 
         /**
          * Check if pagination is not disabled
          */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
 
             $products = $products->paginate($perPage)
                 ->appends(request()->query());
@@ -95,12 +67,10 @@ class ProductController extends Controller
             $products = $products->get();
         }
 
-        $products_collection = ProductResource::collection($products)->additional([
+        return ProductResource::collection($products)->additional([
             'status' => 'success',
             'message' => 'Products retrieved successfully',
         ]);
-
-        return $products_collection;
     }
 
     /**
@@ -109,91 +79,122 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $validated = $request->validated();
-        $item = Product::create($validated);
 
-        if (array_key_exists('upload_image', $validated)) {
-            $item->updateUploadedBase64File($validated['upload_image']);
+        try {
+            DB::beginTransaction();
 
+            $product = Product::create($validated);
+
+            if (array_key_exists('attribute_value_ids', $validated) && is_array($validated['attribute_value_ids'])) {
+                $attributeValues = AttributeValue::whereIn('id', $validated['attribute_value_ids'])->pluck('id');
+
+                if ($attributeValues->isNotEmpty()) {
+                    $product->attributeValues()->attach($attributeValues);
+                }
+            }
+
+            $product->variants()->create($validated);
+
+            if (array_key_exists('category_ids', $validated) && is_array($validated['category_ids'])) {
+                $categories = Category::whereIn('id', $validated['category_ids'])->pluck('id');
+
+                if ($categories->isNotEmpty()) {
+                    $product->categories()->attach($categories);
+                }
+            }
+
+            DB::commit();
+
+            if (array_key_exists('images', $validated)) {
+                foreach ($validated['images'] as $image) {
+                    DB::beginTransaction();
+
+                    try {
+                        $product->updateUploadedBase64File($image);
+                        DB::commit();
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        logger($e->getMessage());
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
 
-        if ($store_hq = Store::warehouses()->first()) {
-            $store_hq->products()->syncWithPivotValues([$item->id], [
-                'quantity' => $validated['quantity'] ?? 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        $product->load('attributeValues.attribute', 'variants', 'categories');
 
-        $item_resource = (new ProductResource($item))->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product created successfully',
         ]);
 
-        return $item_resource;
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Product $item)
+    public function show(Product $product)
     {
-        $item->loadFromRequest();
+        $product->loadFromRequest();
 
-        $item_resource = (new ProductResource($item))->additional([
+        $product_resource = (new ProductResource($product))->additional([
             'message' => 'Product retrieved successfully',
         ]);
 
-        return $item_resource;
+        return $product_resource;
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $item)
+    public function update(UpdateProductRequest $request, Product $product)
     {
         $validated = $request->validated();
 
-        $item->update($validated);
+        $product->update($validated);
 
         // if(array_key_exists('images', $validated))
         // {
         //     foreach($validated['images'] as $image)
         //     {
-        //         $item->updateUploadedBase64File($image);
+        //         $product->updateUploadedBase64File($image);
         //     }
         // }
 
         if (array_key_exists('upload_image', $validated)) {
-            $item->detachAttachments(null);
-            $item->updateUploadedBase64File($validated['upload_image']);
+            $product->detachAttachments(null);
+            $product->updateUploadedBase64File($validated['upload_image']);
 
         }
 
         if (array_key_exists('quantity', $validated) && ($store_hq = Store::warehouses()->first())) {
-            $store_hq->products()->syncWithPivotValues([$item->id], [
+            $store_hq->products()->syncWithPivotValues([$product->id], [
                 'quantity' => $validated['quantity'] ?? 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
-        $item_resource = (new ProductResource($item))->additional([
+        $product_resource = (new ProductResource($product))->additional([
             'message' => 'Product updated successfully',
         ]);
 
-        return $item_resource;
+        return $product_resource;
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $item)
+    public function destroy(Product $product)
     {
-        $item->delete();
+        $product->delete();
 
-        $item_resource = (new ProductResource(null))->additional([
+        $product_resource = (new ProductResource(null))->additional([
             'message' => 'Product deleted successfully',
         ]);
 
-        return $item_resource;
+        return $product_resource;
     }
 }

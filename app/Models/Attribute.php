@@ -49,6 +49,9 @@ class Attribute extends Model
         ];
     }
 
+    /**
+     * Search scope
+     */
     public function scopeSearch(Builder $query, string $term): Builder
     {
         return $query->where('name', 'like', "%{$term}%")

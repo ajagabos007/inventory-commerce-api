@@ -64,8 +64,10 @@ class ProductVariant extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: function () {
-                return $this->product->name;
+            get: function ($name) {
+                if(blank($name))
+                    return $this->product->name;
+                return $name;
             }
         );
 

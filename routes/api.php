@@ -17,6 +17,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\POS\CartController;
 use App\Http\Controllers\POS\CheckoutController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleInventoryController;
@@ -83,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('attributes', AttributeController::class);
     Route::apiResource('attribute-values', AttributeValueController::class);
     Route::apiResource('products', ProductController::class);
+    Route::apiResource('product-variants', ProductVariantController::class);
 
     /**
      * Admin routes

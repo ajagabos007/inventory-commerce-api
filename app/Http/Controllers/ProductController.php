@@ -43,6 +43,7 @@ class ProductController extends Controller
                 'images',
                 'variants',
                 'categories',
+                'attributeValues',
             ])
             ->allowedFilters([
                 'variants.id',
@@ -155,33 +156,9 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        // if(array_key_exists('images', $validated))
-        // {
-        //     foreach($validated['images'] as $image)
-        //     {
-        //         $product->updateUploadedBase64File($image);
-        //     }
-        // }
-
-        if (array_key_exists('upload_image', $validated)) {
-            $product->detachAttachments(null);
-            $product->updateUploadedBase64File($validated['upload_image']);
-
-        }
-
-        if (array_key_exists('quantity', $validated) && ($store_hq = Store::warehouses()->first())) {
-            $store_hq->products()->syncWithPivotValues([$product->id], [
-                'quantity' => $validated['quantity'] ?? 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        $product_resource = (new ProductResource($product))->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product updated successfully',
         ]);
-
-        return $product_resource;
     }
 
     /**
@@ -191,10 +168,8 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        $product_resource = (new ProductResource(null))->additional([
+        return (new ProductResource(null))->additional([
             'message' => 'Product deleted successfully',
         ]);
-
-        return $product_resource;
     }
 }

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Observers\ProductVariantObserver;
+use App\Traits\HasAttributeValues;
 use App\Traits\ModelRequestLoader;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,9 +19,10 @@ use Milon\Barcode\DNS1D;
 #[ObservedBy([ProductVariantObserver::class])]
 class ProductVariant extends Model
 {
+    use HasAttributeValues;
+
     /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
-
     use HasUuids;
     use ModelRequestLoader;
 
@@ -29,7 +32,7 @@ class ProductVariant extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'product_id',
         'sku',
         'price',
         'compare_price',
@@ -37,16 +40,31 @@ class ProductVariant extends Model
     ];
 
     /**
+     * Search scope
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where('sku', 'like', "%{$term}%")
+            ->orWhere('price', 'like', "%{$term}%")
+            ->orWhere('compare_price', 'like', "%{$term}%")
+            ->orWhere('cost_price', 'like', "%{$term}%")
+            ->orWhereHas('product', function ($query) use ($term) {
+                $query->where('slug', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('short_description', 'like', "%{$term}%")
+                    ->orWhere('display_price', 'like', "%{$term}%")
+                    ->orWhere('display_compare_price', 'like', "%{$term}%");
+            });
+
+    }
+
+    /**
      * Get the item's name
      */
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: function ($name) {
-                if (! blank($name)) {
-                    return $name;
-                }
-
+            get: function () {
                 return $this->product->name;
             }
         );

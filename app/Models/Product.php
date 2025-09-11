@@ -22,12 +22,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     use HasAttachments;
-
     use HasAttributeValues;
-
     use HasCategories;
+
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
     use Sluggable;

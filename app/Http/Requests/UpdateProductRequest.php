@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\Base64File;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,10 +30,10 @@ class UpdateProductRequest extends FormRequest
                 'string',
                 'max:191',
                 Rule::unique('products', 'name')
-                ->ignore($this->product)
+                    ->ignore($this->product),
             ],
-            'short_description' => ['nullable', 'string', 'max:191' ],
-            'description' => ['nullable', 'string', 'max:2000' ],
+            'short_description' => ['nullable', 'string', 'max:191'],
+            'description' => ['nullable', 'string', 'max:2000'],
         ];
     }
 

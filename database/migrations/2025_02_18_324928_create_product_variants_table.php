@@ -17,6 +17,7 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->string('sku')->unique();
+            $table->string('name')->nullable();
             $table->text('barcode')->nullable()->unique();
             $table->decimal('price', total: 8, places: 2);
             $table->decimal('compare_price', total: 8, places: 2)->nullable();

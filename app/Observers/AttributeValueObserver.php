@@ -27,7 +27,7 @@ class AttributeValueObserver
      */
     public function saving(AttributeValue $attributeValue): void
     {
-        if(blank($attributeValue->display_value)){
+        if (blank($attributeValue->display_value)) {
             $attributeValue->display_value = $attributeValue->value;
         }
     }
@@ -35,18 +35,12 @@ class AttributeValueObserver
     /**
      * Handle the AttributeValue "deleted" event.
      */
-    public function deleted(AttributeValue $attributeValue): void
-    {
-
-    }
+    public function deleted(AttributeValue $attributeValue): void {}
 
     /**
      * Handle the AttributeValue "restored" event.
      */
-    public function restored(AttributeValue $attributeValue): void
-    {
-
-    }
+    public function restored(AttributeValue $attributeValue): void {}
 
     /**
      * Handle the AttributeValue "force deleted" event.

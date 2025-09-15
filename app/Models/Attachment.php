@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 #[ObservedBy([AttachmentObserver::class])]
 class Attachment extends Model
 {
-    public mixed $ulr;
+    public mixed $url;
 
     use HasFactory;
     use HasUuids;

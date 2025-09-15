@@ -23,6 +23,7 @@ class ProductVariant extends Model
 
     /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
 
@@ -65,8 +66,10 @@ class ProductVariant extends Model
     {
         return Attribute::make(
             get: function ($name) {
-                if(blank($name))
+                if (blank($name)) {
                     return $this->product->name;
+                }
+
                 return $name;
             }
         );

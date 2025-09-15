@@ -9,35 +9,35 @@ class ProductObserver
     /**
      * Handle the Product "created" event.
      */
-    public function creating(Product $item): void {}
+    public function creating(Product $product): void {}
 
     /**
      * Handle the Product "created" event.
      */
-    public function created(Product $item): void {}
+    public function created(Product $product): void {}
 
     /**
      * Handle the Product "updating" event.
      */
-    public function updating(Product $item): void {}
+    public function updating(Product $product): void {}
 
     /**
      * Handle the Product "updated" event.
      */
-    public function updated(Product $item): void {}
+    public function updated(Product $product): void {}
 
     /**
      * Handle the Product "deleted" event.
      */
-    public function deleted(Product $item): void
+    public function deleted(Product $product): void
     {
-        //
+        $product->attributeValues()->delete();
     }
 
     /**
      * Handle the Product "restored" event.
      */
-    public function restored(Product $item): void
+    public function restored(Product $product): void
     {
         //
     }
@@ -45,7 +45,7 @@ class ProductObserver
     /**
      * Handle the Product "force deleted" event.
      */
-    public function forceDeleted(Product $item): void
+    public function forceDeleted(Product $product): void
     {
         //
     }

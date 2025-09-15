@@ -125,4 +125,17 @@ class Product extends Model
         return $this->belongsToMany(Store::class, Inventory::class)
             ->withPivot('quantity')->using(Inventory::class);
     }
+
+    public function updateDisplayPrices(): void
+    {
+        $min_price = $this->variants()->min('price');
+        $max_price = $this->variants()->max('price');
+        $this->display_price = $min_price == $max_price ? $min_price : $min_price.'-'.$max_price;
+
+        $min_compare_price = $this->variants()->min('compare_price');
+        $max_compare_price = $this->variants()->max('compare_price');
+        $this->display_compare_price = $min_compare_price == $max_compare_price ? $min_compare_price : $min_compare_price.'-'.$max_compare_price;
+
+        $this->save();
+    }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
                 ->on('attributes')
                 ->onDelete('cascade');
             $table->text('value');
-            $table->text('display_value');
+            $table->text('display_value')->nullable();
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);

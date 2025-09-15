@@ -16,4 +16,14 @@ trait HasAttributeValues
         return $this->morphToMany(AttributeValue::class, 'attributable')
             ->using(Attributable::class);
     }
+
+    /**
+     * Handle attributable delete event
+     */
+    public static function bootHasAttributeValues(): void
+    {
+        static::deleted(function ($model) {
+            $model->attributeValues()->detach();
+        });
+    }
 }

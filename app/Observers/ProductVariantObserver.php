@@ -26,19 +26,7 @@ class ProductVariantObserver
     public function created(ProductVariant $productVariant): void
     {
         $product = $productVariant->product;
-
-        $min_price = $product->variants()->min('price');
-        $max_price = $product->variants()->max('price');
-
-        $product->display_price = $min_price == $max_price ? $min_price : $min_price.'-'.$max_price;
-
-        $min_compare_price = $product->variants()->min('compare_price');
-        $max_compare_price = $product->variants()->max('compare_price');
-
-        $product->display_compare_price = $min_compare_price == $max_compare_price ? $min_compare_price : $min_compare_price.'-'.$max_compare_price;
-
-        $product->saveQuietly();
-
+        $product->updateDisplayPrices();
     }
 
     /**
@@ -46,22 +34,9 @@ class ProductVariantObserver
      */
     public function updated(ProductVariant $productVariant): void
     {
-        $product = $productVariant->product;
-
-        if ($productVariant->wasChanged('price')) {
-            $min_price = $product->variants()->min('price');
-            $max_price = $product->variants()->max('price');
-            $product->display_price = $min_price == $max_price ? $min_price : $min_price.'-'.$max_price;
-        }
-
-        if ($productVariant->wasChanged('compare_price')) {
-            $min_compare_price = $product->variants()->min('compare_price');
-            $max_compare_price = $product->variants()->max('compare_price');
-            $product->display_compare_price = $min_compare_price == $max_compare_price ? $min_compare_price : $min_compare_price.'-'.$max_compare_price;
-        }
-
-        if ($product->isDirty(['price', 'compare_price'])) {
-            $product->saveQuietly();
+        if ($productVariant->wasChanged('price') || $productVariant->wasChanged('compare_price')) {
+            $product = $productVariant->product;
+            $product->updateDisplayPrices();
         }
     }
 
@@ -75,7 +50,8 @@ class ProductVariantObserver
      */
     public function deleted(ProductVariant $productVariant): void
     {
-        //
+        $product = $productVariant->product;
+        $product->updateDisplayPrices();
     }
 
     /**

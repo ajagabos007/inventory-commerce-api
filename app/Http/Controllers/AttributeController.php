@@ -85,15 +85,19 @@ class AttributeController extends Controller
 
             $values = data_get($validated, 'values', []);
 
-            if (is_array($values)) {
+            if (is_array($values) && !blank($values)) {
                 $prepare_values = [];
                 foreach ($values as $key => $value) {
+                    if(blank($value)) continue;
                     $prepare_values[] = [
                         'value' => $value,
+                        'display_value' => $value
                     ];
                 }
 
-                $attribute->values()->createMany($prepare_values);
+               if(!empty($prepare_values)) {
+                   $attribute->values()->createMany($prepare_values);
+               }
             }
 
             DB::commit();

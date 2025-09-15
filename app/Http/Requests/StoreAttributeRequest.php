@@ -33,7 +33,7 @@ class StoreAttributeRequest extends FormRequest
                 'unique:attributes,name',
             ],
             'type' => ['nullable', Rule::in(AttributeType::values(), 'i')],
-            'values' => ['nullable', 'array'],
+            'values' => ['array'],
             'values*' => ['required_with:values', 'string'],
         ];
     }

@@ -259,7 +259,7 @@ trait HasAttachments
     /**
      * Handle attachable delete event
      */
-    public static function bootAttachment(): void
+    public static function bootHasAttachments(): void
     {
         static::deleted(function ($model) {
             $model->detachAttachments();

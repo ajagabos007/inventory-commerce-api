@@ -16,4 +16,14 @@ trait HasCategories
         return $this->morphToMany(Category::class, 'categorizable')
             ->using(Categorizable::class);
     }
+
+    /**
+     * Handle attributable delete event
+     */
+    public static function bootHasCategories(): void
+    {
+        static::deleted(function ($model) {
+            $model->categories()->detach();
+        });
+    }
 }

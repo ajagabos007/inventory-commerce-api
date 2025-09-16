@@ -4,8 +4,8 @@ run-name: "🚀 Deploy by ${{ github.actor }} to Inventory Commerce API [${{ git
 on:
   push:
     branches:
-      - main   # 👈 auto-deploy on main
-  workflow_dispatch:   # 👈 manual "Run workflow" button
+      - main   # auto-deploy on main pushes
+  workflow_dispatch:   # manual "Run workflow" button
 
 jobs:
   deploy:
@@ -23,21 +23,23 @@ jobs:
       - name: 🚀 Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no -p 22 \
-              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            set -e  # stop on first error
+
             echo "🔐 Logged in via SSH"
 
             cd /var/www/inventory-commerce-api
 
             echo "🔍 Detecting remote and branch..."
-            REMOTE_URL=\$(git remote get-url origin)
-            echo "🔗 Remote URL: \$REMOTE_URL"
+            REMOTE_URL=$(git remote get-url origin)
+            echo "🔗 Remote URL: $REMOTE_URL"
 
-            BRANCH=\$(git rev-parse --abbrev-ref HEAD)
-            echo "🌿 Current Branch: \$BRANCH"
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo "🌿 Current Branch: $BRANCH"
 
             echo "📥 Fetching and updating branch..."
             git fetch origin
-            git reset --hard origin/\$BRANCH
+            git reset --hard origin/$BRANCH
 
             echo "📦 Installing dependencies..."
             composer install --no-interaction --prefer-dist --optimize-autoloader

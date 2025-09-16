@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Laravel</title>
+    <title>CBN MALL API</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -94,10 +94,10 @@
                                 </div>
 
                                 <div class="pt-3 sm:pt-5 lg:pt-0">
-                                    <h2 class="text-xl font-semibold text-black dark:text-white">Goldwise API Documentation</h2>
+                                    <h2 class="text-xl font-semibold text-black dark:text-white">CBN MALL API Documentation</h2>
 
                                     <p class="mt-4 text-sm/relaxed">
-                                        The <b>Goldwise API Documentation</b> outlines the features and endpoints for integrating Goldwise's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                        The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                                     </p>
                                 </div>
                             </div>
@@ -107,7 +107,7 @@
                     </a>
 
                     <a
-                        href="https://documenter.getpostman.com/view/22268604/2sAYQdkAiF#eed40e11-37ca-4364-a1b6-80d5a443ae4a"
+                        href="https://documenter.getpostman.com/view/22268604/2sB3Hks21F#4511a48d-ee57-4a11-9d07-d0b5ede3b5a1"
                         class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#FF2D20] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#FF2D20]"
                     >
                         <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#FF2D20]/10 sm:size-16">
@@ -118,7 +118,7 @@
                             <h2 class="text-xl font-semibold text-black dark:text-white">Authentication APIs</h2>
 
                             <p class="mt-4 text-sm/relaxed">
-                                The <b>Goldwise API Documentation</b> outlines the features and endpoints for integrating Goldwise's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                             </p>
                         </div>
 
@@ -126,7 +126,7 @@
                     </a>
 
                     <a
-                        href="https://documenter.getpostman.com/view/22268604/2sAYQdkAiF#a36081bd-227c-4c2c-890e-7275a389c9e5"
+                        href="https://documenter.getpostman.com/view/22268604/2sB3Hks21F#4511a48d-ee57-4a11-9d07-d0b5ede3b5a1"
                         class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#FF2D20] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#FF2D20]"
                     >
                         <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#FF2D20]/10 sm:size-16">
@@ -134,10 +134,10 @@
                         </div>
 
                         <div class="pt-3 sm:pt-5">
-                            <h2 class="text-xl font-semibold text-black dark:text-white">Admin APIs</h2>
+                            <h2 class="text-xl font-semibold text-black dark:text-white">CBN MALL API Documentation</h2>
 
                             <p class="mt-4 text-sm/relaxed">
-                                The <b>Goldwise API Documentation</b> outlines the features and endpoints for integrating Goldwise's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                             </p>
                         </div>
 
@@ -156,10 +156,10 @@
                         </div>
 
                         <div class="pt-3 sm:pt-5">
-                            <h2 class="text-xl font-semibold text-black dark:text-white"><a href="https://documenter.getpostman.com/view/22268604/2sAYQdkAiF#a36081bd-227c-4c2c-890e-7275a389c9e5">User APIs</a></h2>
+                            <h2 class="text-xl font-semibold text-black dark:text-white"><a href="https://documenter.getpostman.com/view/22268604/2sB3Hks21F#e7d3d0f5-1146-479c-b06b-7ae4a77418d4">User APIs</a></h2>
 
                             <p class="mt-4 text-sm/relaxed">
-                                The <b>Goldwise API Documentation</b> outlines the features and endpoints for integrating Goldwise's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                             </p>
                         </div>
                     </div>

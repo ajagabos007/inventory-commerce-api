@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Models\AttributeValue;
+use App\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class SyncAttributeValuesRequest extends FormRequest
+class SyncCategoriesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +24,10 @@ class SyncAttributeValuesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'attribute_value_ids' => ['required', 'array'],
-            'attribute_value_ids.*' => [
+            'category_ids' => ['required', 'array'],
+            'category_ids.*' => [
                 'nullable',
-                Rule::exists(AttributeValue::class, 'id'),
+                Rule::exists(Category::class, 'id'),
             ],
         ];
     }
@@ -40,8 +40,8 @@ class SyncAttributeValuesRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'attribute_value_ids' => 'attribute values',
-            'attribute_value_ids.*' => 'attribute value [:position]',
+            'category_ids' => 'categories',
+            'category_ids.*' => 'category [:position]',
         ];
     }
 }

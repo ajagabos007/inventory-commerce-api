@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\SyncAttributeValuesRequest;
+use App\Http\Requests\SyncCategoriesRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadImageRequest;
 use App\Http\Resources\ProductResource;
@@ -272,6 +273,57 @@ class ProductController extends Controller
 
         return new ProductResource($product)->additional([
             'message' => 'Product\'s attribute value sync successfully',
+        ]);
+    }
+
+    /**
+     *  Sync the specified resource attribute values in storage.
+     */
+    public function addCategory(Request $request, Product $product, Category $category): ProductResource
+    {
+        $product->categories()->syncWithoutDetaching($category->id);
+
+        $product->load('categories');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product added to category successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource attribute values in storage.
+     */
+    public function removeCategory(Request $request, Product $product, Category $category): ProductResource
+    {
+        $product->categories()->detach($category->id);
+
+        $product->load('categories');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product removed from category successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource categories in storage.
+     */
+    public function syncCategories(SyncCategoriesRequest $request, Product $product): ProductResource
+    {
+        $validated = $request->validated();
+
+        $categories = data_get($validated, 'category_ids', []);
+
+        if (is_array($categories)) {
+            $categories = array_filter($categories, function ($value) {
+                return ! blank($value);
+            });
+            $product->categories()->sync($categories);
+        }
+
+        $product->load('categories');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product\'s categories sync successfully',
         ]);
     }
 }

@@ -92,21 +92,30 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::delete('/{image}', 'deleteImage')->name('destroy');
             });
 
-            Route::match(['PUT', 'PATCH'], 'attribute-values', 'syncAttributeValues')->name('attribute-values.sync');
-            Route::post('attribute-values/{attribute_value}', 'addAttributeValue')->name('attribute-values.add');
-            Route::delete('attribute-values/{attribute_value}', 'removeAttributeValue')->name('attribute-values.remove');
+            Route::prefix('categories')->name('categories.')->group(function () {
+                Route::match(['PUT', 'PATCH'], '/', 'syncCategories')->name('sync');
+                Route::post('{category}', 'addCategory')->name('add');
+                Route::delete('{category}', 'removeCategory')->name('remove');
+            });
+
+            Route::prefix('attribute-values')->name('attribute-values.')->group(function () {
+                Route::match(['PUT', 'PATCH'], '/', 'syncAttributeValues')->name('sync');
+                Route::post('/{attribute_value}', 'addAttributeValue')->name('add');
+                Route::delete('/{attribute_value}', 'removeAttributeValue')->name('remove');
+            });
         });
     });
     Route::apiResource('products', ProductController::class);
 
     Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
         Route::controller(ProductVariantController::class)->group(function () {
-            Route::match(['PUT', 'PATCH'], 'attribute-values', 'syncAttributeValues')->name('attribute-values.sync');
-            Route::post('attribute-values/{attribute_value}', 'addAttributeValue')->name('attribute-values.add');
-            Route::delete('attribute-values/{attribute_value}', 'removeAttributeValue')->name('attribute-values.remove');
+            Route::prefix('attribute-values')->name('attribute-values.')->group(function () {
+                Route::match(['PUT', 'PATCH'], '/', 'syncAttributeValues')->name('sync');
+                Route::post('/{attribute_value}', 'addAttributeValue')->name('add');
+                Route::delete('/{attribute_value}', 'removeAttributeValue')->name('remove');
+            });
         });
     });
-
     Route::apiResource('product-variants', ProductVariantController::class);
 
     /**

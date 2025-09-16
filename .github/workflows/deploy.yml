@@ -41,7 +41,7 @@ jobs:
             git fetch origin $BRANCH
 
             echo "📦 Installing dependencies..."
-            composer install --no-interaction --prefer-dist --optimize-autoloader
+            composer update --no-interaction --prefer-dist --optimize-autoloader
 
             echo "⚙️ Running Laravel setup..."
             php artisan migrate --force

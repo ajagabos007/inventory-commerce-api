@@ -38,6 +38,14 @@ trait HasAttachments
     }
 
     /**
+     * GEt the  model's attachment that are pdf
+     */
+    public function pdfs(): MorphMany
+    {
+        return $this->attachments()->where('type', 'pdf');
+    }
+
+    /**
      * Attach Attachment to a Model
      *
      * @param  array<string,string>  $options

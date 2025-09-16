@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductVariantRequest;
+use App\Http\Requests\SyncAttributeValuesRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
 use App\Http\Resources\ProductVariantResource;
 use App\Models\AttributeValue;
 use App\Models\ProductVariant;
-use App\Models\Store;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -149,6 +150,57 @@ class ProductVariantController extends Controller
 
         return (new ProductVariantResource(null))->additional([
             'message' => 'Product variant deleted successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource attribute values in storage.
+     */
+    public function addAttributeValue(Request $request, ProductVariant $productVariant, AttributeValue $attributeValue)
+    {
+        $productVariant->attributeValues()->syncWithoutDetaching($attributeValue->id);
+
+        $productVariant->load('attributeValues.attribute');
+
+        return (new ProductVariantResource($productVariant))->additional([
+            'message' => 'Product variant\'s attribute value added successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource attribute values in storage.
+     */
+    public function removeAttributeValue(Request $request, ProductVariant $productVariant, AttributeValue $attributeValue)
+    {
+        $productVariant->attributeValues()->detach($attributeValue->id);
+
+        $productVariant->load('attributeValues.attribute');
+
+        return (new ProductVariantResource($productVariant))->additional([
+            'message' => 'Product variant\'s attribute value removed successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource attribute values in storage.
+     */
+    public function syncAttributeValues(SyncAttributeValuesRequest $request, ProductVariant $productVariant)
+    {
+        $validated = $request->validated();
+
+        $attributeValues = data_get($validated, 'attribute_value_ids', []);
+
+        if (is_array($attributeValues)) {
+            $attributeValues = array_filter($attributeValues, function ($value) {
+                return ! blank($value);
+            });
+            $productVariant->attributeValues()->sync($attributeValues);
+        }
+
+        $productVariant->load('attributeValues.attribute');
+
+        return (new ProductVariantResource($productVariant))->additional([
+            'message' => 'Product variant\'s attribute value sync successfully',
         ]);
     }
 }

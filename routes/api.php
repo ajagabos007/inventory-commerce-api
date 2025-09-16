@@ -83,7 +83,30 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('attributes', AttributeController::class);
     Route::apiResource('attribute-values', AttributeValueController::class);
+
+    Route::prefix('products/{product}/')->name('product-variants')->group(function () {
+        Route::controller(ProductController::class)->group(function () {
+            Route::prefix('images')->name('images.')->group(function () {
+                Route::post('/', 'uploadImage')->name('upload');
+                Route::match(['PUT', 'PATCH'], '/{image}', 'updateImage')->name('update');
+                Route::delete('/{image}', 'deleteImage')->name('destroy');
+            });
+
+            Route::match(['PUT', 'PATCH'], 'attribute-values', 'syncAttributeValues')->name('attribute-values.sync');
+            Route::post('attribute-values/{attribute_value}', 'addAttributeValue')->name('attribute-values.add');
+            Route::delete('attribute-values/{attribute_value}', 'removeAttributeValue')->name('attribute-values.remove');
+        });
+    });
     Route::apiResource('products', ProductController::class);
+
+    Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
+        Route::controller(ProductVariantController::class)->group(function () {
+            Route::match(['PUT', 'PATCH'], 'attribute-values', 'syncAttributeValues')->name('attribute-values.sync');
+            Route::post('attribute-values/{attribute_value}', 'addAttributeValue')->name('attribute-values.add');
+            Route::delete('attribute-values/{attribute_value}', 'removeAttributeValue')->name('attribute-values.remove');
+        });
+    });
+
     Route::apiResource('product-variants', ProductVariantController::class);
 
     /**
@@ -127,7 +150,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['PUT', 'PATCH'], 'notifications/{notification}/mark-as-unread', [NotificationController::class, 'markAsUnread'])->name('notifications.mark-as-unread');
 
     Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('colours', ColourController::class);
     Route::apiResource('types', TypeController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('sales', SaleController::class);

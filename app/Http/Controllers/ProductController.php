@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\SyncAttributeValuesRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\UploadImageRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\Attachment;
 use App\Models\AttributeValue;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\Store;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -77,7 +80,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): \Illuminate\Http\JsonResponse|ProductResource
     {
         $validated = $request->validated();
 
@@ -136,21 +139,19 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Product $product): ProductResource
     {
         $product->loadFromRequest();
 
-        $product_resource = (new ProductResource($product))->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product retrieved successfully',
         ]);
-
-        return $product_resource;
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): ProductResource
     {
         $validated = $request->validated();
 
@@ -164,12 +165,113 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product): ProductResource
     {
         $product->delete();
 
         return (new ProductResource(null))->additional([
             'message' => 'Product deleted successfully',
+        ]);
+    }
+
+    /**
+     *  Upload the specified resource image in storage.
+     *
+     * @throws \Exception
+     */
+    public function uploadImage(UploadImageRequest $request, Product $product): ProductResource
+    {
+        $validated = $request->validated();
+        $product->updateUploadedBase64File($validated['image']);
+
+        $product->load('images');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product\'s image uploaded successfully',
+        ]);
+    }
+
+    /**
+     *  Update the specified resource image in storage.
+     *
+     * @throws \Exception
+     */
+    public function updateImage(UploadImageRequest $request, Product $product, Attachment $image): ProductResource
+    {
+        $validated = $request->validated();
+        $product->updateUploadedBase64File($validated['image'], ['file_name' => $image->name]);
+
+        $product->load('images');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product\'s image updated successfully',
+        ]);
+    }
+
+    /**
+     *  Delete the specified resource image in storage.
+     *
+     * @throws \Exception
+     */
+    public function deleteImage(Product $product, Attachment $image): ProductResource
+    {
+        $product->detachAttachment($image);
+
+        $product->load('images');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product\'s image delete successfully',
+        ]);
+    }
+
+    /**
+     *  Sync the specified resource attribute values in storage.
+     */
+    public function addAttributeValue(Request $request, Product $product, AttributeValue $attributeValue): ProductResource
+    {
+        $product->attributeValues()->syncWithoutDetaching($attributeValue->id);
+
+        $product->load('attributeValues.attribute');
+
+        return (new ProductResource($product))->additional([
+            'message' => 'Product\'s attribute value added successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource attribute values in storage.
+     */
+    public function removeAttributeValue(Request $request, Product $product, AttributeValue $attributeValue): ProductResource
+    {
+        $product->attributeValues()->detach($attributeValue->id);
+
+        $product->load('attributeValues.attribute');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product\'s attribute value removed successfully',
+        ]);
+    }
+
+    /**
+     * Sync the specified resource attribute values in storage.
+     */
+    public function syncAttributeValues(SyncAttributeValuesRequest $request, Product $product): ProductResource
+    {
+        $validated = $request->validated();
+
+        $attributeValues = data_get($validated, 'attribute_value_ids', []);
+
+        if (is_array($attributeValues)) {
+            $attributeValues = array_filter($attributeValues, function ($value) {
+                return ! blank($value);
+            });
+            $product->attributeValues()->sync($attributeValues);
+        }
+
+        $product->load('attributeValues.attribute');
+
+        return new ProductResource($product)->additional([
+            'message' => 'Product\'s attribute value sync successfully',
         ]);
     }
 }

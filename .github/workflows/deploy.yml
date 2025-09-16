@@ -12,12 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📦 Checkout Repository (SSH for private repo)
+      - name: 📦 Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}  # ✅ allows private repo checkout via SSH
 
-      - name: 🔑 Setup SSH Agent for Server Access
+      - name: 🔑 Setup SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -25,26 +23,26 @@ jobs:
       - name: 🚀 Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no -p 22 \
-              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
             set -e  # stop on first error
 
             echo "🔐 Logged in via SSH"
 
             cd /var/www/inventory-commerce-api
 
-            echo "🔍 Ensuring correct remote..."
-            git remote set-url origin git@github.com:${GITHUB_REPOSITORY}.git
+            echo "🔍 Detecting remote and branch..."
+            REMOTE_URL=$(git remote get-url origin)
+            echo "🔗 Remote URL: $REMOTE_URL"
 
-            echo "🔍 Detecting current branch..."
-            BRANCH=$(git rev-parse --abbrev-ref HEAD || echo "main")
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo "🌿 Current Branch: $BRANCH"
 
             echo "📥 Fetching and updating branch..."
             git fetch origin $BRANCH
-            git reset --hard origin/$BRANCH
+            git reset --hard origin $BRANCH
 
             echo "📦 Installing dependencies..."
-            composer install --no-interaction --prefer-dist --optimize-autoloader
+            composer update --no-interaction --prefer-dist --optimize-autoloader
 
             echo "⚙️ Running Laravel setup..."
             php artisan migrate --force

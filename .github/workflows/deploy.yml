@@ -1,7 +1,11 @@
 name: Deploy
-run-name: "🚀 Deploy by ${{ github.actor }} to Goldwise [${{ github.ref_name }}]"
+run-name: "🚀 Deploy by ${{ github.actor }} to Inventory Commerce API [${{ github.ref_name }}]"
 
-on: [push]
+on:
+  push:
+    branches:
+      - main   # 👈 auto-deploy on main
+  workflow_dispatch:   # 👈 manual "Run workflow" button
 
 jobs:
   deploy:
@@ -11,20 +15,18 @@ jobs:
       - name: 📦 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🛠️ Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+      - name: 🔑 Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: 🚀 Deploy to Server
-        env:
-          SSH_USER: ${{ secrets.GOLDWISE_USER }}
-          SSH_IP: ${{ secrets.GOLDWISE_IP }}
-          SSH_PORT: ${{ secrets.GOLDWISE_PORT }}
-          SSH_PASSWORD: ${{ secrets.GOLDWISE_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
         run: |
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -p "$SSH_PORT" $SSH_USER@$SSH_IP <<EOF
+          ssh -o StrictHostKeyChecking=no -p 22 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             echo "🔐 Logged in via SSH"
-            cd api.goldwisejewelry.com
+
+            cd /var/www/inventory-commerce-api
 
             echo "🔍 Detecting remote and branch..."
             REMOTE_URL=\$(git remote get-url origin)
@@ -33,24 +35,15 @@ jobs:
             BRANCH=\$(git rev-parse --abbrev-ref HEAD)
             echo "🌿 Current Branch: \$BRANCH"
 
-            echo "🔧 Preparing new remote with token..."
-            TOKEN_REMOTE=\$(echo "\$REMOTE_URL" | sed -E "s#https://(.*)#https://$GITHUB_TOKEN@\\1#")
-            echo "🔗 Token Remote: \$TOKEN_REMOTE"
+            echo "📥 Fetching and updating branch..."
+            git fetch origin
+            git reset --hard origin/\$BRANCH
 
-            git remote set-url origin "\$TOKEN_REMOTE"
+            echo "📦 Installing dependencies..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader
 
-            echo "📥 Pulling from \$BRANCH..."
-            GIT_TERMINAL_PROMPT=0 git pull origin "\$BRANCH"
-
-            echo "🔁 Resetting remote to original (no token)..."
-            git remote set-url origin "\$REMOTE_URL"
-
-            echo "📦 Running Composer install..."
-            composer install --no-interaction --prefer-dist
-
-            echo "⚙️ Artisan setup..."
-            php artisan optimize:clear
-            php artisan migrate:fresh --force
+            echo "⚙️ Running Laravel setup..."
+            php artisan migrate --force
             php artisan db:seed --force
             php artisan optimize:clear
 

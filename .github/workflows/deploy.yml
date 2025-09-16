@@ -39,6 +39,7 @@ jobs:
 
             echo "📥 Fetching and updating branch..."
             git fetch origin $BRANCH
+            git reset --hard origin/$BRANCH
 
             echo "📦 Installing dependencies..."
             composer update --no-interaction --prefer-dist --optimize-autoloader

@@ -109,6 +109,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
         Route::controller(ProductVariantController::class)->group(function () {
+            Route::prefix('images')->name('images.')->group(function () {
+                Route::post('/', 'uploadImage')->name('upload');
+                Route::match(['PUT', 'PATCH'], '/{image}', 'updateImage')->name('update');
+                Route::delete('/{image}', 'deleteImage')->name('destroy');
+            });
             Route::prefix('attribute-values')->name('attribute-values.')->group(function () {
                 Route::match(['PUT', 'PATCH'], '/', 'syncAttributeValues')->name('sync');
                 Route::post('/{attribute_value}', 'addAttributeValue')->name('add');

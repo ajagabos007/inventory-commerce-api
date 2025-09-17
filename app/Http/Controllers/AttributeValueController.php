@@ -34,7 +34,7 @@ class AttributeValueController extends Controller
                 'attribute_id',
             ])
             ->allowedIncludes([
-                'attributeValue',
+                'attribute',
             ]);
 
         $attributeValues->when(request()->filled('q'), function ($query) {

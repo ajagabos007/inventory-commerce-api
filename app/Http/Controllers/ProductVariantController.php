@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\SyncAttributeValuesRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
+use App\Http\Requests\UploadImageRequest;
 use App\Http\Resources\ProductVariantResource;
+use App\Models\Attachment;
 use App\Models\AttributeValue;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
@@ -40,11 +42,10 @@ class ProductVariantController extends Controller
                 'updated_at',
             )
             ->allowedIncludes([
-                'product',
+                'images',
+                'product.images',
                 'product.categories',
-                'product.attributeValues',
                 'product.attributeValues.attribute',
-                'attributeValues',
                 'attributeValues.attribute',
             ])
             ->allowedFilters([
@@ -150,6 +151,56 @@ class ProductVariantController extends Controller
 
         return (new ProductVariantResource(null))->additional([
             'message' => 'Product variant deleted successfully',
+        ]);
+    }
+
+    /**
+     *  Upload the specified resource image in storage.
+     *
+     * @throws \Exception
+     */
+    public function uploadImage(UploadImageRequest $request, ProductVariant $productVariant): ProductVariantResource
+    {
+        $validated = $request->validated();
+        $productVariant->updateUploadedBase64File($validated['image']);
+
+        $productVariant->load('images');
+
+        return new ProductVariantResource($productVariant)->additional([
+            'message' => 'Product variant\'s image uploaded successfully',
+        ]);
+    }
+
+    /**
+     *  Update the specified resource image in storage.
+     *
+     * @throws \Exception
+     */
+    public function updateImage(UploadImageRequest $request, ProductVariant $productVariant, Attachment $image): ProductVariantResource
+    {
+        $validated = $request->validated();
+        $productVariant->updateUploadedBase64File($validated['image'], ['file_name' => $image->name]);
+
+        $productVariant->load('images');
+
+        return new ProductVariantResource($productVariant)->additional([
+            'message' => 'Product variant\'s image updated successfully',
+        ]);
+    }
+
+    /**
+     *  Delete the specified resource image in storage.
+     *
+     * @throws \Exception
+     */
+    public function deleteImage(ProductVariant $productVariant, Attachment $image): ProductVariantResource
+    {
+        $productVariant->detachAttachment($image);
+
+        $productVariant->load('images');
+
+        return new ProductVariantResource($productVariant)->additional([
+            'message' => 'Product variant\'s image delete successfully',
         ]);
     }
 

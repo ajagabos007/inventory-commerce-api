@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\ProductVariantObserver;
+use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
 use App\Traits\ModelRequestLoader;
 use Database\Factories\ProductVariantFactory;
@@ -19,11 +20,12 @@ use Milon\Barcode\DNS1D;
 #[ObservedBy([ProductVariantObserver::class])]
 class ProductVariant extends Model
 {
+    use HasAttachments;
+
     use HasAttributeValues;
 
     /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
-
     use HasUuids;
     use ModelRequestLoader;
 

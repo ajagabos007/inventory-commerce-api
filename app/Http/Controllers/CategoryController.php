@@ -30,7 +30,7 @@ class CategoryController extends Controller
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
         $categories = QueryBuilder::for(category::class)
-            ->defaultSort('name')
+            ->defaultSort('-created_at')
             ->allowedSorts(
                 'name',
                 'created_at',

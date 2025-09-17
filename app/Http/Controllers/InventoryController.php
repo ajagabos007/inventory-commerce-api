@@ -6,9 +6,6 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateInventoryRequest;
 use App\Http\Resources\InventoryResource;
 use App\Models\Inventory;
-use App\Models\Store;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -17,18 +14,16 @@ class InventoryController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @method GET|HEAD /api/invetory/products
+     * @method GET|HEAD /api/invetories
      */
     public function index()
     {
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $inventoryQ = Inventory::when(! auth()->user()?->is_admin, function ($query) {
-            return $query->belongingToCurrentStaff();
-        });
+        $inventoryQ = Inventory::query();
 
-        $products = QueryBuilder::for($inventoryQ)
+        $inventories = QueryBuilder::for($inventoryQ)
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',
@@ -37,93 +32,41 @@ class InventoryController extends Controller
             )
             ->allowedFilters([
                 'store_id',
-                'product_id',
-                'item.category_id',
-                'item.type_id',
-                'item.colour_id',
-                'item.store_id',
-                'item.material',
+                'product_variant_id',
+                'productVariant.product_id',
                 AllowedFilter::scope('low_stock', 'lowStock'),
                 AllowedFilter::scope('out_of_stock', 'outOfStock'),
             ])
             ->allowedIncludes([
-                'item',
+                'productVariant.product.attributeValues',
+                'productVariant.product.images',
+                'productVariant.attributeValues',
+                'productVariant.images',
                 'store',
-                'item.type',
-                'item.colour',
-                'item.material',
-                'item.category',
-            ])
-            ->with(['item', 'store']);
+            ]);
 
-        if (request()->has('q')) {
-            $searchTerm = '%'.request()->q.'%';
-            $products->where(function ($query) use ($searchTerm) {
-                $model = $query->getModel();
-                $table = $model->getTable();
-
-                $cacheKey = "{$table}_column_listing";
-                $columns = Cache::rememberForever($cacheKey, function () use ($table) {
-                    return Schema::getColumnListing($table);
-                });
-
-                foreach ($columns as $index => $column) {
-                    $command = $index == 0 ? 'where' : 'orWhere';
-                    $query->{$command}($column, 'like', $searchTerm);
-                }
-            })
-                ->orWhereHas('item', function ($query) use ($searchTerm) {
-                    $model = $query->getModel();
-                    $table = $model->getTable();
-                    $searchTerm = '%'.request()->q.'%';
-
-                    $cacheKey = "{$table}_column_listing";
-                    $columns = Cache::rememberForever($cacheKey, function () use ($table) {
-                        return Schema::getColumnListing($table);
-                    });
-
-                    foreach ($columns as $index => $column) {
-                        $command = $index == 0 ? 'where' : 'orWhere';
-                        $query->{$command}($column, 'like', $searchTerm);
-                    }
-                });
-        }
+        $inventories->when(request()->filled('q'), function ($query) {
+            $query->search(request()->q);
+        });
 
         /**
          * Check if pagination is not disabled
          */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
 
-            $products = $products->paginate($perPage)
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
+
+            $inventories = $inventories->paginate($perPage)
                 ->appends(request()->query());
 
         } else {
-            $products = $products->get();
+            $inventories = $inventories->get();
         }
 
-        $inventory_products_collection = InventoryResource::collection($products)->additional([
+        return InventoryResource::collection($inventories)->additional([
             'status' => 'success',
-            'message' => 'Inventory Products retrieved successfully',
+            'message' => 'Inventories retrieved successfully',
         ]);
-
-        return $inventory_products_collection;
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -134,24 +77,13 @@ class InventoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Inventory $item)
+    public function show(Inventory $inventory)
     {
+        $inventory->loadFromRequest();
 
-        $item->loadFromRequest();
-
-        $inventory_resource = (new InventoryResource($item))->additional([
-            'message' => 'Product retrieved successfully',
+        return new InventoryResource($inventory)->additional([
+            'message' => 'Inventory retrieved successfully',
         ]);
-
-        return $inventory_resource;
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Inventory $inventory)
-    {
-        //
     }
 
     /**

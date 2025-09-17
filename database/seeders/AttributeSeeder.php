@@ -74,7 +74,6 @@ class AttributeSeeder extends Seeder
         foreach ($attributes as $attr) {
             $attribute = Attribute::firstOrCreate([
                 'name' => $attr['name'],
-                'slug' => Str::slug($attr['name']),
             ]);
 
             $attribute_values = [];

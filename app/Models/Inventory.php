@@ -24,7 +24,7 @@ class Inventory extends Pivot
     /**
      * the table name
      */
-    public $table = 'inventory';
+    public $table = 'inventories';
 
     /**
      * The attributes that are mass assignable.
@@ -32,7 +32,7 @@ class Inventory extends Pivot
      * @var array<int, string>
      */
     protected $fillable = [
-        'product_id',
+        'product_variant_id',
         'store_id',
         'quantity',
     ];
@@ -47,14 +47,19 @@ class Inventory extends Pivot
     ];
 
     /**
+     * The relationships that should always be eager loaded.
+     *
+     * @var array
+     */
+    protected $with = ['store', 'productVariant.product'];
+
+    /**
      * The "booted" method of the model.
      */
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(app()->bound('currentStoreId'), function ($builder) {
-                $builder->where('store_id', app('currentStoreId'));
-            });
+
         });
     }
 
@@ -69,9 +74,9 @@ class Inventory extends Pivot
     /**
      * Get the parent type
      */
-    public function item(): BelongsTo
+    public function productVariant(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     /** `
@@ -108,6 +113,30 @@ class Inventory extends Pivot
 
         return $query->where('quantity', '<=', $threshold)
             ->where('quantity', '>', 0);
+    }
+
+    /**
+     * Search scope
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where('quantity',  "%{$term}%")
+                ->orWhereHas('store', function($query) use ($term) {
+                    $query->where('name', 'LIKE', "%{$term}%");
+                })
+                ->orWhereHas('productVariant', function ($query) use ($term) {
+                    $query->where('sku', 'like', "%{$term}%")
+                    ->orWhere('price', 'like', "%{$term}%")
+                    ->orWhere('compare_price', 'like', "%{$term}%")
+                    ->orWhere('cost_price', 'like', "%{$term}%")
+                    ->orWhereHas('product', function ($query) use ($term) {
+                        $query->where('slug', 'like', "%{$term}%")
+                            ->orWhere('description', 'like', "%{$term}%")
+                            ->orWhere('short_description', 'like', "%{$term}%")
+                            ->orWhere('display_price', 'like', "%{$term}%")
+                            ->orWhere('display_compare_price', 'like', "%{$term}%");
+                    });
+                });
     }
 
     /**

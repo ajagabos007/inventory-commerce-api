@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('scrapes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('inventory_id')
-                ->constrained('inventory')
+                ->constrained('inventories')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->integer('quantity')->default(1);

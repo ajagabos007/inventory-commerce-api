@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             AttributeSeeder::class,
             ProductSeeder::class,
             StaffSeeder::class,
-            //            InventorySeeder::class,
+//            InventorySeeder::class,
             DiscountSeeder::class,
             //            SaleSeeder::class,
             //            SaleInventorySeeder::class,

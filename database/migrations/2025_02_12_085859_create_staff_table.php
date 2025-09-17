@@ -19,6 +19,7 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->string('staff_no')->nullable()->unique();
+            $table->timestamp('deactivated_at')->nullable();
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);
         });

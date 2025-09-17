@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Store;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,14 +20,14 @@ class InventoryFactory extends Factory
     {
         return [
             'quantity' => fake()->numberBetween(1, 100),
-            'product_id' => Product::InRandomOrder()
+            'product_variant_id' => ProductVariant::InRandomOrder()
                 ->where(function ($query) {
                     $query->whereHas('inventories', function ($query) {
                         $query->where('quantity', '<', 0);
                     })->orWhereDoesntHave('inventories');
                 })->first()
-                         ?? Product::InRandomOrder()->first()
-                        ?? Product::factory()->create(),
+                         ?? ProductVariant::InRandomOrder()->first()
+                        ?? ProductVariant::factory()->create(),
 
             'store_id' => Store::InRandomOrder()
                 ->where(function ($query) {

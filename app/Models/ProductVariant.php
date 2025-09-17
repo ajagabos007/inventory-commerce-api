@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Milon\Barcode\DNS1D;
 
@@ -37,6 +39,7 @@ class ProductVariant extends Model
     protected $fillable = [
         'product_id',
         'sku',
+        'barcode',
         'price',
         'compare_price',
         'cost_price',
@@ -58,7 +61,6 @@ class ProductVariant extends Model
                     ->orWhere('display_price', 'like', "%{$term}%")
                     ->orWhere('display_compare_price', 'like', "%{$term}%");
             });
-
     }
 
     /**
@@ -85,6 +87,28 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /**
+     * The inventories
+     */
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class, 'product_variant_id');
+    }
+
+    /**
+     * Get the stores
+     */
+    public function stores(): BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, Inventory::class)
+            ->withPivot([
+                'quantity',
+                'status'
+            ])->using(Inventory::class);
+    }
+
+
 
     /**
      * Generate item barcode

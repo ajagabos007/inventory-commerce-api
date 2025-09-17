@@ -76,10 +76,13 @@ class Store extends Model
     /**
      * The products
      */
-    public function products(): BelongsToMany
+    public function productVariants(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, Inventory::class)
-            ->withPivot('quantity')->using(Inventory::class);
+        return $this->belongsToMany(ProductVariant::class, Inventory::class)
+            ->withPivot([
+                'quantity',
+                'status'
+            ])->using(Inventory::class);
     }
 
     /**

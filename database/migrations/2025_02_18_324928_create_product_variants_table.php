@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('price', total: 8, places: 2);
             $table->decimal('compare_price', total: 8, places: 2)->nullable();
             $table->decimal('cost_price', total: 8, places: 2)->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);
 

@@ -17,7 +17,7 @@ class StoreSeeder extends Seeder
     public function run(): void
     {
         $goldwiseHQ = [
-            'name' => $name = 'Goldwise HQ',
+            'name' => $name = 'CBN MALL HQ',
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
             'address' => 'Maitama, Abuja',
             'is_warehouse' => true,
@@ -38,9 +38,9 @@ class StoreSeeder extends Seeder
         $end_time = now();
 
         $stores = Store::whereBetween('created_at', [
-            $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-        ])
-            ->lazy();
+                    $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
+                ])
+                ->lazy();
 
         foreach ($stores as $store) {
             if ($store->created_at == $store->updated_at) {

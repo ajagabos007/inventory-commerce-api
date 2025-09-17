@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stock_transfer_inventory', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('inventory_id')
-                ->constrained('inventory')
+                ->constrained('inventories')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
 

@@ -24,7 +24,7 @@ class StoreFactory extends Factory
         $region = $fake->region();
 
         return [
-            'name' => $name = "{$region} Goldwise Inc",
+            'name' => $name = "{$region} CBN MALL Inc",
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
             'address' => "{$fake->streetAddress()} {$fake->city()}, {$region}",
             'manager_staff_id' => Staff::factory()->create(),

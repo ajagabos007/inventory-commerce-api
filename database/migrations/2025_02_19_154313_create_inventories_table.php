@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory', function (Blueprint $table) {
+        Schema::create('inventories', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('product_id')
-                ->constrained('products')
+            $table->foreignUuid('product_variant_id')
+                ->constrained('product_variants')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
 
@@ -24,10 +24,10 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             $table->integer('quantity')->default(1);
-
+            $table->string('status')->nullable();
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);
-            $table->unique(['product_id', 'store_id'], 'unique_item_store_inventory');
+            $table->unique(['product_variant_id', 'store_id'], 'unique_store_product_variant_inventory');
 
         });
     }

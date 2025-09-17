@@ -122,6 +122,8 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('product-variants', ProductVariantController::class);
+    Route::apiResource('inventories', InventoryController::class)
+        ->only(['index','show']);
 
     /**
      * Admin routes

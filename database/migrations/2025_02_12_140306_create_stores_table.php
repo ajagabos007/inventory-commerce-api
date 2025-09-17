@@ -23,6 +23,7 @@ return new class extends Migration
                 ->constrained('staff')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
+            $table->timestamp('deactivated_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);

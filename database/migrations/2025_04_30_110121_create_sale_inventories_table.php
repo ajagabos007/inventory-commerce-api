@@ -18,7 +18,7 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->foreignUuid('inventory_id')
-                ->constrained('inventory')
+                ->constrained('inventories')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->decimal('weight', 8, 2)

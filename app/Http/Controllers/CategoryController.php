@@ -80,7 +80,7 @@ class CategoryController extends Controller
         $validated = $request->validated();
         $category = Category::create($validated);
 
-        if (array_key_exists('image', $validated) && ! blank($validated['image'])) {
+        if (array_key_exists('image', $validated) && !blank($validated['image'])) {
             $category->updateImage($validated['image']);
         }
 

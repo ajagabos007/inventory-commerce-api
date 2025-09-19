@@ -81,7 +81,7 @@ class Store extends Model
         return $this->belongsToMany(ProductVariant::class, Inventory::class)
             ->withPivot([
                 'quantity',
-                'status'
+                'status',
             ])->using(Inventory::class);
     }
 

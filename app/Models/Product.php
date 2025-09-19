@@ -98,7 +98,6 @@ class Product extends Model
         );
     }
 
-
     /**
      * Search scope
      */
@@ -127,7 +126,6 @@ class Product extends Model
         return $this->belongsToMany(Store::class, Inventory::class)
             ->withPivot('quantity')->using(Inventory::class);
     }
-
 
     public function updateDisplayPrices(): void
     {

@@ -58,9 +58,7 @@ class Inventory extends Pivot
      */
     protected static function booted(): void
     {
-        static::addGlobalScope('store', function (Builder $builder) {
-
-        });
+        static::addGlobalScope('store', function (Builder $builder) {});
     }
 
     /**
@@ -120,12 +118,12 @@ class Inventory extends Pivot
      */
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->where('quantity',  "%{$term}%")
-                ->orWhereHas('store', function($query) use ($term) {
-                    $query->where('name', 'LIKE', "%{$term}%");
-                })
-                ->orWhereHas('productVariant', function ($query) use ($term) {
-                    $query->where('sku', 'like', "%{$term}%")
+        return $query->where('quantity', "%{$term}%")
+            ->orWhereHas('store', function ($query) use ($term) {
+                $query->where('name', 'LIKE', "%{$term}%");
+            })
+            ->orWhereHas('productVariant', function ($query) use ($term) {
+                $query->where('sku', 'like', "%{$term}%")
                     ->orWhere('price', 'like', "%{$term}%")
                     ->orWhere('compare_price', 'like', "%{$term}%")
                     ->orWhere('cost_price', 'like', "%{$term}%")
@@ -136,7 +134,7 @@ class Inventory extends Pivot
                             ->orWhere('display_price', 'like', "%{$term}%")
                             ->orWhere('display_compare_price', 'like', "%{$term}%");
                     });
-                });
+            });
     }
 
     /**

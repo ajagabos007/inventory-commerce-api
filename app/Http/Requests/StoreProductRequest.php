@@ -48,8 +48,8 @@ class StoreProductRequest extends FormRequest
                 ], $allowed_extensions = [], $max_size_kb = 2048),
             ],
             'is_serialized' => ['boolean'],
-            'serial_number' => ['required_if:is_serialized,true','unique:inventories,serial_number'],
-            'batch_number' => ['nullable']
+            'serial_number' => ['required_if:is_serialized,true', 'unique:inventories,serial_number'],
+            'batch_number' => ['nullable'],
         ];
     }
 

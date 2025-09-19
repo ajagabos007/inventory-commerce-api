@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Inventory;
-use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Store;
 use Illuminate\Database\Seeder;
@@ -30,10 +29,10 @@ class InventorySeeder extends Seeder
         $end_time = now();
 
         $inventories = Inventory::whereBetween('created_at', [
-                            $start_time->toDateTimeString(),
-                            $end_time->toDateTimeString()
-                        ])
-                        ->lazy();
+            $start_time->toDateTimeString(),
+            $end_time->toDateTimeString(),
+        ])
+            ->lazy();
 
         foreach ($inventories as $inventory) {
             if ($inventory->created_at == $inventory->updated_at) {

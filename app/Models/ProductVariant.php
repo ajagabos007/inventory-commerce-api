@@ -23,11 +23,11 @@ use Milon\Barcode\DNS1D;
 class ProductVariant extends Model
 {
     use HasAttachments;
-
     use HasAttributeValues;
 
     /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
 
@@ -105,11 +105,9 @@ class ProductVariant extends Model
         return $this->belongsToMany(Store::class, Inventory::class)
             ->withPivot([
                 'quantity',
-                'status'
+                'status',
             ])->using(Inventory::class);
     }
-
-
 
     /**
      * Generate item barcode

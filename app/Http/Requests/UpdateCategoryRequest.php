@@ -32,7 +32,7 @@ class UpdateCategoryRequest extends FormRequest
             ],
             'parent_id' => ['nullable', 'string', 'exists:categories,id'],
             'image' => [
-               'nullable',
+                'nullable',
                 new Base64File($allowed_mimetypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'], $allowed_extensions = [], $max_size_kb = 2048),
             ],
 

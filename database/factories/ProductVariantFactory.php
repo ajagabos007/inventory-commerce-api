@@ -23,7 +23,7 @@ class ProductVariantFactory extends Factory
             'product_id' => $product = Product::inRandomOrder()->whereDoesntHave('variants')->first() ?? Product::factory()->create(),
             'price' => $price = $this->faker->randomFloat(2, 1500, 100000),
             'compare_price' => $price + $this->faker->randomFloat(2, 999, 90000),
-            'cost_price' => $price - ($price * random_int(15, 55)/100),
+            'cost_price' => $price - ($price * random_int(15, 55) / 100),
             'sku' => $sku = strtoupper(Str::random(6)),
             'barcode' => 'data:image/png;base64,'.(new DNS1D)->getBarcodePNG($sku, 'c128', $w = 1, $h = 33, [0, 0, 0], true),
             'is_serialized' => $product->is_serialized,

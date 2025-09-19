@@ -1,0 +1,81 @@
+name: Deploy
+run-name: "🚀 Deploy by ${{ github.actor }} to Inventory Commerce API [${{ github.ref_name }}]"
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔑 Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 🚀 Deploy to Staging Server
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            set -e  # stop on first error
+
+            echo "🔐 Logged in via SSH"
+
+            cd /var/www/inventory-commerce-api-staging
+
+            echo "📥 Fetching and updating branch..."
+            git fetch origin staging
+            git reset --hard origin/staging
+
+            echo "📦 Installing dependencies..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            echo "⚙️ Running Laravel setup..."
+            php artisan migrate --force
+            php artisan optimize:clear
+            echo "✅ Staging Deployment Complete"
+          EOF
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔑 Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 🚀 Deploy to Production Server
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            set -e  # stop on first error
+
+            echo "🔐 Logged in via SSH"
+            cd /var/www/inventory-commerce-api
+
+            echo "📥 Fetching and updating branch..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "📦 Installing dependencies..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            echo "⚙️ Running Laravel setup..."
+            php artisan migrate --force
+            php artisan optimize:clear
+
+            echo "✅ Production Deployment Complete"
+          EOF
+

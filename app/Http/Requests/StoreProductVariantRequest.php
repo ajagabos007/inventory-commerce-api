@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\ProductVariant;
+use App\Rules\Base64File;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,6 +26,7 @@ class StoreProductVariantRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'exists:products,id'],
+            'name' => ['required', 'string', 'max:191'],
             'price' => ['required', 'numeric', 'min:1'],
             'compare_price' => ['nullable', 'numeric', 'min:1'],
             'cost_price' => ['nullable', 'numeric', 'min:1'],
@@ -34,6 +36,17 @@ class StoreProductVariantRequest extends FormRequest
             'is_serialized' => ['boolean'],
             'serial_number' => ['required_if:is_serialized,true'],
             'batch_number' => ['nullable'],
+            'images' => ['required', 'array', 'min:1', 'max:4'],
+            'images*' => [
+                'required',
+                'string',
+                new Base64File($allowed_mimetypes = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/svg+xml',
+                    'image/webp',
+                ], $allowed_extensions = [], $max_size_kb = 2048),
+            ],
         ];
     }
 

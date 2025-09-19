@@ -50,6 +50,29 @@ class StoreProductRequest extends FormRequest
             'is_serialized' => ['boolean'],
             'serial_number' => ['required_if:is_serialized,true', 'unique:inventories,serial_number'],
             'batch_number' => ['nullable'],
+
+            'variants' => ['nullable', 'array'],
+            'variants.*.name' => ['required', 'string', 'max:191'],
+            'variants.*.price' => ['required', 'numeric', 'min:1'],
+            'variants.*.compare_price' => ['nullable', 'numeric', 'min:1'],
+            'variants.*.cost_price' => ['nullable', 'numeric', 'min:1'],
+            'variants.*.quantity' => ['nullable', 'integer', 'min:1'],
+            'variants.*.attribute_value_ids' => ['required', 'array', 'min:1'],
+            'variants.*.attribute_value_ids.*' => ['required', 'exists:attribute_values,id'],
+            'variants.*.is_serialized' => ['boolean'],
+            'variants.*.serial_number' => ['required_if:variants.*.is_serialized,true'],
+            'variants.*.batch_number' => ['nullable'],
+            'variants.*.images' => ['required', 'array', 'min:1', 'max:4'],
+            'variants.*.images*' => [
+                'required',
+                'string',
+                new Base64File($allowed_mimetypes = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/svg+xml',
+                    'image/webp',
+                ], $allowed_extensions = [], $max_size_kb = 2048),
+            ],
         ];
     }
 

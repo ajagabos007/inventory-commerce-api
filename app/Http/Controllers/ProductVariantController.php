@@ -100,15 +100,29 @@ class ProductVariantController extends Controller
 
             DB::commit();
 
+            if (array_key_exists('images', $validated)) {
+                foreach ($validated['images'] as $image) {
+                    DB::beginTransaction();
+
+                    try {
+                        $productVariant->updateUploadedBase64File($image);
+                        DB::commit();
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        logger($e->getMessage());
+                    }
+                }
+            }
+
         } catch (\Exception $e) {
             DB::rollBack();
 
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
 
-        $productVariant->load('attributeValues.attribute', 'product.attributeValues.attribute');
+        $productVariant->load('attributeValues.attribute', 'product.attributeValues.attribute', 'images');
 
-        return (new ProductVariantResource($productVariant))->additional([
+        return new ProductVariantResource($productVariant)->additional([
             'message' => 'Product variant created successfully',
         ]);
 

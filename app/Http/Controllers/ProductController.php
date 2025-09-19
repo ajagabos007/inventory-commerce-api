@@ -98,7 +98,12 @@ class ProductController extends Controller
                 }
             }
 
-            $product->variants()->create($validated);
+            $hasVariants = array_key_exists('variants', $validated) and ! blank($validated['variants']);
+
+            if (! $hasVariants) {
+                $variant = $product->variants()->create($validated);
+                $variant->attributeValues()->attach($product->attributeValues()->pluck('id')->toArray());
+            }
 
             if (array_key_exists('category_ids', $validated) && is_array($validated['category_ids'])) {
                 $categories = Category::whereIn('id', $validated['category_ids'])->pluck('id');
@@ -123,6 +128,54 @@ class ProductController extends Controller
                     }
                 }
             }
+
+            // Mass Create Variants
+            if ($hasVariants) {
+                foreach ($validated['variants'] as $validatedVariant) {
+                    if (blank($validatedVariant)) {
+                        continue;
+                    }
+                    DB::beginTransaction();
+
+                    try {
+                        $variant = $product->variants()->create($validatedVariant);
+
+                        if (array_key_exists('attribute_value_ids', $validatedVariant) && is_array($validatedVariant['attribute_value_ids'])) {
+                            $attributeValues = AttributeValue::whereIn('id', $validatedVariant['attribute_value_ids'])->pluck('id');
+
+                            if ($attributeValues->isNotEmpty()) {
+                                $variant->attributeValues()->attach($attributeValues);
+                            }
+                        }
+
+                        DB::commit();
+                        if (array_key_exists('images', $validatedVariant)) {
+                            foreach ($validatedVariant['images'] as $image) {
+                                DB::beginTransaction();
+
+                                try {
+                                    $variant->updateUploadedBase64File($image);
+                                    DB::commit();
+                                } catch (\Exception $e) {
+                                    DB::rollBack();
+                                    logger($e->getMessage());
+                                }
+                            }
+                        }
+
+                    } catch (\Throwable $th) {
+                        DB::rollBack();
+                        logger($e->getMessage());
+
+                        if ($product->variants()->count() == 0) {
+                            $variant = $product->variants()->create($validated);
+                            $variant->attributeValues()->attach($product->attributeValues()->pluck('id')->toArray());
+
+                        }
+                    }
+                }
+            }
+
         } catch (\Exception $e) {
             DB::rollBack();
 

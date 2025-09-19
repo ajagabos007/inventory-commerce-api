@@ -38,6 +38,7 @@ class ProductVariant extends Model
      */
     protected $fillable = [
         'product_id',
+        'name',
         'sku',
         'barcode',
         'price',
@@ -52,11 +53,13 @@ class ProductVariant extends Model
     public function scopeSearch(Builder $query, string $term): Builder
     {
         return $query->where('sku', 'like', "%{$term}%")
+            ->orWhere('name', 'like', "%{$term}%")
             ->orWhere('price', 'like', "%{$term}%")
             ->orWhere('compare_price', 'like', "%{$term}%")
             ->orWhere('cost_price', 'like', "%{$term}%")
             ->orWhereHas('product', function ($query) use ($term) {
-                $query->where('slug', 'like', "%{$term}%")
+                $query->where('name', 'like', "%{$term}%")
+                    ->orWhere('slug', 'like', "%{$term}%")
                     ->orWhere('description', 'like', "%{$term}%")
                     ->orWhere('short_description', 'like', "%{$term}%")
                     ->orWhere('display_price', 'like', "%{$term}%")

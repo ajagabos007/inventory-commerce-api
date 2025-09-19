@@ -14,7 +14,8 @@ trait HasAttributeValues
     public function attributeValues(): MorphToMany
     {
         return $this->morphToMany(AttributeValue::class, 'attributable')
-            ->using(Attributable::class);
+            ->using(Attributable::class)
+            ->withTimestamps();
     }
 
     /**

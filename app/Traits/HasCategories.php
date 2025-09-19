@@ -14,7 +14,9 @@ trait HasCategories
     public function categories(): MorphToMany
     {
         return $this->morphToMany(Category::class, 'categorizable')
-            ->using(Categorizable::class);
+            ->using(Categorizable::class)
+            ->withTimestamps();
+
     }
 
     /**

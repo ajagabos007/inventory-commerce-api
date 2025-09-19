@@ -23,6 +23,7 @@ class UpdateProductVariantRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['required', 'string', 'max:191'],
             'product_id' => ['required', 'exists:products,id'],
             'price' => ['required', 'numeric', 'min:1'],
             'compare_price' => ['nullable', 'numeric', 'min:1'],

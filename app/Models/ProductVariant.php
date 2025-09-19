@@ -43,6 +43,7 @@ class ProductVariant extends Model
         'price',
         'compare_price',
         'cost_price',
+        'is_serialized',
     ];
 
     /**

@@ -44,6 +44,7 @@ class Product extends Model
         'short_description',
         'display_price',
         'display_compare_price',
+        'is_serialized',
     ];
 
     /**

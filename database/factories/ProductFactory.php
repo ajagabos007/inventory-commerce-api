@@ -23,6 +23,7 @@ class ProductFactory extends Factory
             'slug' => Str::slug($name, '-'),
             'description' => $description = fake()->realText(500),
             'short_description' => $description = fake()->realText(500),
+            'is_serialized' => fake()->boolean(),
         ];
     }
 }

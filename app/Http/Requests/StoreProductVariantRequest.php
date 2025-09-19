@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\ProductVariant;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProductVariantRequest extends FormRequest
 {
@@ -31,6 +32,9 @@ class StoreProductVariantRequest extends FormRequest
             'quantity' => ['nullable', 'integer', 'min:1'],
             'attribute_value_ids' => ['required', 'array', 'min:1'],
             'attribute_value_ids.*' => ['required', 'exists:attribute_values,id'],
+            'is_serialized' => ['boolean'],
+            'serial_number' => ['required_if:is_serialized,true'],
+            'batch_number' => ['nullable']
         ];
     }
 

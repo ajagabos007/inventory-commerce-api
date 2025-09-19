@@ -13,8 +13,7 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // Product::whereNotNull('id')->delete();
-        $products = Product::factory(10)->make()->toArray();
+        $products = Product::factory(30)->make()->toArray();
 
         $start_time = now();
         Product::upsert(

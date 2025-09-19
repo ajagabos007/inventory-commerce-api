@@ -19,7 +19,8 @@ return new class extends Migration
             $table->text('short_description')->nullable();
             $table->string('display_price')->nullable();
             $table->string('display_compare_price')->nullable();
-
+            $table->boolean('is_serialized')->default(false);
+            $table->json('metadata')->nullable();
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);
         });

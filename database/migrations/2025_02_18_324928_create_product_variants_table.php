@@ -23,6 +23,8 @@ return new class extends Migration
             $table->decimal('compare_price', total: 8, places: 2)->nullable();
             $table->decimal('cost_price', total: 8, places: 2)->nullable();
             $table->string('status')->nullable();
+            $table->boolean('is_serialized')->default(false);
+            $table->json('metadata')->nullable();
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);
 

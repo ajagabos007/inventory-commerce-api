@@ -11,6 +11,10 @@ class ProductVariantObserver
      */
     public function saving(ProductVariant $productVariant): void
     {
+        if(!is_bool($productVariant->is_serialized)){
+            $productVariant->is_serialized = $productVariant->product->is_serialized;
+        }
+
         if (blank($productVariant->sku)) {
             $productVariant->sku = ProductVariant::generateSKU();
         }

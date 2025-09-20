@@ -4,13 +4,14 @@ run-name: "🚀 Deploy by ${{ github.actor }} to Inventory Commerce API [${{ git
 on:
   push:
     branches:
-      - main   # auto-deploy on main pushes
-  workflow_dispatch:   # manual "Run workflow" button
+      - main
+      - staging
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
-
     steps:
       - name: 📦 Checkout Repository
         uses: actions/checkout@v4
@@ -20,7 +21,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: 🚀 Deploy to Server
+      - name: 🚀 Deploy to Staging Server
         run: |
           ssh -o StrictHostKeyChecking=no -p 22 \
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
@@ -28,26 +29,53 @@ jobs:
 
             echo "🔐 Logged in via SSH"
 
-            cd /var/www/inventory-commerce-api
-
-            echo "🔍 Detecting remote and branch..."
-            REMOTE_URL=$(git remote get-url origin)
-            echo "🔗 Remote URL: $REMOTE_URL"
-
-            BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo "🌿 Current Branch: $BRANCH"
+            cd /var/www/inventory-commerce-api-staging
 
             echo "📥 Fetching and updating branch..."
-            git fetch origin $BRANCH
-            git reset --hard origin $BRANCH
+            git fetch origin staging
+            git reset --hard origin/staging
 
             echo "📦 Installing dependencies..."
-            composer update --no-interaction --prefer-dist --optimize-autoloader
+            composer install --no-interaction --prefer-dist --optimize-autoloader
 
             echo "⚙️ Running Laravel setup..."
             php artisan migrate --force
-            #php artisan db:seed --force
+            php artisan optimize:clear
+            echo "✅ Staging Deployment Complete"
+          EOF
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔑 Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 🚀 Deploy to Production Server
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            set -e  # stop on first error
+
+            echo "🔐 Logged in via SSH"
+            cd /var/www/inventory-commerce-api
+
+            echo "📥 Fetching and updating branch..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "📦 Installing dependencies..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            echo "⚙️ Running Laravel setup..."
+            php artisan migrate --force
             php artisan optimize:clear
 
-            echo "✅ Deployment Complete"
+            echo "✅ Production Deployment Complete"
           EOF
+

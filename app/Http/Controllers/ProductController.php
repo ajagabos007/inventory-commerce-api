@@ -98,7 +98,7 @@ class ProductController extends Controller
                 }
             }
 
-            $hasVariants = array_key_exists('variants', $validated) and ! blank($validated['variants']);
+            $hasVariants = array_key_exists('variants', $validated) && !blank($validated['variants']);
 
             if (! $hasVariants) {
                 $variant = $product->variants()->create($validated);

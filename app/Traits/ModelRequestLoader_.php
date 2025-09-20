@@ -5,7 +5,7 @@ namespace App\Traits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
-trait ModelRequestLoader
+trait ModelRequestLoader_
 {
     /**
      * Apply includes and appends to the model instance based on the request.

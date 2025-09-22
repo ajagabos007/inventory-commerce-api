@@ -122,7 +122,7 @@ class ProductVariantController extends Controller
 
         $productVariant->load('attributeValues.attribute', 'product.attributeValues.attribute', 'images');
 
-        return new ProductVariantResource($productVariant)->additional([
+        return (new ProductVariantResource($productVariant))->additional([
             'message' => 'Product variant created successfully',
         ]);
 
@@ -135,11 +135,9 @@ class ProductVariantController extends Controller
     {
         $productVariant->loadFromRequest();
 
-        $productVariant_resource = (new ProductVariantResource($productVariant))->additional([
+        return (new ProductVariantResource($productVariant))->additional([
             'message' => 'Product variant retrieved successfully',
         ]);
-
-        return $productVariant_resource;
     }
 
     /**
@@ -180,7 +178,7 @@ class ProductVariantController extends Controller
 
         $productVariant->load('images');
 
-        return new ProductVariantResource($productVariant)->additional([
+        return (new ProductVariantResource($productVariant))->additional([
             'message' => 'Product variant\'s image uploaded successfully',
         ]);
     }
@@ -197,7 +195,7 @@ class ProductVariantController extends Controller
 
         $productVariant->load('images');
 
-        return new ProductVariantResource($productVariant)->additional([
+        return (new ProductVariantResource($productVariant))->additional([
             'message' => 'Product variant\'s image updated successfully',
         ]);
     }
@@ -213,7 +211,7 @@ class ProductVariantController extends Controller
 
         $productVariant->load('images');
 
-        return new ProductVariantResource($productVariant)->additional([
+        return (new ProductVariantResource($productVariant))->additional([
             'message' => 'Product variant\'s image delete successfully',
         ]);
     }

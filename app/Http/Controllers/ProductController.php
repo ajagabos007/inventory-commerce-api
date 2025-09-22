@@ -257,7 +257,7 @@ class ProductController extends Controller
 
         $product->load('images');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product\'s image updated successfully',
         ]);
     }
@@ -273,7 +273,7 @@ class ProductController extends Controller
 
         $product->load('images');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product\'s image delete successfully',
         ]);
     }
@@ -301,7 +301,7 @@ class ProductController extends Controller
 
         $product->load('attributeValues.attribute');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product\'s attribute value removed successfully',
         ]);
     }
@@ -324,7 +324,7 @@ class ProductController extends Controller
 
         $product->load('attributeValues.attribute');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product\'s attribute value sync successfully',
         ]);
     }
@@ -352,7 +352,7 @@ class ProductController extends Controller
 
         $product->load('categories');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product removed from category successfully',
         ]);
     }
@@ -375,7 +375,7 @@ class ProductController extends Controller
 
         $product->load('categories');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product\'s categories sync successfully',
         ]);
     }

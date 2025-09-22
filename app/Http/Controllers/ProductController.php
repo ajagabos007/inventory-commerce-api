@@ -240,7 +240,7 @@ class ProductController extends Controller
 
         $product->load('images');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product\'s image uploaded successfully',
         ]);
     }

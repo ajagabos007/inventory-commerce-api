@@ -338,7 +338,7 @@ class ProductController extends Controller
 
         $product->load('categories');
 
-        return new ProductResource($product)->additional([
+        return (new ProductResource($product))->additional([
             'message' => 'Product added to category successfully',
         ]);
     }

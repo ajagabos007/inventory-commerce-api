@@ -24,7 +24,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'first_name' => 'sometimes|required|string|max:191',
-            'middle_name' => 'sometimes|required|string|max:191',
+            'middle_name' => 'nullable|string|max:191',
             'last_name' => 'sometimes|required|string|max:191',
             'phone_number' => 'sometimes|required|string|max:15',
             // 'profile_photo' => 'sometimes|required|image:size:2048',

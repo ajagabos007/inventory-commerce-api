@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\AttributeType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,6 +33,7 @@ class UpdateAttributeRequest extends FormRequest
                 Rule::unique('attributes', 'name')
                     ->ignore($this->attribute),
             ],
+            'type' => ['nullable', Rule::in(AttributeType::values(), 'i')],
         ];
     }
 }

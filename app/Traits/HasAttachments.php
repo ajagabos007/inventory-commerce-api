@@ -202,7 +202,7 @@ trait HasAttachments
     /**
      * Delete all/one/multiple attachment(s) associated with the model
      */
-    public function detachAttachments(null|Attachment|Collection $attachment): void
+    public function detachAttachments(null|Attachment|Collection $attachment=null): void
     {
         if (is_null($attachment)) {
             $attachments = $this->attachments()->get();

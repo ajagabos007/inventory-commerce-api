@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Registiration and Authentication Routes
+| Registration and Authentication Routes
 |--------------------------------------------------------------------------
 */
 

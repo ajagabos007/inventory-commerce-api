@@ -44,64 +44,16 @@ class StoreController extends Controller
                 'manager',
             ]);
 
-        if (request()->has('q')) {
-            $stores->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
-            })
-                ->orWhereHas('manager', function ($query) {
-                    $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                    if (Cache::has($table_cols_key)) {
-                        $cols = Cache::get($table_cols_key);
-                    } else {
-                        $cols = Schema::getColumnListing($query->getModel()->getTable());
-                        Cache::put($table_cols_key, $cols);
-                    }
-
-                    $counter = 0;
-                    foreach ($cols as $col) {
-
-                        if ($counter == 0) {
-                            $query->where($col, 'LIKE', '%'.request()->q.'%');
-                        } else {
-                            $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                        }
-                        $counter++;
-                    }
-                });
-        }
+        $stores->when(request()->filled('q'), function ($query) {
+            $query->search(request()->q);
+        });
 
         /**
          * Check if pagination is not disabled
          */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
 
             $stores = $stores->paginate($perPage)
                 ->appends(request()->query());
@@ -110,12 +62,10 @@ class StoreController extends Controller
             $stores = $stores->get();
         }
 
-        $stores_collection = StoreResource::collection($stores)->additional([
+       return StoreResource::collection($stores)->additional([
             'status' => 'success',
             'message' => 'Stores retrieved successfully',
         ]);
-
-        return $stores_collection;
     }
 
     /**
@@ -127,11 +77,9 @@ class StoreController extends Controller
         $store = Store::create($validated);
         $store->load(['manager.user']);
 
-        $store_resource = (new StoreResource($store))->additional([
+        return (new StoreResource($store))->additional([
             'message' => 'Store created successfully',
         ]);
-
-        return $store_resource;
     }
 
     /**
@@ -151,32 +99,27 @@ class StoreController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateStoreRequest $request, Store $store)
+    public function update(UpdateStoreRequest $request, Store $store): StoreResource
     {
         $validated = $request->validated();
 
         $store->update($validated);
         $store->load(['manager.user']);
 
-        $store_resource = (new StoreResource($store))->additional([
+        return (new StoreResource($store))->additional([
             'message' => 'Store updated successfully',
         ]);
-
-        return $store_resource;
-
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Store $store)
+    public function destroy(Store $store): StoreResource
     {
         $store->delete();
 
-        $store_resource = (new StoreResource(null))->additional([
+        return (new StoreResource(null))->additional([
             'message' => 'Store deleted successfully',
         ]);
-
-        return $store_resource;
     }
 }

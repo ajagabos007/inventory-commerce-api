@@ -94,6 +94,17 @@ class Store extends Model
     }
 
     /**
+     * Search scope
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where('name', 'like', "%{$term}%")
+            ->orWhere('slug', 'like', "%{$term}%")
+            ->orWhere('address', 'like', "%{$term}%")
+            ->orWhere('phone_number', 'like', "%{$term}%");
+    }
+
+    /**
      * Mark the current store has headquarter
      *
      * @return void;

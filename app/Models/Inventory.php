@@ -35,6 +35,9 @@ class Inventory extends Pivot
         'product_variant_id',
         'store_id',
         'quantity',
+        'serial_number',
+        'batch_number',
+        'status',
     ];
 
     /**
@@ -58,7 +61,7 @@ class Inventory extends Pivot
      */
     protected static function booted(): void
     {
-        static::addGlobalScope('store', function (Builder $builder) {});
+//        static::addGlobalScope('store', function (Builder $builder) {});
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\ProductVariant;
+use App\Models\Store;
 
 class ProductVariantObserver
 {

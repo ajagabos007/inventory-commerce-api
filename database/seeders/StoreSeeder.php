@@ -56,7 +56,7 @@ class StoreSeeder extends Seeder
             return;
         }
         $users = User::whereDoesntHave('staff')
-            ->whereIn('email', ['admin@example.test'])
+            ->whereIn('email', ['admin@cbm-mall.com'])
             ->get();
         $staff = collect();
         foreach ($users as $_user) {
@@ -67,7 +67,6 @@ class StoreSeeder extends Seeder
         if ($staff->isEmpty()) {
             return;
         }
-
         $start_time = now();
         Staff::upsert(
             $staff->toArray(),
@@ -78,8 +77,7 @@ class StoreSeeder extends Seeder
         $end_time = now();
         $staff = \App\Models\Staff::whereBetween('created_at', [
             $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-        ])
-            ->lazy();
+        ])->lazy();
 
         foreach ($staff as $_staff) {
             if ($_staff->created_at == $_staff->updated_at) {

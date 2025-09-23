@@ -43,8 +43,7 @@ class StaffSeeder extends Seeder
 
         $staff = Staff::whereBetween('created_at', [
             $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-        ])
-            ->lazy();
+        ])->lazy();
 
         foreach ($staff as $_staff) {
             if ($_staff->created_at == $_staff->updated_at) {

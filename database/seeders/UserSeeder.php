@@ -13,14 +13,14 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin_email = 'admin@example.test';
-        $saleperson_email = 'saleperson@example.test';
-        $manager_email = 'manager@example.test';
+        $admin_email = 'admin@cbm-mall.com';
+        $salesperson_email = 'salesperson@cbm-mall.com';
+        $manager_email = 'manager@cbm-mall.com';
 
         $users[] = User::factory()->unverified()->make([
             'first_name' => 'Alice',
-            'last_name' => 'Test',
-            'email' => 'alice@example.test',
+            'last_name' => 'User',
+            'email' => 'user@cmb-mall.com',
         ])
             ->makeVisible(['password'])
             ->makeHidden(['profile_photo_url'])
@@ -28,8 +28,8 @@ class UserSeeder extends Seeder
 
         $users[] = User::factory()->unverified()->make([
             'first_name' => 'Staff',
-            'last_name' => 'Test',
-            'email' => 'staff@example.test',
+            'last_name' => 'Support',
+            'email' => 'support@cbm-mall.com',
         ])
             ->makeVisible(['password'])
             ->makeHidden(['profile_photo_url'])
@@ -37,8 +37,8 @@ class UserSeeder extends Seeder
 
         $users[] = User::factory()->unverified()->make([
             'first_name' => 'Staff',
-            'last_name' => 'Saleperson',
-            'email' => $saleperson_email,
+            'last_name' => 'Salesperson',
+            'email' => $salesperson_email,
         ])
             ->makeVisible(['password'])
             ->makeHidden(['profile_photo_url'])
@@ -53,10 +53,10 @@ class UserSeeder extends Seeder
             ->makeHidden(['profile_photo_url'])
             ->toArray();
 
-        $admin_email = 'admin@example.test';
+        $admin_email = 'admin@cmb-mall.com';
         $users[] = User::factory()->unverified()->make([
             'first_name' => 'Admin',
-            'last_name' => 'Test',
+            'last_name' => 'CBM-Mall',
             'email' => $admin_email,
         ])->makeVisible(['password'])
             ->makeHidden(['profile_photo_url'])
@@ -69,13 +69,13 @@ class UserSeeder extends Seeder
         );
 
         $admin = 'admin';
-        $saleperson = 'saleperson';
+        $salesperson = 'salesperson';
         $manager = 'manager';
 
         Role::upsert(
             $roles = [
                 ['name' => $admin, 'guard_name' => 'web'],
-                ['name' => $saleperson, 'guard_name' => 'web'],
+                ['name' => $salesperson, 'guard_name' => 'web'],
                 ['name' => $manager, 'guard_name' => 'web'],
             ],
             uniqueBy: ['name', 'guard_name'],
@@ -85,8 +85,8 @@ class UserSeeder extends Seeder
         $test_admin = User::where('email', $admin_email)->first();
         $test_admin->assignRole($admin);
 
-        $test_saleperson = User::where('email', $saleperson_email)->first();
-        $test_saleperson->assignRole($saleperson);
+        $test_salesperson = User::where('email', $salesperson_email)->first();
+        $test_salesperson->assignRole($salesperson);
 
         $test_manager = User::where('email', $manager_email)->first();
         $test_manager->assignRole($manager);

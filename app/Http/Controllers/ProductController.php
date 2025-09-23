@@ -12,6 +12,7 @@ use App\Models\Attachment;
 use App\Models\AttributeValue;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -140,12 +141,20 @@ class ProductController extends Controller
                     try {
                         $variant = $product->variants()->create($validatedVariant);
 
+
                         if (array_key_exists('attribute_value_ids', $validatedVariant) && is_array($validatedVariant['attribute_value_ids'])) {
                             $attributeValues = AttributeValue::whereIn('id', $validatedVariant['attribute_value_ids'])->pluck('id');
 
                             if ($attributeValues->isNotEmpty()) {
                                 $variant->attributeValues()->attach($attributeValues);
                             }
+                        }
+
+                        $store = Store::warehouses()->first();
+
+                        if($store){
+                            $validatedVariant['store_id'] = $store->id;
+                            $variant->inventories()->create($validatedVariant);
                         }
 
                         DB::commit();

@@ -14,34 +14,39 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('invoice_number')->unique();
+
             $table->foreignUuid('cashier_staff_id')
                 ->nullable()
                 ->constrained('staff')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
 
-            $table->foreignUuid('customer_user_id')
-                ->nullable()
-                ->constrained('users')
-                ->onUpdate('cascade')
-                ->onDelete('set null');
+            // Polymorphic buyer (can be users, customers, etc.)
+            $table->uuidMorphs('buyer');
+
+            // Channel: POS or Ecommerce
+            $table->string('channel')->default('pos');
 
             $table->string('customer_name')->nullable();
             $table->string('customer_email')->nullable();
             $table->string('customer_phone_number')->nullable();
+
             $table->string('payment_method')->nullable();
             $table->decimal('subtotal_price', 10, 2)->default(0);
             $table->decimal('tax', 10, 2)->default(0);
+
             $table->foreignUuid('discount_id')
                 ->nullable()
                 ->constrained('discounts')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
+
             $table->decimal('total_price', 10, 2)->default(0);
             $table->json('metadata')->nullable();
 
             $table->timestamps();
         });
+
 
     }
 

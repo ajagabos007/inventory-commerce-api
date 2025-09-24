@@ -125,6 +125,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('inventories', InventoryController::class)
         ->only(['index', 'show']);
 
+    Route::apiResource('stores', StoreController::class);
+
     /**
      * Admin routes
      */
@@ -145,7 +147,6 @@ Route::middleware('auth:sanctum')->group(function () {
         });
         Route::apiResource('users', UserController::class);
 
-        Route::apiResource('stores', StoreController::class);
         Route::apiResource('staff', StaffController::class);
         Route::prefix('roles/{role}')->name('roles.')->group(function () {
             Route::post('sync-permissions', [RoleController::class, 'syncPermissions'])

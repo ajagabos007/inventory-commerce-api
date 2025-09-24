@@ -26,6 +26,8 @@ class StoreFactory extends Factory
         return [
             'name' => $name = "{$region} CBM MALL Inc",
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
+            'country' => 'Nigeria',
+            'city' => $region,
             'address' => "{$fake->streetAddress()} {$fake->city()}, {$region}",
             'is_warehouse' => false,
         ];

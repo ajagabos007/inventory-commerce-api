@@ -38,7 +38,8 @@ class UpdateStoreRequest extends FormRequest
                     ->ignore($this->store),
 
             ],
-
+            'phone_number' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'string', 'max:191'],
             'is_warehouse' => 'boolean',
         ];
     }

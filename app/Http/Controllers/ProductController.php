@@ -85,6 +85,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request): \Illuminate\Http\JsonResponse|ProductResource
     {
         $validated = $request->validated();
+        $warehouse = Store::warehouses()->first();
 
         try {
             DB::beginTransaction();
@@ -99,12 +100,19 @@ class ProductController extends Controller
                 }
             }
 
-            $hasVariants = array_key_exists('variants', $validated) && !blank($validated['variants']);
+            $hasVariants = array_key_exists('variants', $validated) && ! blank($validated['variants']);
 
-            if (! $hasVariants) {
-                $variant = $product->variants()->create($validated);
-                $variant->attributeValues()->attach($product->attributeValues()->pluck('id')->toArray());
+            /**
+             * Create product as a variant of itself
+             */
+            $variant = $product->variants()->create($validated);
+
+            $variant->attributeValues()->attach($product->attributeValues()->pluck('attribute_values.id')->toArray());
+            if ($warehouse) {
+                $validated['store_id'] = $warehouse->id;
+                $variant->inventories()->create($validated);
             }
+
 
             if (array_key_exists('category_ids', $validated) && is_array($validated['category_ids'])) {
                 $categories = Category::whereIn('id', $validated['category_ids'])->pluck('id');
@@ -141,7 +149,6 @@ class ProductController extends Controller
                     try {
                         $variant = $product->variants()->create($validatedVariant);
 
-
                         if (array_key_exists('attribute_value_ids', $validatedVariant) && is_array($validatedVariant['attribute_value_ids'])) {
                             $attributeValues = AttributeValue::whereIn('id', $validatedVariant['attribute_value_ids'])->pluck('id');
 
@@ -150,10 +157,8 @@ class ProductController extends Controller
                             }
                         }
 
-                        $store = Store::warehouses()->first();
-
-                        if($store){
-                            $validatedVariant['store_id'] = $store->id;
+                        if ($warehouse) {
+                            $validatedVariant['store_id'] = $warehouse->id;
                             $variant->inventories()->create($validatedVariant);
                         }
 
@@ -174,7 +179,7 @@ class ProductController extends Controller
 
                     } catch (\Throwable $th) {
                         DB::rollBack();
-                        logger($e->getMessage());
+                        logger($th->getMessage());
 
                         if ($product->variants()->count() == 0) {
                             $variant = $product->variants()->create($validated);
@@ -187,7 +192,7 @@ class ProductController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
+            logger($e);
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
 

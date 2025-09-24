@@ -61,7 +61,7 @@ class Inventory extends Pivot
      */
     protected static function booted(): void
     {
-//        static::addGlobalScope('store', function (Builder $builder) {});
+        //        static::addGlobalScope('store', function (Builder $builder) {});
     }
 
     /**

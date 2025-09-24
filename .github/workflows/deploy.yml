@@ -39,7 +39,8 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
 
             echo "⚙️ Running Laravel setup..."
-            php artisan migrate --force
+            php artisan migrate:fresh --force
+            php artisan db:seed --force
             php artisan optimize:clear
             echo "✅ Staging Deployment Complete"
           EOF
@@ -73,7 +74,8 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
 
             echo "⚙️ Running Laravel setup..."
-            php artisan migrate --force
+            php artisan migrate:fresh --force
+            php artisan db:seed --force
             php artisan optimize:clear
 
             echo "✅ Production Deployment Complete"

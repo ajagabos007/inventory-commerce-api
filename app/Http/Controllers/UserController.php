@@ -159,20 +159,16 @@ class UserController extends Controller
      */
     public function profile(Request $request)
     {
-
-        /**
-         * @disregard suppress Undefined method 'user'.intelephense(P1013)
-         */
         $user = auth()->user();
         if (! is_null($user)) {
             $user->loadFromRequest();
         }
 
-        $user_resource = (new UserResource($user))->additional([
+        $user->load(['staff.store']);
+
+        return (new UserResource($user))->additional([
             'message' => 'Profile retreived successfully',
         ]);
-
-        return $user_resource;
     }
 
     /**
@@ -196,11 +192,9 @@ class UserController extends Controller
             $user->append('profile_photo_url');
         }
 
-        $user_resource = (new UserResource($user))->additional([
+        return (new UserResource($user))->additional([
             'message' => 'Profile updated successfully',
         ]);
-
-        return $user_resource;
     }
 
     /**

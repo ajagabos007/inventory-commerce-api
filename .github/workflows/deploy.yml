@@ -42,7 +42,7 @@ jobs:
             php artisan migrate:fresh --force
             php artisan db:seed --force
             php artisan optimize:clear
-            chmod www-data storage -R
+            chown www-data:www-data storage -R
             echo "✅ Staging Deployment Complete"
           EOF
 
@@ -78,7 +78,7 @@ jobs:
             php artisan migrate:fresh --force
             php artisan db:seed --force
             php artisan optimize:clear
-            chmod www-data storage -R
+            chown www-data:www-data storage -R
             echo "✅ Production Deployment Complete"
           EOF
 

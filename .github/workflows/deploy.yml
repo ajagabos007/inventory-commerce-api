@@ -80,12 +80,13 @@ jobs:
             echo "⚙️ Running Laravel setup..."
             #php artisan migrate --force
             php artisan migrate:fresh --force
-            php artisan db:seed -force
+            php artisan db:seed --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
             php artisan config:cache
+
             echo "✅ Production Deployment Complete"
           EOF
 

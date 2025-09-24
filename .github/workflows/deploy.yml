@@ -40,9 +40,7 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
 
-            #php artisan migrate --force
-            php artisan migrate:fresh --force
-            php artisan db:seed --force
+            php artisan migrate --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
@@ -82,9 +80,7 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
 
-            #php artisan migrate --force
-            php artisan migrate:fresh --force
-            php artisan db:seed --force
+            php artisan migrate --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache

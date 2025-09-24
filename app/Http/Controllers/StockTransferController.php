@@ -71,18 +71,13 @@ class StockTransferController extends Controller
                     'fromStore',
                     'toStore',
                     'inventories',
-                    'inventories.item',
-                    'inventories.item.store',
-                    'inventories.item.category',
-                    'inventories.item.type',
-                    'inventories.item.image',
+                    'inventories.productVariant.store',
+                    'inventories.productVariant.categories',
+                    'inventories.productVariant.images',
                     'stockTransferInventories',
                     'stockTransferInventories.inventory',
-                    'stockTransferInventories.inventory.item',
-                    'stockTransferInventories.inventory.item.image',
-                    'stockTransferInventories.inventory.item.category',
-                    'stockTransferInventories.inventory.item.type',
-                    'stockTransferInventories.inventory.item.colour',
+                    'stockTransferInventories.inventory.productVariant.images',
+                    'stockTransferInventories.inventory.productVariant.product.images',
                 ]);
         }
 

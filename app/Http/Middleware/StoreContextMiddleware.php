@@ -20,9 +20,11 @@ class StoreContextMiddleware
         $user = auth()->user();
 
         app()->instance('currentStoreId', $user?->staff?->store_id);
+        app()->instance('currentStore', $user?->staff?->store);
 
         if ($user && $user->can('switch', Store::class)) {
             app()->instance('currentStoreId', $request->header('x-store'));
+            app()->instance('currentStore', Store::find($request->header('x-store')));
         }
 
         return $next($request);

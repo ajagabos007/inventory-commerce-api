@@ -18,7 +18,7 @@ enum AttributeType: string
     public static function rules($type): array
     {
         return match (strtolower($type)) {
-            self::Number->value => ['numeric'],
+            self::NUMBER->value => ['numeric'],
             self::COLOR->value => ['hex_color'],
             self::DATE->value => ['date'],
             default => ['string', 'max:191'],

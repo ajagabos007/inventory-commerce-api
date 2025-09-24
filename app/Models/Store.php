@@ -32,6 +32,9 @@ class Store extends Model
     protected $fillable = [
         'name',
         'slug',
+        'phone_mumber',
+        'country',
+        'city',
         'address',
         'is_warehouse',
     ];
@@ -91,6 +94,8 @@ class Store extends Model
     {
         return $query->where('name', 'like', "%{$term}%")
             ->orWhere('slug', 'like', "%{$term}%")
+            ->orWhere('country', 'like', "%{$term}%")
+            ->orWhere('city', 'like', "%{$term}%")
             ->orWhere('address', 'like', "%{$term}%")
             ->orWhere('phone_number', 'like', "%{$term}%");
     }

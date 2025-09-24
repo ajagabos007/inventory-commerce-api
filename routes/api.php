@@ -125,38 +125,39 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('inventories', InventoryController::class)
         ->only(['index', 'show']);
 
+    Route::apiResource('stores', StoreController::class);
+    Route::apiResource('staff', StaffController::class);
+    Route::prefix('roles/{role}')->name('roles.')->group(function () {
+        Route::post('sync-permissions', [RoleController::class, 'syncPermissions'])
+            ->name('sync-permissions');
+    });
+    Route::apiResource('roles', RoleController::class);
+    Route::apiResource('permissions', PermissionController::class)
+        ->only(['index', 'show']);
+
+    Route::apiResource('discounts', DiscountController::class);
+
+    Route::controller(EnumController::class)->group(function () {
+        Route::delete('enums/cache', 'clearCache')->name('enums.cache.clear');
+        Route::get('enums/cache/stats', 'getCacheStats')->name('enums.cache.stats');
+    });
+
+    Route::prefix('users/{user}')->name('users.')->group(function () {
+        Route::controller(UserController::class)->group(function () {
+            Route::post('deactivate', 'deactivate')->name('deactivate');
+            Route::post('reactivate', 'reactivate')->name('reactivate');
+            Route::post('notifications/send-mail', 'sendMail')->name('notifications.send-mail');
+            Route::post('sync-roles', 'syncRoles')->name('sync-roles');
+            Route::post('sync-permissions', 'syncPermissions')->name('sync-permissions');
+        });
+    });
+    Route::apiResource('users', UserController::class);
+
     /**
      * Admin routes
      */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
-        Route::controller(EnumController::class)->group(function () {
-            Route::delete('enums/cache', 'clearCache')->name('enums.cache.clear');
-            Route::get('enums/cache/stats', 'getCacheStats')->name('enums.cache.stats');
-        });
 
-        Route::prefix('users/{user}')->name('users.')->group(function () {
-            Route::controller(UserController::class)->group(function () {
-                Route::post('deactivate', 'deactivate')->name('deactivate');
-                Route::post('reactivate', 'reactivate')->name('reactivate');
-                Route::post('notifications/send-mail', 'sendMail')->name('notifications.send-mail');
-                Route::post('sync-roles', 'syncRoles')->name('sync-roles');
-                Route::post('sync-permissions', 'syncPermissions')->name('sync-permissions');
-            });
-        });
-        Route::apiResource('users', UserController::class);
-
-        Route::apiResource('stores', StoreController::class);
-        Route::apiResource('staff', StaffController::class);
-        Route::prefix('roles/{role}')->name('roles.')->group(function () {
-            Route::post('sync-permissions', [RoleController::class, 'syncPermissions'])
-                ->name('sync-permissions');
-        });
-        Route::apiResource('roles', RoleController::class);
-        Route::apiResource('permissions', PermissionController::class)
-            ->only(['index', 'show']);
-
-        Route::apiResource('discounts', DiscountController::class);
-        Route::apiResource('daily-gold-prices', DailyGoldPriceController::class);
     });
 
     Route::match(['PUT', 'PATCH'], 'notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');

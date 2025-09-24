@@ -15,9 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->string('slug')->unique();
+            $table->string('country')->nullable();
+            $table->string('city')->nullable();
             $table->string('address')->nullable();
-            $table->string('phone_number')->nullable();
             $table->boolean('is_warehouse')->default(0);
+            $table->string('phone_number')->nullable();
+            $table->string('email')->nullable();
             $table->timestamp('deactivated_at')->nullable();
 
             $table->timestamps();

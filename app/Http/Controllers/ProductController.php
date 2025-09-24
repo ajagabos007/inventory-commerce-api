@@ -51,8 +51,14 @@ class ProductController extends Controller
                 'attributeValues',
             ])
             ->allowedFilters([
+                'categories.id',
+                'attributeValues.id',
+                'attributeValues.attribute.id',
                 'variants.id',
                 'variants.sku',
+                'variants.categories.id',
+                'variants.attributeValues.id',
+
             ]);
 
         $products->when(request()->filled('q'), function ($query) {

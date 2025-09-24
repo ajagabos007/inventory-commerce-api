@@ -27,7 +27,11 @@ class StoreStoreRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:191', Rule::unique('stores', 'name')->where('address', $this->input('address'))],
+            'country' => ['nullable', 'string', 'max:191'],
+            'city' => ['nullable', 'string', 'max:191'],
             'address' => ['nullable', 'string', 'max:191', Rule::unique('stores', 'address')->where('name', $this->input('name'))],
+            'phone_number' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'string', 'max:191'],
             'is_warehouse' => 'boolean',
         ];
     }

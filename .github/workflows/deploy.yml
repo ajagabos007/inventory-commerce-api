@@ -43,6 +43,10 @@ jobs:
             php artisan db:seed --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
+            chown -R www-data:www-data bootstrap/cache
+            chmod -R 775 bootstrap/cache
+            php artisan config:cache
+
             echo "✅ Staging Deployment Complete"
           EOF
 
@@ -79,6 +83,9 @@ jobs:
             php artisan db:seed --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
+            chown -R www-data:www-data bootstrap/cache
+            chmod -R 775 bootstrap/cache
+            php artisan config:cache
             echo "✅ Production Deployment Complete"
           EOF
 

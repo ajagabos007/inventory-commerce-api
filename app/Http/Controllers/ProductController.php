@@ -52,6 +52,7 @@ class ProductController extends Controller
             ])
             ->allowedFilters([
                 'categories.id',
+                'attributeValues.id',
                 'attributeValues.attribute.id',
                 'variants.id',
                 'variants.sku',

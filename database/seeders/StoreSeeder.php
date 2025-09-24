@@ -25,7 +25,7 @@ class StoreSeeder extends Seeder
             'is_warehouse' => true,
         ];
 
-//        $stores = Store::factory(1)->make()->toArray();
+        //        $stores = Store::factory(1)->make()->toArray();
 
         $stores[] = Store::factory()->make($warehouse)->toArray();
 
@@ -40,9 +40,9 @@ class StoreSeeder extends Seeder
         $end_time = now();
 
         $stores = Store::whereBetween('created_at', [
-                    $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-                ])
-                ->lazy();
+            $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
+        ])
+            ->lazy();
 
         foreach ($stores as $store) {
             if ($store->created_at == $store->updated_at) {
@@ -51,7 +51,6 @@ class StoreSeeder extends Seeder
                 Event::dispatch('eloquent.updated: '.$store::class, $store);
             }
         }
-
 
         $store = Store::warehouses()->first();
 
@@ -84,8 +83,8 @@ class StoreSeeder extends Seeder
         $end_time = now();
 
         $staff = Staff::whereBetween('created_at', [
-                    $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-                ])->lazy();
+            $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
+        ])->lazy();
 
         foreach ($staff as $_staff) {
             if ($_staff->created_at == $_staff->updated_at) {

@@ -10,18 +10,12 @@ class StaffObserver implements ShouldHandleEventsAfterCommit
     /**
      * Handle the Staff "created" event.
      */
-    public function created(Staff $staff): void
-    {
-
-    }
+    public function created(Staff $staff): void {}
 
     /**
      * Handle the Staff "updated" event.
      */
-    public function updated(Staff $staff): void
-    {
-
-    }
+    public function updated(Staff $staff): void {}
 
     /**
      * Handle the Staff "deleted" event.

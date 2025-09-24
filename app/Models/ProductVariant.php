@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InventoryStatus;
 use App\Observers\ProductVariantObserver;
 use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
@@ -46,6 +47,20 @@ class ProductVariant extends Model
         'cost_price',
         'is_serialized',
     ];
+
+    /**
+     * Get the item's name
+     */
+    protected function quantity(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $this->inventories()
+                    ->where('status', InventoryStatus::AVAILABLE)
+                    ->sum('quantity');
+            }
+        );
+    }
 
     /**
      * Search scope

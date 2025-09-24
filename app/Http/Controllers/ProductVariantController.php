@@ -12,6 +12,7 @@ use App\Models\AttributeValue;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductVariantController extends Controller
@@ -57,6 +58,8 @@ class ProductVariantController extends Controller
                 'attributeValues.attribute.id',
                 'product.attributeValues.id',
                 'product.attributeValues.attribute.id',
+                AllowedFilter::scope('low_stock', 'lowStock'),
+                AllowedFilter::scope('out_of_stock', 'outOfStock'),
             ]);
 
         $productVariants->when(request()->filled('q'), function ($query) {

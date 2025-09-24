@@ -111,6 +111,41 @@ class Product extends Model
     }
 
     /**
+     * Scope inventories low in stock
+     */
+    public function scopeLowStock($query, $threshold = 5)
+    {
+        $threshold = filter_var($threshold, FILTER_VALIDATE_INT);
+        $threshold = $threshold === false ? 5 : $threshold;
+
+        return $query->whereHas('variants', function($query) use($threshold){
+            $query->where('quantity', '<=', $threshold)
+                ->where('quantity', '>', 0);
+            });
+    }
+
+    /**
+     * Scope inventories out of stock
+     */
+    public function scopeOutOfStock($query, $out_of_stock = true)
+    {
+        $out_of_stock = filter_var($out_of_stock, FILTER_VALIDATE_BOOLEAN);
+
+        $query->when($out_of_stock, function ($query) {
+            return $query->whereHas('variants', function($query){
+                $query->where('quantity', '<=', 0);
+            });
+
+        }, function ($query) {
+            return $query->whereHas('variants', function($query){
+                $query->where('quantity', '>', 0);
+            });
+        });
+
+        return $query;
+    }
+
+    /**
      * The products
      */
     public function variants(): HasMany

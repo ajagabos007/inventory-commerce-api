@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
@@ -58,6 +59,8 @@ class ProductController extends Controller
                 'variants.sku',
                 'variants.categories.id',
                 'variants.attributeValues.id',
+                AllowedFilter::scope('low_stock', 'lowStock'),
+                AllowedFilter::scope('out_of_stock', 'outOfStock'),
 
             ]);
 

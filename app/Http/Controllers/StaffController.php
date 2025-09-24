@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateStaffRequest;
 use App\Http\Resources\StaffResource;
 use App\Models\Staff;
 use App\Models\User;
-use App\QueryBuilder\Filters\StaffIsManager;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -51,12 +50,10 @@ class StaffController extends Controller
             )
             ->allowedFilters([
                 'user.id',
-                AllowedFilter::custom('is_store_manager', new StaffIsManager),
             ])
             ->allowedIncludes([
                 'user',
                 'user.roles',
-                'managedStore',
                 'store',
             ]);
         if (request()->has('q')) {

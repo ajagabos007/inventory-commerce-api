@@ -39,7 +39,6 @@ class StoreController extends Controller
                 'name',
             ])
             ->allowedIncludes([
-                'manager',
             ]);
 
         $stores->when(request()->filled('q'), function ($query) {
@@ -73,7 +72,6 @@ class StoreController extends Controller
     {
         $validated = $request->validated();
         $store = Store::create($validated);
-        $store->load(['manager.user']);
 
         return (new StoreResource($store))->additional([
             'message' => 'Store created successfully',
@@ -102,7 +100,6 @@ class StoreController extends Controller
         $validated = $request->validated();
 
         $store->update($validated);
-        $store->load(['manager.user']);
 
         return (new StoreResource($store))->additional([
             'message' => 'Store updated successfully',

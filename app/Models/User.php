@@ -157,15 +157,6 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-    /**
-     * is store manager access
-     */
-    protected function isStoreManager(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => ! is_null($this->managedStore)
-        );
-    }
 
     /**
      * is admin accessor

@@ -19,6 +19,11 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->string('staff_no')->nullable()->unique();
+            $table->foreignUuid('store_id')
+                ->nullable()
+                ->constrained('stores')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);

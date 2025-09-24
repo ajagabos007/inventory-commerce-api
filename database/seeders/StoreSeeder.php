@@ -16,16 +16,16 @@ class StoreSeeder extends Seeder
      */
     public function run(): void
     {
-        $goldwiseHQ = [
+        $warehouse = [
             'name' => $name = 'CBN MALL HQ',
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
             'address' => 'Maitama, Abuja',
             'is_warehouse' => true,
         ];
 
-        $stores = Store::factory(4)->make()->toArray();
+        $stores = Store::factory(1)->make()->toArray();
 
-        $stores[] = Store::factory()->make($goldwiseHQ)->toArray();
+        $stores[] = Store::factory()->make($warehouse)->toArray();
 
         $start_time = now();
 

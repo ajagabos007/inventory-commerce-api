@@ -53,7 +53,6 @@ class UserSeeder extends Seeder
             ->makeHidden(['profile_photo_url'])
             ->toArray();
 
-        $admin_email = 'admin@cmb-mall.com';
         $users[] = User::factory()->unverified()->make([
             'first_name' => 'Admin',
             'last_name' => 'CBM-Mall',

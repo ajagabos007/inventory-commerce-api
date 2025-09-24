@@ -39,9 +39,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'product-variant.delete'],
 
             // Inventory
-            ['name' => 'stock.create'],
-            ['name' => 'stock.update'],
-            ['name' => 'stock.delete'],
+            ['name' => 'inventory.viewAny'],
+            ['name' => 'inventory.view'],
+            ['name' => 'inventory.create'],
+            ['name' => 'inventory.update'],
+            ['name' => 'inventory.delete'],
 
             // Sales
             ['name' => 'sale.view'],
@@ -52,9 +54,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'stock_transfer.create'],
             ['name' => 'stock_transfer.receive'],
 
-            // Pricing
-            ['name' => 'daily_price.create'],
-            ['name' => 'daily_price.update'],
 
             // Reports
             ['name' => 'report.view_sales'],
@@ -63,6 +62,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'attribute.manage'],
 
             // Store-level
+            ['name' => 'store.viewAny'],
+            ['name' => 'store.view'],
             ['name' => 'store.switch'],
             ['name' => 'store.create'],
             ['name' => 'store.update'],

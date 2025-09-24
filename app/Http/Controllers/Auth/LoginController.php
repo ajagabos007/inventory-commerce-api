@@ -60,7 +60,7 @@ class LoginController extends Controller
             'user' => $user->load([
                 'staff',
             ])->append([
-                'is_admin', 'is_staff', 'is_store_manager',
+                'is_admin', 'is_staff',
             ]),
             'token' => $token,
         ]);

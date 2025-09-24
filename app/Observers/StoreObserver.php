@@ -12,13 +12,10 @@ class StoreObserver implements ShouldHandleEventsAfterCommit
      */
     public function created(Store $store): void
     {
-        if (Store::count() == 0) {
-            $store->markAsWarehouse();
-        } elseif ($store->is_warehouse) {
+        if ($store->is_warehouse || Store::count() == 0) {
             $store->markAsWarehouse();
         }
 
-        $store->updateManagerAsStaff();
     }
 
     /**
@@ -29,8 +26,6 @@ class StoreObserver implements ShouldHandleEventsAfterCommit
         if ($store->is_warehouse) {
             $store->markAsWarehouse();
         }
-
-        $store->updateManagerAsStaff();
     }
 
     /**

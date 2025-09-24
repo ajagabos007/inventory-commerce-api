@@ -17,9 +17,6 @@ class StaffSeeder extends Seeder
         $user = User::whereDoesntHave('staff')
             ->whereIn('email', [
                 'admin@cbm-maill.com',
-                'staff@cbm-mall.com',
-                'salesperson@cbm-mall.com',
-                'manager@cbm-mall.com',
             ])
             ->get();
         $staff = collect();

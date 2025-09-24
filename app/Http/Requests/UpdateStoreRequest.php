@@ -40,7 +40,6 @@ class UpdateStoreRequest extends FormRequest
             ],
 
             'is_warehouse' => 'boolean',
-            'manager_staff_id' => ['nullable', 'string', 'exists:staff,id'],
         ];
     }
 
@@ -52,7 +51,7 @@ class UpdateStoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'manager_staff_id' => 'manager',
+
         ];
     }
 
@@ -64,14 +63,6 @@ class UpdateStoreRequest extends FormRequest
         return [
             function (Validator $validator) {
 
-                if ($this->store->manager_staff_id != $this->input('manager_staff_id')) {
-                    if (! is_null($manager = Staff::find($this->input('manager_staff_id'))) && ! is_null($manager->managedStore)) {
-                        $validator->errors()->add(
-                            'manager_staff_id',
-                            'The staff is already a store manager of '.$manager->managedStore->name.' at '.$manager->managedStore->address
-                        );
-                    }
-                }
             },
         ];
     }

@@ -23,7 +23,7 @@ class StoreSeeder extends Seeder
             'is_warehouse' => true,
         ];
 
-        $stores = Store::factory(1)->make()->toArray();
+//        $stores = Store::factory(1)->make()->toArray();
 
         $stores[] = Store::factory()->make($warehouse)->toArray();
 

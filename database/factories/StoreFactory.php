@@ -27,7 +27,6 @@ class StoreFactory extends Factory
             'name' => $name = "{$region} CBM MALL Inc",
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
             'address' => "{$fake->streetAddress()} {$fake->city()}, {$region}",
-            'manager_staff_id' => Staff::factory()->create(),
             'is_warehouse' => false,
         ];
     }

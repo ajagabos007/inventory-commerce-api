@@ -17,15 +17,6 @@ class RoleSeeder extends Seeder
                 'name' => 'admin',
                 'guard_name' => 'web',
             ],
-            [
-                'name' => 'salesperson',
-                'guard_name' => 'web',
-            ],
-            [
-                'name' => 'manager',
-                'guard_name' => 'web',
-            ],
-
         ];
 
         Role::upsert(

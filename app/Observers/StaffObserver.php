@@ -12,7 +12,7 @@ class StaffObserver implements ShouldHandleEventsAfterCommit
      */
     public function created(Staff $staff): void
     {
-        $staff->updateManagedStore();
+
     }
 
     /**
@@ -20,7 +20,7 @@ class StaffObserver implements ShouldHandleEventsAfterCommit
      */
     public function updated(Staff $staff): void
     {
-        $staff->updateManagedStore();
+
     }
 
     /**

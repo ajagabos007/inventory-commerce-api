@@ -33,7 +33,6 @@ class Store extends Model
         'name',
         'slug',
         'address',
-        'manager_staff_id',
         'is_warehouse',
     ];
 
@@ -47,14 +46,6 @@ class Store extends Model
                 'source' => 'name',
             ],
         ];
-    }
-
-    /**
-     * Get the store manager
-     */
-    public function manager(): BelongsTo
-    {
-        return $this->belongsTo(Staff::class, 'manager_staff_id');
     }
 
     /**
@@ -123,14 +114,4 @@ class Store extends Model
         }
     }
 
-    /**
-     * Set the store manager to be a staff in the store
-     */
-    public function updateManagerAsStaff(): void
-    {
-        if (! is_null($this->manager) && $this->manager->store_id != $this->id) {
-            $this->manager->store_id = $this->id;
-            $this->manager->saveQuietly();
-        }
-    }
 }

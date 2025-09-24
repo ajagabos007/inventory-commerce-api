@@ -29,7 +29,6 @@ class StoreStoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:191', Rule::unique('stores', 'name')->where('address', $this->input('address'))],
             'address' => ['nullable', 'string', 'max:191', Rule::unique('stores', 'address')->where('name', $this->input('name'))],
             'is_warehouse' => 'boolean',
-            'manager_staff_id' => ['nullable', 'string', 'exists:staff,id'],
         ];
     }
 
@@ -41,7 +40,6 @@ class StoreStoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'manager_staff_id' => 'manager',
         ];
     }
 
@@ -53,12 +51,6 @@ class StoreStoreRequest extends FormRequest
         return [
             function (Validator $validator) {
 
-                if (! is_null($manager = Staff::find($this->input('manager_staff_id'))) && ! is_null($manager->managedStore)) {
-                    $validator->errors()->add(
-                        'manager_staff_id',
-                        'The staff is already a store manager of '.$manager->managedStore->name.' at '.$manager->managedStore->address
-                    );
-                }
             },
         ];
     }

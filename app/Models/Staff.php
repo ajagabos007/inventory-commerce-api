@@ -47,14 +47,6 @@ class Staff extends Model
     }
 
     /**
-     * Get the store managed by the staff.
-     */
-    public function managedStore(): HasOne
-    {
-        return $this->hasOne(Store::class, 'manager_staff_id');
-    }
-
-    /**
      * Get the user account of the staff
      */
     public function user(): BelongsTo
@@ -78,19 +70,7 @@ class Staff extends Model
         return $this->hasMany(Sale::class, 'cashier_staff_id');
     }
 
-    /**
-     * Update the managed store
-     *
-     * remove the staff as the manager of the store if they
-     * are no more working in that store
-     */
-    public function updateManagedStore(): void
-    {
-        if (! is_null($this->managedStore) && $this->store_id != $this->managedStore->id) {
-            $this->managedStore->manager_staff_id = null;
-            $this->managedStore->saveQuietly();
-        }
-    }
+
 
     /**
      * Generate staff no.

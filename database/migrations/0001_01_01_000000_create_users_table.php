@@ -21,6 +21,7 @@ return new class extends Migration
             $table->timestamp('phone_number_verified_at')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('username')->nullable()->unique();
             $table->string('password');
             $table->string('profile_photo_path', 2048)->nullable();
             $table->timestamp('deactivated_at')->nullable();

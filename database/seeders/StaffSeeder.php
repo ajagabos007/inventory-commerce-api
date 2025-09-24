@@ -19,7 +19,9 @@ class StaffSeeder extends Seeder
                 'admin@cbm-maill.com',
             ])
             ->get();
+
         $staff = collect();
+
         foreach ($user as $_user) {
             $staff->push(Staff::factory()->make([
                 'user_id' => $_user->id,
@@ -30,6 +32,7 @@ class StaffSeeder extends Seeder
         }
 
         $start_time = now();
+
         Staff::upsert(
             $staff->toArray(),
             uniqueBy: ['staff_no', 'user_id'],

@@ -20,7 +20,7 @@ class StaffFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory()->create(),
+            'user_id' => User::whereDoesntHave('staff')->inRandomOrder()->first(),
             'staff_no' => Staff::generateStaffNo(),
             'store_id' => Store::inRandomOrder()->first(),
         ];

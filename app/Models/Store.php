@@ -65,7 +65,7 @@ class Store extends Model
     }
 
     /**
-     * The products
+     * The product variants
      */
     public function productVariants(): BelongsToMany
     {
@@ -77,7 +77,7 @@ class Store extends Model
     }
 
     /**
-     * Scope and get only head quaters
+     * Scope and get only ware houses
      */
     public function scopeWarehouses(Builder $query)
     {

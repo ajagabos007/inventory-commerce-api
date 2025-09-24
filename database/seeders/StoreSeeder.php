@@ -17,7 +17,7 @@ class StoreSeeder extends Seeder
     public function run(): void
     {
         $warehouse = [
-            'name' => $name = 'CBN MALL HQ',
+            'name' => $name = 'CBM MALL HQ',
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
             'address' => 'Maitama, Abuja',
             'is_warehouse' => true,

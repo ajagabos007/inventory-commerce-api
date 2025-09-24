@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>CBN MALL API</title>
+    <title>CBM MALL API</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -94,10 +94,10 @@
                                 </div>
 
                                 <div class="pt-3 sm:pt-5 lg:pt-0">
-                                    <h2 class="text-xl font-semibold text-black dark:text-white">CBN MALL API Documentation</h2>
+                                    <h2 class="text-xl font-semibold text-black dark:text-white">CBM MALL API Documentation</h2>
 
                                     <p class="mt-4 text-sm/relaxed">
-                                        The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                        The <b>CBM MALL API Documentation</b> outlines the features and endpoints for integrating CBM MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                                     </p>
                                 </div>
                             </div>
@@ -118,7 +118,7 @@
                             <h2 class="text-xl font-semibold text-black dark:text-white">Authentication APIs</h2>
 
                             <p class="mt-4 text-sm/relaxed">
-                                The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                The <b>CBM MALL API Documentation</b> outlines the features and endpoints for integrating CBM MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                             </p>
                         </div>
 
@@ -134,10 +134,10 @@
                         </div>
 
                         <div class="pt-3 sm:pt-5">
-                            <h2 class="text-xl font-semibold text-black dark:text-white">CBN MALL API Documentation</h2>
+                            <h2 class="text-xl font-semibold text-black dark:text-white">CBM MALL API Documentation</h2>
 
                             <p class="mt-4 text-sm/relaxed">
-                                The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                The <b>CBM MALL API Documentation</b> outlines the features and endpoints for integrating CBM MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                             </p>
                         </div>
 
@@ -159,7 +159,7 @@
                             <h2 class="text-xl font-semibold text-black dark:text-white"><a href="https://documenter.getpostman.com/view/22268604/2sB3Hks21F#e7d3d0f5-1146-479c-b06b-7ae4a77418d4">User APIs</a></h2>
 
                             <p class="mt-4 text-sm/relaxed">
-                                The <b>CBN MALL API Documentation</b> outlines the features and endpoints for integrating CBN MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
+                                The <b>CBM MALL API Documentation</b> outlines the features and endpoints for integrating CBM MALL's inventory system. It supports seamless management of stock, real-time updates, transaction tracking, and inventory optimization, enabling developers to build efficient and secure inventory solutions.
                             </p>
                         </div>
                     </div>

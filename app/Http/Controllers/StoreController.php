@@ -6,8 +6,6 @@ use App\Http\Requests\StoreStoreRequest;
 use App\Http\Requests\UpdateStoreRequest;
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class StoreController extends Controller
@@ -62,7 +60,7 @@ class StoreController extends Controller
             $stores = $stores->get();
         }
 
-       return StoreResource::collection($stores)->additional([
+        return StoreResource::collection($stores)->additional([
             'status' => 'success',
             'message' => 'Stores retrieved successfully',
         ]);

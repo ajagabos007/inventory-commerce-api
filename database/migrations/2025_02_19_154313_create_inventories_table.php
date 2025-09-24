@@ -34,7 +34,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes('deleted_at', precision: 0);
 
-            $table->unique(['product_variant_id', 'store_id'], 'unique_store_product_variant_inventory');
+            $table->unique(['product_variant_id', 'store_id'], 'unique_store_product_variant');
             $table->index(['product_variant_id', 'status']);
             $table->index(['store_id', 'status']);
             $table->index(['serial_number']); // Already unique, but good for lookups
@@ -43,6 +43,7 @@ return new class extends Migration
             $table->index(['received_date']);
             $table->index(['warranty_expiry_date']);
             $table->index(['status', 'quantity']);
+            $table->index(['expiration_date', 'status']);
 
         });
     }
@@ -52,6 +53,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('inventory');
+        Schema::dropIfExists('inventories');
     }
 };

@@ -34,6 +34,59 @@ class AttributeSeeder extends Seeder
                 'values' => ['Ivory', 'Beige', 'Sand', 'Honey', 'Caramel', 'Chestnut', 'Mocha'],
             ],
             [
+                'name' => 'Brand',
+                'values' => ['Apple', 'Samsung', 'Dell', 'HP', 'Lenovo', 'Sony', 'Huawei', 'Xiaomi'],
+            ],
+            [
+                'name' => 'Model Year',
+                'values' => ['2019', '2020', '2021', '2022', '2023', '2024'],
+            ],
+            [
+                'name' => 'Processor',
+                'values' => ['Intel i3', 'Intel i5', 'Intel i7', 'Intel i9', 'AMD Ryzen 5', 'AMD Ryzen 7', 'Apple M1', 'Apple M2'],
+            ],
+            [
+                'name' => 'Graphics',
+                'values' => ['Integrated', 'NVIDIA GTX 1650', 'NVIDIA RTX 3060', 'NVIDIA RTX 4070', 'AMD Radeon RX 6600'],
+            ],
+            [
+                'name' => 'Battery',
+                'values' => ['3000mAh', '4000mAh', '5000mAh', '6000mAh'],
+            ],
+            [
+                'name' => 'Camera',
+                'values' => ['8MP', '12MP', '48MP', '64MP', '108MP'],
+            ],
+            [
+                'name' => 'Display',
+                'values' => ['HD', 'Full HD', '2K', '4K UHD', 'OLED', 'AMOLED', 'Retina'],
+            ],
+            [
+                'name' => 'Operating System',
+                'values' => ['Android', 'iOS', 'Windows', 'macOS', 'Linux', 'ChromeOS'],
+            ],
+            [
+                'name' => 'Connectivity',
+                'values' => ['WiFi', '4G LTE', '5G', 'Bluetooth 5.0', 'NFC'],
+            ],
+            [
+                'name' => 'Material',
+                'values' => ['Plastic', 'Aluminium', 'Glass', 'Carbon Fiber'],
+            ],
+            [
+                'name' => 'Weight',
+                'values' => ['Lightweight', 'Standard', 'Heavy'],
+            ],
+            [
+                'name' => 'Ports',
+                'values' => ['USB-C', 'USB-A', 'HDMI', 'Thunderbolt', '3.5mm Jack'],
+            ],
+            [
+                'name' => 'Features',
+                'values' => ['Waterproof', 'Dustproof', 'Fingerprint Sensor', 'Face Unlock', 'Wireless Charging'],
+            ],
+
+            [
                 'name' => 'Finish',
                 'values' => ['Matte', 'Glossy', 'Satin', 'Velvet', 'Shimmer'],
             ],
@@ -60,10 +113,6 @@ class AttributeSeeder extends Seeder
             [
                 'name' => 'Hair Type',
                 'values' => ['Straight', 'Wavy', 'Curly', 'Coily'],
-            ],
-            [
-                'name' => 'Color Family',
-                'values' => ['Red', 'Pink', 'Nude', 'Coral', 'Berry', 'Plum'],
             ],
             [
                 'name' => 'Coverage',

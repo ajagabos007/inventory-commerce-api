@@ -20,8 +20,8 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('set null');
             $table->text('comment')->nullable();
-            $table->string('driver_name');
-            $table->string('driver_phone_number');
+            $table->string('driver_name')->nullable();
+            $table->string('driver_phone_number')->nullable();
             $table->foreignUuid('from_store_id')
                 ->nullable()
                 ->constrained('stores')

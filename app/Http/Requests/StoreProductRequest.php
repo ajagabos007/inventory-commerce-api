@@ -48,7 +48,7 @@ class StoreProductRequest extends FormRequest
                 ], $allowed_extensions = [], $max_size_kb = 2048),
             ],
             'is_serialized' => ['boolean'],
-            'serial_number' => ['required_if:is_serialized,true', 'unique:inventories,serial_number'],
+            'serial_number' => ['exclude_unless:variants.*.is_serialized,true','required_if:is_serialized,true', 'unique:inventories,serial_number'],
             'batch_number' => ['nullable'],
 
             'variants' => ['nullable', 'array'],
@@ -60,7 +60,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.attribute_value_ids' => ['required', 'array', 'min:1'],
             'variants.*.attribute_value_ids.*' => ['required', 'exists:attribute_values,id'],
             'variants.*.is_serialized' => ['boolean'],
-            'variants.*.serial_number' => ['required_if:variants.*.is_serialized,true'],
+            'variants.*.serial_number' => ['exclude_unless:variants.*.is_serialized,true','required_if:variants.*.is_serialized,true', 'unique:inventories,serial_number'],
             'variants.*.batch_number' => ['nullable'],
             'variants.*.images' => ['required', 'array', 'min:1', 'max:4'],
             'variants.*.images*' => [

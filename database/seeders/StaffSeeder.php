@@ -16,10 +16,10 @@ class StaffSeeder extends Seeder
     {
         $user = User::whereDoesntHave('staff')
             ->whereIn('email', [
-                'admin@example.test',
-                'staff@example.test',
-                'salesperson@example.test',
-                'manager@example.test',
+                'admin@cbm-maill.com',
+                'staff@cbm-mall.com',
+                'salesperson@cbm-mall.com',
+                'manager@cbm-mall.com',
             ])
             ->get();
         $staff = collect();
@@ -43,8 +43,7 @@ class StaffSeeder extends Seeder
 
         $staff = Staff::whereBetween('created_at', [
             $start_time->toDateTimeString(),  $end_time->toDateTimeString(),
-        ])
-            ->lazy();
+        ])->lazy();
 
         foreach ($staff as $_staff) {
             if ($_staff->created_at == $_staff->updated_at) {

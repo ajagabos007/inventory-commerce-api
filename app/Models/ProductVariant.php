@@ -146,7 +146,7 @@ class ProductVariant extends Model
         $attempt = 0;
 
         do {
-            $sku = strtoupper(Str::random(10));
+            $sku = strtoupper(Str::random(12));
             $exists = self::where('sku', $sku)->exists();
             $attempt++;
             sleep(1); // Sleep for a short duration to avoid rapid retries;

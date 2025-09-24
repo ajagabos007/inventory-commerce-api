@@ -12,6 +12,7 @@ use App\Models\Attachment;
 use App\Models\AttributeValue;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -84,6 +85,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request): \Illuminate\Http\JsonResponse|ProductResource
     {
         $validated = $request->validated();
+        $warehouse = Store::warehouses()->first();
 
         try {
             DB::beginTransaction();
@@ -98,12 +100,19 @@ class ProductController extends Controller
                 }
             }
 
-            $hasVariants = array_key_exists('variants', $validated) && !blank($validated['variants']);
+            $hasVariants = array_key_exists('variants', $validated) && ! blank($validated['variants']);
 
-            if (! $hasVariants) {
-                $variant = $product->variants()->create($validated);
-                $variant->attributeValues()->attach($product->attributeValues()->pluck('id')->toArray());
+            /**
+             * Create product as a variant of itself
+             */
+            $variant = $product->variants()->create($validated);
+
+            $variant->attributeValues()->attach($product->attributeValues()->pluck('attribute_values.id')->toArray());
+            if ($warehouse) {
+                $validated['store_id'] = $warehouse->id;
+                $variant->inventories()->create($validated);
             }
+
 
             if (array_key_exists('category_ids', $validated) && is_array($validated['category_ids'])) {
                 $categories = Category::whereIn('id', $validated['category_ids'])->pluck('id');
@@ -148,6 +157,11 @@ class ProductController extends Controller
                             }
                         }
 
+                        if ($warehouse) {
+                            $validatedVariant['store_id'] = $warehouse->id;
+                            $variant->inventories()->create($validatedVariant);
+                        }
+
                         DB::commit();
                         if (array_key_exists('images', $validatedVariant)) {
                             foreach ($validatedVariant['images'] as $image) {
@@ -165,7 +179,7 @@ class ProductController extends Controller
 
                     } catch (\Throwable $th) {
                         DB::rollBack();
-                        logger($e->getMessage());
+                        logger($th->getMessage());
 
                         if ($product->variants()->count() == 0) {
                             $variant = $product->variants()->create($validated);
@@ -178,7 +192,7 @@ class ProductController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
+            logger($e);
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
 

@@ -122,7 +122,6 @@ class ProductController extends Controller
                 $variant->inventories()->create($validated);
             }
 
-
             if (array_key_exists('category_ids', $validated) && is_array($validated['category_ids'])) {
                 $categories = Category::whereIn('id', $validated['category_ids'])->pluck('id');
 
@@ -202,6 +201,7 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             logger($e);
+
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
 

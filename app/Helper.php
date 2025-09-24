@@ -15,4 +15,3 @@ if (! function_exists('current_store')) {
         return app()->bound('current_store') ? app('current_store') : null;
     }
 }
-

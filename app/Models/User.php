@@ -157,7 +157,6 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-
     /**
      * is admin accessor
      */

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InventoryStatus;
 use App\Observers\ProductObserver;
 use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 #[ObservedBy([ProductObserver::class])]
 class Product extends Model
@@ -57,6 +59,20 @@ class Product extends Model
                 'source' => 'name',
             ],
         ];
+    }
+
+    /**
+     * Get the item's name
+     */
+    protected function quantity(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $this->inventories()
+                    ->where('status', InventoryStatus::AVAILABLE)
+                    ->sum('quantity');
+            }
+        );
     }
 
     /**
@@ -118,10 +134,10 @@ class Product extends Model
         $threshold = filter_var($threshold, FILTER_VALIDATE_INT);
         $threshold = $threshold === false ? 5 : $threshold;
 
-        return $query->whereHas('variants', function($query) use($threshold){
+        return $query->whereHas('variants', function ($query) use ($threshold) {
             $query->where('quantity', '<=', $threshold)
                 ->where('quantity', '>', 0);
-            });
+        });
     }
 
     /**
@@ -132,12 +148,12 @@ class Product extends Model
         $out_of_stock = filter_var($out_of_stock, FILTER_VALIDATE_BOOLEAN);
 
         $query->when($out_of_stock, function ($query) {
-            return $query->whereHas('variants', function($query){
+            return $query->whereHas('variants', function ($query) {
                 $query->where('quantity', '<=', 0);
             });
 
         }, function ($query) {
-            return $query->whereHas('variants', function($query){
+            return $query->whereHas('variants', function ($query) {
                 $query->where('quantity', '>', 0);
             });
         });
@@ -151,6 +167,15 @@ class Product extends Model
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
+    }
+
+    /**
+     * Get all the inventories for the productions.
+     */
+    public function inventories(): HasManyThrough
+    {
+        return $this->hasManyThrough(Inventory::class, ProductVariant::class);
+
     }
 
     /**

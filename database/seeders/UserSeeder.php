@@ -42,6 +42,5 @@ class UserSeeder extends Seeder
         $test_admin = User::where('email', $admin_email)->first();
         $test_admin->assignRole($admin);
 
-
     }
 }

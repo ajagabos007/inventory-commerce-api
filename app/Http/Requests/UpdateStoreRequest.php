@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Staff;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -62,9 +61,7 @@ class UpdateStoreRequest extends FormRequest
     public function after(): array
     {
         return [
-            function (Validator $validator) {
-
-            },
+            function (Validator $validator) {},
         ];
     }
 }

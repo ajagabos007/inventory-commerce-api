@@ -7,7 +7,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\DailyGoldPriceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\EnumController;
@@ -156,9 +155,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /**
      * Admin routes
      */
-    Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
-
-    });
+    Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {});
 
     Route::match(['PUT', 'PATCH'], 'notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
     Route::match(['PUT', 'PATCH'], 'notifications/mark-all-as-unread', [NotificationController::class, 'markAllAsUnread'])->name('notifications.mark-all-as-unread');

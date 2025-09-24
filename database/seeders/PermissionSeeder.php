@@ -54,7 +54,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'stock_transfer.create'],
             ['name' => 'stock_transfer.receive'],
 
-
             // Reports
             ['name' => 'report.view_sales'],
 

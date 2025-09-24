@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Staff;
 use App\Models\Store;
 use Cviebrock\EloquentSluggable\Services\SlugService;
 use Illuminate\Database\Eloquent\Factories\Factory;

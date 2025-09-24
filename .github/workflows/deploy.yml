@@ -40,7 +40,7 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
             php artisan migrate --force
-#            php artisan db:seed --force
+            php artisan db:seed --force
             php artisan optimize:clear
             echo "✅ Staging Deployment Complete"
           EOF
@@ -75,7 +75,7 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
             php artisan migrate --force
-#            php artisan db:seed --force
+            php artisan db:seed --force
             php artisan optimize:clear
 
             echo "✅ Production Deployment Complete"

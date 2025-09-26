@@ -13,6 +13,10 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        if(User::query()->exists()){
+            return ;
+        }
+
         $admin_email = 'admin@cbm-mall.com';
 
         $users[] = User::factory()->unverified()->make([

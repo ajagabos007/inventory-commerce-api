@@ -13,7 +13,6 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-
             ['name' => 'attribute.viewAny'],
             ['name' => 'attribute.view'],
             ['name' => 'attribute.create'],
@@ -57,8 +56,6 @@ class PermissionSeeder extends Seeder
             // Reports
             ['name' => 'report.view_sales'],
 
-            // Tagging & Category
-            ['name' => 'attribute.manage'],
 
             // Store-level
             ['name' => 'store.viewAny'],
@@ -67,6 +64,14 @@ class PermissionSeeder extends Seeder
             ['name' => 'store.create'],
             ['name' => 'store.update'],
             ['name' => 'store.delete'],
+
+            // Customer-level
+            ['name' => 'customer.viewAny'],
+            ['name' => 'customer.view'],
+            ['name' => 'customer.switch'],
+            ['name' => 'customer.create'],
+            ['name' => 'customer.update'],
+            ['name' => 'customer.delete'],
         ];
 
         // Add guard_name to each permission

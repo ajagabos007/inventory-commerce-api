@@ -16,6 +16,10 @@ class StoreSeeder extends Seeder
      */
     public function run(): void
     {
+        if(Store::query()->exists()){
+            return;
+        }
+
         $warehouse = [
             'name' => $name = 'CBM MALL HQ',
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),

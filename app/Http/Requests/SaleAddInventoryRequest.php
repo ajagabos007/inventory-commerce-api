@@ -22,9 +22,20 @@ class SaleAddInventoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'inventory_id' => 'required|exists:inventory,id',
+            'inventory_id' => 'required|exists:inventories,id',
             'quantity' => 'required|integer|min:1',
-            'price_per_gram' => 'nullable|numeric|min:0.01',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'inventory_id' => 'product',
         ];
     }
 }

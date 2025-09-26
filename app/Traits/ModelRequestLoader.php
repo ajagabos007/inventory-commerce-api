@@ -32,8 +32,15 @@ trait ModelRequestLoader
             );
 
             if (! empty($includes)) {
+                $loads = [];
                 foreach ($includes as $include) {
-                    $this->{$include};
+                    if (blank($include)) {
+                        continue;
+                    }
+                    $loads[] = $include;
+                }
+                if (! blank($loads)) {
+                    $this->load($loads);
                 }
             }
         }

@@ -21,7 +21,7 @@ return new class extends Migration
                 ->constrained('inventories')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-
+            $table->decimal('price', 10, 2);
             $table->unsignedInteger('quantity')->default(1);
             $table->decimal('total_price', 10, 2);
             $table->json('metadata')->nullable();

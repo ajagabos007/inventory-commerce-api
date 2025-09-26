@@ -20,11 +20,11 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleInventoryController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ScrapeController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 

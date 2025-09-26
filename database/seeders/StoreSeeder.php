@@ -16,7 +16,7 @@ class StoreSeeder extends Seeder
      */
     public function run(): void
     {
-        if(Store::query()->exists()){
+        if (Store::query()->exists()) {
             return;
         }
 

@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-            Route::middleware('api', 'store.context', 'cart.token')
+            Route::middleware('api', 'cart.token')
                 ->prefix('api')
                 ->name('api.')
                 ->group(__DIR__.'/../routes/api.php');
@@ -22,8 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'filter.merge.auth-user.id' => \App\Http\Middleware\MergeAuthUserIdFilter::class,
             'filter.merge.auth-user.tokenable' => \App\Http\Middleware\MergeAuthUserTokenableFilter::class,
-            'store.context' => \App\Http\Middleware\StoreContextMiddleware::class,
             'cart.token' => \App\Http\Middleware\EnsureCartToken::class,
+
             /**
              * Spatie Permission middleware
              *

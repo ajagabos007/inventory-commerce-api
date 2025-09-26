@@ -6,10 +6,6 @@ use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SupplierController extends Controller
@@ -25,6 +21,7 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      *serve
+     *
      * @method GET|HEAD /api/Suppliers
      */
     public function index()
@@ -109,7 +106,7 @@ class SupplierController extends Controller
         $validated = $request->validated();
         $supplier->update($validated);
 
-        return  (new SupplierResource($supplier))->additional([
+        return (new SupplierResource($supplier))->additional([
             'message' => 'Supplier updated successfully',
         ]);
 

@@ -315,4 +315,24 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Staff::class, 'user_id');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOneThrough
+     */
+    public function store()
+    {
+        return $this->hasOneThrough(
+            \App\Models\Store::class,
+            \App\Models\Staff::class,
+            'user_id',   // Foreign key on Staff
+            'id',        // Foreign key on Store
+            'id',        // Local key on User
+            'store_id'   // Local key on Staff
+        );
+    }
+
+    public function staffRaw(): HasOne
+    {
+        return $this->hasOne(Staff::class)->withoutGlobalScopes();
+    }
 }

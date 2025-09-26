@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Observers\CustomerObserver;
 use App\Traits\ModelRequestLoader;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,9 @@ class Customer extends Model
         'name',
         'email',
         'phone_number',
+        'country',
+        'city',
+        'address',
     ];
 
     /**
@@ -37,5 +41,18 @@ class Customer extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Search scope
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where('name', 'like', "%{$term}%")
+            ->orWhere('email', 'like', "%{$term}%")
+            ->orWhere('phone_number', 'like', "%{$term}%")
+            ->orWhere('country', 'like', "%{$term}%")
+            ->orWhere('city', 'like', "%{$term}%")
+            ->orWhere('address', 'like', "%{$term}%");
     }
 }

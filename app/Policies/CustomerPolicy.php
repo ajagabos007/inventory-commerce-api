@@ -13,13 +13,8 @@ class CustomerPolicy
      */
     public function before(User $user, string $ability): ?Response
     {
-        // Allow all admin users to perform any action
         if ($user->hasAnyRole('admin')) {
             return Response::allow();
-        }
-        // Deny all other users if they are not staff
-        if (! $user->is_staff) {
-            return Response::deny('You must be a staff member to perform this action.');
         }
 
         return null;

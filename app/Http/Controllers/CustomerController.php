@@ -24,7 +24,7 @@ class CustomerController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
+     *serve
      * @method GET|HEAD /api/customers
      */
     public function index()
@@ -44,7 +44,6 @@ class CustomerController extends Controller
             )
             ->allowedFilters([
                 'user_id',
-
             ])
             ->allowedIncludes([
                 'user',
@@ -52,64 +51,16 @@ class CustomerController extends Controller
                 'user.roles',
             ]);
 
-        if (request()->has('q')) {
-            $customers->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
-            })
-                ->orWhereHas('user', function ($query) {
-                    $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                    if (Cache::has($table_cols_key)) {
-                        $cols = Cache::get($table_cols_key);
-                    } else {
-                        $cols = Schema::getColumnListing($query->getModel()->getTable());
-                        Cache::put($table_cols_key, $cols);
-                    }
-
-                    $counter = 0;
-                    foreach ($cols as $col) {
-
-                        if ($counter == 0) {
-                            $query->where($col, 'LIKE', '%'.request()->q.'%');
-                        } else {
-                            $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                        }
-                        $counter++;
-                    }
-                });
-        }
+            $customers->when(request()->filled('q'), function ($query) {
+                $query->search(request()->q);
+            });
 
         /**
          * Check if pagination is not disabled
          */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
 
             $customers = $customers->paginate($perPage)
                 ->appends(request()->query());
@@ -118,114 +69,61 @@ class CustomerController extends Controller
             $customers = $customers->get();
         }
 
-        $customers_collection = CustomerResource::collection($customers)->additional([
+        return CustomerResource::collection($customers)->additional([
             'status' => 'success',
             'message' => 'Customers retrieved successfully',
         ]);
-
-        return $customers_collection;
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCustomerRequest $request)
+    public function store(StoreCustomerRequest $request): CustomerResource
     {
         $validated = $request->validated();
 
-        try {
+        $customer = Customer::firstOrCreate($validated);
 
-            DB::beginTransaction();
-
-            $customer = Customer::where([
-                'email' => $validated['email'] ?? null,
-                'phone_number' => $validated['phone_number'] ?? null,
-            ])->first();
-
-            if (! $customer) {
-                $customer = Customer::create($validated);
-            }
-
-            DB::commit();
-
-            $customer_resource = (new CustomerResource($customer))->additional([
-                'message' => 'Customer created successfully',
-            ]);
-
-            return $customer_resource;
-
-        } catch (\Throwable $th) {
-
-            DB::rollBack();
-
-            Log::error($th);
-
-            return response()->json([
-                'error' => $th->getMessage(),
-                'message' => $th->getMessage(),
-            ], 500);
-        }
+        return (new CustomerResource($customer))->additional([
+            'message' => 'Customer created successfully',
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show(Customer $customer): CustomerResource
     {
         $customer->loadFromRequest();
 
-        $customer_resource = (new CustomerResource($customer))->additional([
+        return (new CustomerResource($customer))->additional([
             'message' => 'Customer retrieved successfully',
         ]);
-
-        return $customer_resource;
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCustomerRequest $request, Customer $customer)
+    public function update(UpdateCustomerRequest $request, Customer $customer): CustomerResource
     {
         $validated = $request->validated();
+        $customer->update($validated);
 
-        try {
+        return  (new CustomerResource($customer))->additional([
+            'message' => 'Customer updated successfully',
+        ]);
 
-            DB::beginTransaction();
-
-            $customer->update($validated);
-
-            $customer_resource = (new CustomerResource($customer))->additional([
-                'message' => 'Customer updated successfully',
-            ]);
-
-            DB::commit();
-
-            return $customer_resource;
-
-        } catch (\Throwable $th) {
-
-            DB::rollBack();
-
-            Log::error($th);
-
-            return response()->json([
-                'error' => $th->getMessage(),
-                'message' => $th->getMessage(),
-            ], 500);
-        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Customer $customer)
+    public function destroy(Customer $customer): CustomerResource
     {
         $customer->delete();
 
-        $customer_resource = (new CustomerResource(null))->additional([
+        return (new CustomerResource(null))->additional([
             'message' => 'Customer deleted successfully',
         ]);
-
-        return $customer_resource;
     }
 }

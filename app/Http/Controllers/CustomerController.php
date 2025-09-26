@@ -6,10 +6,6 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class CustomerController extends Controller
@@ -25,6 +21,7 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      *serve
+     *
      * @method GET|HEAD /api/customers
      */
     public function index()
@@ -51,9 +48,9 @@ class CustomerController extends Controller
                 'user.roles',
             ]);
 
-            $customers->when(request()->filled('q'), function ($query) {
-                $query->search(request()->q);
-            });
+        $customers->when(request()->filled('q'), function ($query) {
+            $query->search(request()->q);
+        });
 
         /**
          * Check if pagination is not disabled
@@ -109,7 +106,7 @@ class CustomerController extends Controller
         $validated = $request->validated();
         $customer->update($validated);
 
-        return  (new CustomerResource($customer))->additional([
+        return (new CustomerResource($customer))->additional([
             'message' => 'Customer updated successfully',
         ]);
 

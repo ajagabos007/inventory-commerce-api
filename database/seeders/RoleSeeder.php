@@ -12,7 +12,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        if(Role::query()->exists()){
+        if (Role::query()->exists()) {
             return;
         }
 

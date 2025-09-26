@@ -36,11 +36,8 @@ class SaleInventory extends Model
         'inventory_id',
         'sale_id',
         'quantity',
-        'weight',
-        'price_per_gram',
+        'price',
         'total_price',
-        'daily_gold_price_id',
-
     ];
 
     /**
@@ -61,11 +58,10 @@ class SaleInventory extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            if (app()->runningInconsole()) {
-                return;
-            }
-            $builder->whereHas('inventory', function (Builder $query) {
-                $query->where('store_id', request()->header('x-store'));
+            $builder->when(! app()->runningInConsole(), function ($builder) {
+                $builder->whereDoesntHave('inventory', function (Builder $builder) {
+                    $builder->where('store_id', '<>', current_store()->id);
+                });
             });
         });
     }

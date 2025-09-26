@@ -37,10 +37,12 @@ jobs:
 
             echo "📦 Installing dependencies..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
-
+            composer dumpautoload
             echo "⚙️ Running Laravel setup..."
 
+            php artisan migrate:rollback --step=7 --force
             php artisan migrate --force
+            php artisan db:seed --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
@@ -77,10 +79,13 @@ jobs:
 
             echo "📦 Installing dependencies..."
             composer install --no-interaction --prefer-dist --optimize-autoloader
+            composer dumpautoload
 
             echo "⚙️ Running Laravel setup..."
 
+            php artisan migrate:rollback --step=7 --force
             php artisan migrate --force
+            php artisan db:seed --force
             php artisan optimize:clear
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache

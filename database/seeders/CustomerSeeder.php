@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Customer;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
@@ -13,8 +12,8 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        if(Customer::query()->exists()){
-            return ;
+        if (Customer::query()->exists()) {
+            return;
         }
 
         Customer::factory()->create([
@@ -23,7 +22,7 @@ class CustomerSeeder extends Seeder
             'phone_number' => null,
             'country' => null,
             'city' => null,
-            'address' => null
+            'address' => null,
         ]);
     }
 }

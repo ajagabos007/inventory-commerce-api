@@ -56,7 +56,6 @@ class PermissionSeeder extends Seeder
             // Reports
             ['name' => 'report.view_sales'],
 
-
             // Store-level
             ['name' => 'store.viewAny'],
             ['name' => 'store.view'],

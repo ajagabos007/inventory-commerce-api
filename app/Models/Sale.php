@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
 
 #[ObservedBy([SaleObserver::class])]
@@ -31,10 +32,8 @@ class Sale extends Model
     protected $fillable = [
         'cashier_staff_id',
         'discount_id',
-        'customer_user_id',
-        'customer_name',
-        'customer_email',
-        'customer_phone_number',
+        'buyerable_id',
+        'buyerable_type',
         'tax',
         'payment_method',
         'subtotal_price',
@@ -59,13 +58,45 @@ class Sale extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(app()->bound('currentStoreId'), function ($builder) {
-                $builder->whereHas('inventories', function (Builder $builder) {
-                    $builder->where('store_id', app('currentStoreId'));
+            $builder->when(! app()->runningInConsole(), function ($builder) {
+                $builder->whereDoesntHave('inventories', function (Builder $builder) {
+                    $builder->where('store_id', '<>', current_store()?->id);
                 });
             });
-
         });
+    }
+
+    /**
+     * Search scope
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where('invoice_number', 'like', "%{$term}%")
+            ->orWhere('subtotal_price', 'like', "%{$term}%")
+            ->orWhere('total_price', 'like', "%{$term}%")
+            ->orWhere('payment_method', 'like', "%{$term}%")
+            ->orWhere('tax', 'like', "%{$term}%")
+            ->orWhere('channel', 'like', "%{$term}%")
+            ->orWhereHas('buyerable', function ($buyerQuery) use ($term) {
+                $model = $buyerQuery->getModel();
+
+                return match (get_class($model)) {
+                    \App\Models\Customer::class => $buyerQuery->where('name', 'like', "%{$term}%")
+                        ->orWhere('email', 'like', "%{$term}%")
+                        ->orWhere('phone_number', 'like', "%{$term}%")
+                        ->orWhere('country', 'like', "%{$term}%")
+                        ->orWhere('city', 'like', "%{$term}%"),
+
+                    \App\Models\User::class => $buyerQuery->where('first_name', 'like', "%{$term}%")
+                        ->orWhere('middle_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%")
+                        ->orWhere('email', 'like', "%{$term}%")
+                        ->orWhere('phone_number', 'like', "%{$term}%"),
+
+                    default => $buyerQuery,
+                };
+            });
+
     }
 
     /**
@@ -85,11 +116,11 @@ class Sale extends Model
     }
 
     /**
-     * Get the Customer
+     * Get the buyerable
      */
-    public function customer(): BelongsTo
+    public function buyerable(): MorphTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->morphTo('buyerable');
     }
 
     /**
@@ -97,7 +128,7 @@ class Sale extends Model
      */
     public function saleInventories(): HasMany
     {
-        return $this->hasMany(SaleInventory::class, 'sale_id');
+        return $this->hasMany(SaleInventory::class, 'sale_id', 'id');
     }
 
     /**
@@ -108,10 +139,8 @@ class Sale extends Model
         return $this->belongsToMany(Inventory::class, SaleInventory::class, 'sale_id', 'inventory_id')
             ->withPivot(
                 'quantity',
-                'weight',
-                'price_per_gram',
+                'price',
                 'total_price',
-                'daily_gold_price_id',
                 'metadata'
             )
             ->using(SaleInventory::class)

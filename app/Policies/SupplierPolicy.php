@@ -4,9 +4,22 @@ namespace App\Policies;
 
 use App\Models\Supplier;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class SupplierPolicy
 {
+    /**
+     * Perform pre-authorization checks.
+     */
+    public function before(User $user, string $ability): ?Response
+    {
+        if ($user->hasAnyRole('admin')) {
+            return Response::allow();
+        }
+
+        return null;
+    }
+
     /**
      * Determine whether the user can view any models.
      */

@@ -20,11 +20,11 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleInventoryController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ScrapeController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\StoreController;
-use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -151,6 +151,9 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('users', UserController::class);
+    Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('suppliers', SupplierController::class);
+    Route::apiResource('categories', CategoryController::class);
 
     /**
      * Admin routes
@@ -163,9 +166,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['PUT', 'PATCH'], 'notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     Route::match(['PUT', 'PATCH'], 'notifications/{notification}/mark-as-unread', [NotificationController::class, 'markAsUnread'])->name('notifications.mark-as-unread');
 
-    Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('types', TypeController::class);
-    Route::apiResource('customers', CustomerController::class);
     Route::apiResource('sales', SaleController::class);
     Route::apiResource('stores', StoreController::class)->only(['index', 'show']);
     Route::prefix('sales/{sale}')->name('sales.')->group(function () {

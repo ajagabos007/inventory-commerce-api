@@ -18,7 +18,7 @@ class CustomerSeeder extends Seeder
         }
 
         Customer::factory()->create([
-            'name' => 'Walk-In Customer',
+            'name' => 'walk-in-customer',
             'email' => 'customer@email.domain',
             'phone_number' => null,
             'country' => null,

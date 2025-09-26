@@ -20,7 +20,10 @@ class CustomerSeeder extends Seeder
         Customer::factory()->create([
             'name' => 'Walk-In Customer',
             'email' => 'customer@email.domain',
-            'phone_number' => '08123456789',
+            'phone_number' => null,
+            'country' => null,
+            'city' => null,
+            'address' => null
         ]);
     }
 }

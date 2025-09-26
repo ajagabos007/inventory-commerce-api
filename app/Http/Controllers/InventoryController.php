@@ -81,7 +81,7 @@ class InventoryController extends Controller
     {
         $inventory->loadFromRequest();
 
-        return new InventoryResource($inventory)->additional([
+        return (new InventoryResource($inventory))->additional([
             'message' => 'Inventory retrieved successfully',
         ]);
     }

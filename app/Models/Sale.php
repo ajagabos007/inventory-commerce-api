@@ -61,7 +61,7 @@ class Sale extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(! app()->runningInConsole(), function ($builder) {
+            $builder->when(!app()->runningInConsole(), function ($builder) {
                 $builder->whereDoesntHave('inventories', function (Builder $builder) {
                     $builder->where('store_id', '<>', current_store()?->id);
                 });

@@ -161,11 +161,13 @@ class SaleController extends Controller
 
             DB::commit();
 
-            $sale->saleInventories;
             $sale->refresh();
 
             $sale->load([
                 'buyerable',
+                'saleInventories.inventory.productVariant',
+                'discount',
+                'cashier.user',
             ]);
 
             return (new SaleResource($sale))->additional([
@@ -189,6 +191,7 @@ class SaleController extends Controller
      */
     public function show(Sale $sale)
     {
+
         $sale->loadFromRequest();
 
         $sale_resource = (new SaleResource($sale))->additional([

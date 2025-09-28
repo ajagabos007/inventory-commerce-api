@@ -42,6 +42,7 @@ jobs:
 
             php artisan migrate --force
             php artisan optimize:clear
+            php artisan migrate:rollback --step=1 --force
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
@@ -83,6 +84,7 @@ jobs:
 
             php artisan migrate --force
             php artisan optimize:clear
+            php artisan migrate:rollback --step=1 --force
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache

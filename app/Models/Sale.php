@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
+use Milon\Barcode\DNS1D;
 
 #[ObservedBy([SaleObserver::class])]
 class Sale extends Model
@@ -30,6 +31,8 @@ class Sale extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'invoice_number',
+        'barcode',
         'cashier_staff_id',
         'discount_id',
         'buyerable_id',
@@ -174,6 +177,29 @@ class Sale extends Model
         } while (self::where('invoice_number', $invoice_number)->exists());
 
         return $invoice_number;
+    }
+
+    /**
+     * Generate item barcode
+     */
+    public function generateBarcode(): ?string
+    {
+        if (! blank($this->barcode) && is_string($this->barcode)) {
+            if (Str::startsWith($this->barcode, 'data:image/jpeg;base64,')) {
+                return $this->barcode;
+            }
+        }
+
+        if (blank($this->invoice_number)) {
+            return null;
+        }
+
+        $this->invoice_number = Sale::generateInvoiceNumber();
+
+        /**
+         * @see https://github.com/milon/barcode
+         */
+        return 'data:image/png;base64,'.(new DNS1D)->getBarcodePNG($this->invoice_number, 'c128', $w = 1, $h = 33, [0, 0, 0], true);
     }
 
     /**

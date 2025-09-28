@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('invoice_number')->unique();
-
+            $table->text('barcode')->nullable()->unique();
             $table->foreignUuid('cashier_staff_id')
                 ->nullable()
                 ->constrained('staff')

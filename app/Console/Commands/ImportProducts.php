@@ -3,22 +3,21 @@
 namespace App\Console\Commands;
 
 use App\Enums\InventoryStatus;
-use App\Models\Product;
-use App\Models\Store;
-use App\Models\ProductVariant;
-use App\Models\Category;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Store;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use League\Csv\Reader;
 use League\Csv\Exception as CsvException;
-use Illuminate\Console\Command;
+use League\Csv\Reader;
 
-class ImportProduct extends Command
+class ImportProducts extends Command
 {
-    protected $signature = 'app:import-product
+    protected $signature = 'app:import-products
                             {--file= : CSV file name (default: products.csv)}
                             {--images-dir=images : Images directory name}
                             {--dry-run : Run without saving to database}';
@@ -308,15 +307,16 @@ class ImportProduct extends Command
     ): void {
 
         $now = now();
+
         // Create or get product
         $product = Product::firstOrCreate(
             ['name' => $record['Name'] ?? 'Unnamed Product'],
             ['name' => $record['Name']]
         );
 
-        if($now->greaterThan($product->created_at)) {
-            $this->warn("Product : $product->name already exists");
-            return;
+        if($now->greaterThan($product->created_at)){
+           $this->warn("Product '{$product->name}' already exists. Skipping creation.");
+           return;
         }
 
         // Sync relationships
@@ -359,7 +359,7 @@ class ImportProduct extends Command
     /**
      * Create a single variant
      */
-    private function createVariant(Product $product, array $record): ProductVariant|Model
+    private function createVariant(Product $product, array $record): ProductVariant
     {
         return $product->variants()->firstOrCreate(
             ['sku' => $record['Code'] ?? null],
@@ -452,5 +452,30 @@ class ImportProduct extends Command
         }
 
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        // Offer to cleanup imports if successful
+        if ($this->successCount > 0 && !$this->option('dry-run')) {
+            $this->newLine();
+
+            if ($this->confirm('🗑️  Would you like to clean up the import files?', false)) {
+                $this->newLine();
+
+                $action = $this->choice(
+                    'How would you like to clean up?',
+                    ['Archive (recommended)', 'Delete permanently'],
+                    0
+                );
+
+                if ($action === 'Archive (recommended)') {
+                    $this->call('app:cleanup-imports', ['--archive' => true, '--force' => true]);
+                } else {
+                    if ($this->confirm('⚠️  Are you sure you want to permanently delete the files?', false)) {
+                        $this->call('app:cleanup-imports', ['--force' => true]);
+                    }
+                }
+            } else {
+                $this->info('💡 Tip: Run "php artisan app:cleanup-imports --archive" to clean up later');
+            }
+        }
     }
 }

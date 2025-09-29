@@ -87,8 +87,10 @@ class Category extends Model
      */
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->where('name', 'like', "%{$term}%")
-            ->orWhere('slug', 'like', "%{$term}%");
+        return $query->where(function (Builder $query) use ($term) {
+                $query->where('name', 'like', "%{$term}%")
+                    ->orWhere('slug', 'like', "%{$term}%");
+             });
     }
 
     /**

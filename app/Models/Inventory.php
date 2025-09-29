@@ -123,27 +123,34 @@ class Inventory extends Pivot
     /**
      * Search scope
      */
-    public function scopeSearch(Builder $query, string $term): Builder
+    public function scopeSearch(Builder $query, ?string $term): Builder
     {
-        return $query->where('quantity', "%{$term}%")
-            ->orWhereHas('store', function ($query) use ($term) {
-                $query->where('name', 'LIKE', "%{$term}%");
-            })
-            ->orWhereHas('productVariant', function ($query) use ($term) {
-                $query->where('name', 'like', "%{$term}%")
-                    ->orWhere('sku', 'LIKE', "%{$term}%")
-                    ->orWhere('price', 'like', "%{$term}%")
-                    ->orWhere('compare_price', 'like', "%{$term}%")
-                    ->orWhere('cost_price', 'like', "%{$term}%")
-                    ->orWhereHas('product', function ($query) use ($term) {
-                        $query->where('slug', 'like', "%{$term}%")
-                            ->orWhere('name', 'LIKE', "%{$term}%")
-                            ->orWhere('short_description', 'like', "%{$term}%")
-                            ->orWhere('display_price', 'like', "%{$term}%")
-                            ->orWhere('display_compare_price', 'like', "%{$term}%");
+        return $query->where(function ($q) use ($term) {
+                $q->where('quantity', 'LIKE', "%{$term}%")
+                ->orWhereHas('store', function ($q) use ($term) {
+                    $q->where('name', 'LIKE', "%{$term}%");
+                })
+                ->orWhereHas('productVariant', function ($q) use ($term) {
+                    $q->where(function ($q) use ($term) {
+                        $q->where('name', 'LIKE', "%{$term}%")
+                            ->orWhere('sku', 'LIKE', "%{$term}%")
+                            ->orWhere('price', 'LIKE', "%{$term}%")
+                            ->orWhere('compare_price', 'LIKE', "%{$term}%")
+                            ->orWhere('cost_price', 'LIKE', "%{$term}%");
+                    })
+                    ->orWhereHas('product', function ($q) use ($term) {
+                        $q->where(function ($q) use ($term) {
+                            $q->where('slug', 'LIKE', "%{$term}%")
+                                ->orWhere('name', 'LIKE', "%{$term}%")
+                                ->orWhere('short_description', 'LIKE', "%{$term}%")
+                                ->orWhere('display_price', 'LIKE', "%{$term}%")
+                                ->orWhere('display_compare_price', 'LIKE', "%{$term}%");
+                        });
                     });
+                });
             });
     }
+
 
     /**
      * Scope inventories low in stock

@@ -103,14 +103,14 @@ trait HasAttachments
 
         $storage = Storage::disk($this->attachmentDefaultDisk());
 
-        $path = $storage->put($directory, $file);
+        $storage->put($directory, $file);
 
         $mime_type = $storage->mimeType($directory);
         $fullPath = $storage->path($directory); // Get the absolute path to the file
 
         $_attachment = new Attachment;
         $_attachment->name = $options['file_name'] ?? pathinfo($fullPath, PATHINFO_BASENAME);
-        $_attachment->path = $path;
+        $_attachment->path = $directory;
         $_attachment->url = $storage->url($directory);
         $_attachment->type = explode('/', $mime_type)[0];
         $_attachment->mime_type = $mime_type;

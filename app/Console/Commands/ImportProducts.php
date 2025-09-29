@@ -307,14 +307,13 @@ class ImportProducts extends Command
     ): void {
 
         $now = now();
-
         // Create or get product
         $product = Product::firstOrCreate(
             ['name' => $record['Name'] ?? 'Unnamed Product'],
             ['name' => $record['Name']]
         );
 
-        if($now->greaterThan($product->created_at)){
+        if($product->created_at->lt($now)) {
            $this->warn("Product '{$product->name}' already exists. Skipping creation.");
            return;
         }

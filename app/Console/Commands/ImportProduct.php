@@ -5,182 +5,451 @@ namespace App\Console\Commands;
 use App\Enums\InventoryStatus;
 use App\Models\Product;
 use App\Models\Store;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Enum;
-use League\Csv\Reader;
-use Illuminate\Console\Command;
 use App\Models\ProductVariant;
 use App\Models\Category;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use League\Csv\Reader;
+use League\Csv\Exception as CsvException;
+use Illuminate\Console\Command;
 
 class ImportProduct extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'app:import-product {--file= : CSV file path inside storage/app/private}';
+    protected $signature = 'app:import-product
+                            {--file= : CSV file path inside storage/app/private}
+                            {--dry-run : Run without saving to database}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Import products from a CSV file and attach images';
+
+    private ?Store $warehouse = null;
+    private int $successCount = 0;
+    private int $errorCount = 0;
+    private array $errors = [];
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $file = $this->option('file') ?? 'products.csv';
         $path = storage_path("app/private/products/{$file}");
 
-        if (!file_exists($path)) {
-            $this->error("CSV file not found: {$path}");
+        if (!$this->validateFile($path)) {
             return Command::FAILURE;
         }
 
-        $this->info("Reading CSV: {$path}");
+        if (!$this->initializeWarehouse()) {
+            return Command::FAILURE;
+        }
 
-        // Read CSV
+        if ($this->option('dry-run')) {
+            $this->warn('🔍 DRY RUN MODE - No changes will be saved');
+        }
+
+        try {
+            $csv = $this->readCsv($path);
+            $this->processRecords($csv);
+        } catch (CsvException $e) {
+            $this->error("CSV Error: {$e->getMessage()}");
+            return Command::FAILURE;
+        }
+
+        $this->displaySummary();
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Validate that the CSV file exists
+     */
+    private function validateFile(string $path): bool
+    {
+        if (!file_exists($path)) {
+            $this->error("❌ CSV file not found: {$path}");
+            return false;
+        }
+
+        $this->info("📄 Reading CSV: {$path}");
+        return true;
+    }
+
+    /**
+     * Initialize warehouse for inventory
+     */
+    private function initializeWarehouse(): bool
+    {
+        $this->warehouse = Store::warehouses()->first();
+
+        if (!$this->warehouse) {
+            $this->error("❌ No warehouse found. Please create a warehouse first.");
+            return false;
+        }
+
+        $this->info("🏭 Using warehouse: {$this->warehouse->name} (ID: {$this->warehouse->id})");
+        return true;
+    }
+
+    /**
+     * Read and configure CSV reader
+     */
+    private function readCsv(string $path): Reader
+    {
         $csv = Reader::createFromPath($path, 'r');
-        $csv->setHeaderOffset(0); // first row = headers
+        $csv->setHeaderOffset(0);
+        return $csv;
+    }
 
-        $bar = $this->output->createProgressBar(iterator_count($csv));
+    /**
+     * Process all CSV records
+     */
+    private function processRecords(Reader $csv): void
+    {
+        $records = iterator_to_array($csv->getRecords());
+        $bar = $this->output->createProgressBar(count($records));
         $bar->start();
 
-        $warehouse = Store::warehouses()->first();
-
-
-        foreach ($csv->getRecords() as $record) {
-
-            try {
-                DB::beginTransaction();
-
-                $category = Category::firstOrCreate(
-                    ['name' => $record['Category'] ?? 'Uncategorized'],
-                );
-
-
-                $type = Attribute::firstOrCreate(
-                    ['name' => 'Type'],
-                );
-
-                $typeValue = AttributeValue::firstOrCreate(
-                    ['attribute_id' => $type->id, 'value' => $record['Type'] ?? 'General'],
-                );
-
-                $brand = Attribute::firstOrCreate(
-                    ['name' => 'Brand'],
-                );
-
-                $brandValue = AttributeValue::firstOrCreate(
-                    ['attribute_id' => $brand->id, 'value' => $record['Brand'] ?? 'Generic'],
-                );
-
-               if(str_contains($record['Name'], "<br>")) {
-                   $this->warn("Skipping brand name: {$record['Name']}");
-                   $products = explode("<br>", $record['Name']);
-                   $products = array_filter($products, fn($value) => !blank($value));
-
-                   $prices = explode("<br>", $record['Price']);
-                   $prices = array_filter($prices, fn($value) => !blank($value));
-                   $prices = array_map(fn($value) => (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), $prices);
-
-                   $costs = explode("<br>", $record['Cost']);
-                   $costs = array_filter($costs, fn($value) => !blank($value));
-                   $costs = array_map(fn($value) => (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION), $costs);
-
-                   $quantities = explode("<br>", $record['Quantity']);
-                   $quantities = array_filter($quantities, fn($value) => !blank($value));
-                   $quantities = array_map(fn($value) => (int) filter_var($value, FILTER_SANITIZE_NUMBER_INT), $quantities);
-
-//                   foreach($products as $index => $productName) {
-//                       $product = Product::updateOrCreate(
-//                           ['name' => $productName ?? 'Unnamed Product'],
-//                           [
-//                               'name' => $productName ?? null,
-//                           ]
-//                       );
-//                   }
-                   continue;
-               }
-
-                $product = Product::updateOrCreate(
-                    ['name' => $record['Name'] ?? 'Unnamed Product'],
-                    [
-                        'name'        => $record['Name'] ?? null,
-                    ]
-                );
-
-                $product->attributeValues()->syncWithoutDetaching([$typeValue, $brandValue]);
-
-                $product->categories()->sync([$category]);
-
-                $validated = $product->toArray();
-                $validated['price'] =(float) ($record['Price'] ?? 0);
-                $validated['cost_price'] =(float) ($record['Cost'] ?? 0);
-
-                $variant = $product->variants()->updateOrCreate(
-                    ['name' => $validated['name'] ?? 'Unnamed Product'],
-                    $validated
-                );
-
-                if ($warehouse) {
-                    $quantity = $record['Quantity'] ?? 0;
-                    if(is_string($quantity)) {
-                        $quantity = (int) filter_var($record['Quantity'], FILTER_SANITIZE_NUMBER_INT);
-
-                    }
-
-                    $status = $quantity > 0 ? InventoryStatus::AVAILABLE->value : InventoryStatus::OUT_OF_STOCK->value;
-                    $validated['quantity'] = $quantity;
-                    $validated['store_id'] = $warehouse->id;
-                    $variant->inventories()->firstOrCreate(
-                        ['store_id' => $warehouse->id],
-                        $validated
-                    );
-                }else {
-                    $this->warn("No warehouse found. Skipping inventory for code {$record['Code']} \n");
-                    continue;
-                }
-
-                // Attach image if exists
-                if (!blank($record['Image'])) {
-                    $imagePath = "products/images/{$record['Image']}";
-
-                    if (Storage::disk('local')->exists($imagePath)) {
-                        $this->line("\nAttaching image for SKU {$record['Code']}: {$imagePath}");
-                        $fileContent =Storage::disk('local')->get($imagePath);
-                        $options['file_name'] = $record['Image'];
-                        $product->attachFileContent($fileContent,$options);
-
-                    } else {
-                        $this->warn("Image not found for SKU {$record['Code']}: {$imagePath}");
-                    }
-                }
-                else{
-                   $this->warn("No image found for Code {$record['Code']}");
-                }
-
-                DB::commit();
-
-            } catch (\Exception $e) {
-                $this->error("Error importing Code {$record['Code']}: {$e->getMessage()}");
-                DB::rollBack();
-            }
-
+        foreach ($records as $index => $record) {
+            $this->processRecord($record, $index + 2); // +2 for header row and 1-indexed
             $bar->advance();
         }
 
         $bar->finish();
-        $this->info("\nImport finished!");
+        $this->newLine();
+    }
 
-        return Command::SUCCESS;
+    /**
+     * Process a single CSV record
+     */
+    private function processRecord(array $record, int $rowNumber): void
+    {
+        try {
+            DB::beginTransaction();
 
+            // Skip if dry-run
+            if ($this->option('dry-run')) {
+                $this->info("Would import: {$record['Name']}");
+                DB::rollBack();
+                return;
+            }
+
+            $category = $this->getOrCreateCategory($record['Category'] ?? 'Uncategorized');
+
+            $attributeValues = $this->getAttributeValues($record);
+
+            if ($this->hasMultipleProducts($record)) {
+                $this->importMultipleProducts($record, $attributeValues, $category->id);
+            } else {
+                $this->importSingleProduct($record, $attributeValues, $category->id);
+            }
+
+            DB::commit();
+            $this->successCount++;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->errorCount++;
+            $error = "Row {$rowNumber} - ".($record['Name'] ?? 'Unknown').": {$e->getMessage()}";
+            $this->errors[] = $error;
+            $this->error("❌ {$error}");
+        }
+    }
+
+    /**
+     * Get or create category
+     */
+    private function getOrCreateCategory(string $name): Category
+    {
+        return Category::firstOrCreate(['name' => $name]);
+    }
+
+    /**
+     * Get attribute values for Type and Brand
+     */
+    private function getAttributeValues(array $record): array
+    {
+        $attributeValueIds = [];
+
+        // Type attribute
+        $type = Attribute::firstOrCreate(['name' => 'Type']);
+        $typeValue = AttributeValue::firstOrCreate(
+            ['attribute_id' => $type->id, 'value' => $record['Type'] ?? 'General']
+        );
+        $attributeValueIds[] = $typeValue->id;
+
+        // Brand attribute
+        $brand = Attribute::firstOrCreate(['name' => 'Brand']);
+        $brandValue = AttributeValue::firstOrCreate(
+            ['attribute_id' => $brand->id, 'value' => $record['Brand'] ?? 'Generic']
+        );
+        $attributeValueIds[] = $brandValue->id;
+        return $attributeValueIds;
+    }
+
+    /**
+     * Check if record contains multiple products separated by <br>
+     */
+    private function hasMultipleProducts(array $record): bool
+    {
+        return str_contains($record['Name'] ?? '', '<br>');
+    }
+
+    /**
+     * Import multiple products from a single CSV row
+     */
+    private function importMultipleProducts(array $record, array $attributeValues, string $categoryId): void
+    {
+        $parsed = $this->parseMultipleProducts($record);
+
+        if (empty($parsed)) {
+            return;
+        }
+
+        // First product becomes the main product
+        $mainProduct = array_shift($parsed);
+        $this->importProductRecord($mainProduct, $attributeValues, $categoryId);
+
+        // Rest become variants
+        foreach ($parsed as $variant) {
+            $this->info("  ➕ Adding variant: {$variant['Name']}");
+            $this->importProductRecord($mainProduct, $attributeValues, $categoryId, [$variant]);
+        }
+    }
+
+    /**
+     * Parse multiple products separated by <br>
+     */
+    private function parseMultipleProducts(array $record): array
+    {
+        $products = $this->splitAndClean($record['Name'] ?? '');
+        $prices = $this->splitAndParseFloat($record['Price'] ?? '0');
+        $costs = $this->splitAndParseFloat($record['Cost'] ?? '0');
+        $quantities = $this->splitAndParseInt($record['Quantity'] ?? '0');
+
+        $result = [];
+        foreach ($products as $index => $name) {
+            $result[] = [
+                'Name' => $name,
+                'Code' => $record['Code'] ?? null,
+                'Price' => $prices[$index] ?? 0,
+                'Cost' => $costs[$index] ?? 0,
+                'Quantity' => $quantities[$index] ?? 0,
+                'Image' => $record['Image'] ?? null,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Split string by <br> and clean
+     */
+    private function splitAndClean(string $value): array
+    {
+        return array_filter(
+            explode('<br>', $value),
+            fn($v) => !blank($v)
+        );
+    }
+
+    /**
+     * Split and parse float values
+     */
+    private function splitAndParseFloat(string $value): array
+    {
+        $parts = $this->splitAndClean($value);
+        return array_map(
+            fn($v) => (float) filter_var($v, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
+            $parts
+        );
+    }
+
+    /**
+     * Split and parse integer values
+     */
+    private function splitAndParseInt(string $value): array
+    {
+        $parts = $this->splitAndClean($value);
+        return array_map(
+            fn($v) => (int) filter_var($v, FILTER_SANITIZE_NUMBER_INT),
+            $parts
+        );
+    }
+
+    /**
+     * Import single product
+     */
+    private function importSingleProduct(array $record, array $attributeValues, string $categoryId): void
+    {
+        $this->importProductRecord($record, $attributeValues, $categoryId);
+    }
+
+    /**
+     * Import product record with optional variants
+     */
+    private function importProductRecord(
+        array $record,
+        array $attributeValues,
+        string $categoryId,
+        array $variantsRecord = []
+    ): void {
+        // Create or get product
+        $now = now();
+        $product = Product::firstOrCreate(
+            ['name' => $record['Name'] ?? 'Unnamed Product'],
+            ['name' => $record['Name']]
+        );
+
+        // Check if product already existed
+        if($now->greaterThan($product->created_at)) {
+            $this->warn('Product name '.$product->name. ' exists');
+            return;
+        }
+
+        // Sync relationships
+        $product->attributeValues()->syncWithoutDetaching($attributeValues);
+        $product->categories()->sync([$categoryId]);
+
+        // Attach main product image
+        $this->attachImage($product, $record);
+
+        // Create variants
+        if (!empty($variantsRecord)) {
+            $this->createVariants($product, $variantsRecord);
+        } else {
+            $this->createMainVariant($product, $record);
+        }
+    }
+
+    /**
+     * Create product variants
+     */
+    private function createVariants(Product $product, array $variantsRecord): void
+    {
+        foreach ($variantsRecord as $variantRecord) {
+            $variant = $this->createVariant($product, $variantRecord);
+            $this->createInventory($variant, $variantRecord);
+            $this->attachImage($variant, $variantRecord);
+        }
+    }
+
+    /**
+     * Create main variant for simple product
+     */
+    private function createMainVariant(Product $product, array $record): void
+    {
+        $variant = $this->createVariant($product, $record);
+        $this->createInventory($variant, $record);
+        $this->attachImage($variant, $record);
+    }
+
+    /**
+     * Create a single variant
+     * @param Product $product
+     * @param array $record
+     * @return ProductVariant|Model
+     */
+    private function createVariant(Product $product, array $record): ProductVariant | Model
+    {
+        return $product->variants()->firstOrCreate(
+            ['sku' => $record['Code'] ?? null],
+            [
+                'name' => $record['Name'] ?? null,
+                'price' => (float) ($record['Price'] ?? 0),
+                'cost_price' => (float) ($record['Cost'] ?? 0),
+                'sku' => $record['Code'] ?? null,
+            ]
+        );
+    }
+
+    /**
+     * Create inventory for variant
+     * @param ProductVariant $variant
+     * @param array $record
+     */
+    private function createInventory(ProductVariant $variant, array $record): void
+    {
+        $quantity = $this->parseQuantity($record['Quantity'] ?? 0);
+        $status = $quantity > 0
+            ? InventoryStatus::AVAILABLE->value
+            : InventoryStatus::OUT_OF_STOCK->value;
+
+        $variant->inventories()->updateOrCreate(
+            ['store_id' => $this->warehouse->id],
+            [
+                'quantity' => $quantity,
+                'status' => $status,
+            ]
+        );
+    }
+
+    /**
+     * Parse quantity to integer
+     * @param mixed $quantity
+     * @return int
+     */
+    private function parseQuantity(mixed $quantity): int
+    {
+        if (is_string($quantity)) {
+            return (int) filter_var($quantity, FILTER_SANITIZE_NUMBER_INT);
+        }
+        return (int) $quantity;
+    }
+
+    /**
+     * Attach image to model
+     * @param  $model
+     * @param array $record
+     */
+    private function attachImage($model, array $record): void
+    {
+        if (blank($record['Image'])) {
+            return;
+        }
+
+        $imagePath = "products/images/{$record['Image']}";
+
+        if (!Storage::disk('local')->exists($imagePath)) {
+            $this->warn("  ⚠️  Image not found: {$imagePath}");
+            return;
+        }
+
+        try {
+            $fileContent = Storage::disk('local')->get($imagePath);
+            $model->attachFileContent($fileContent, ['file_name' => $record['Image']]);
+            $this->line("  ✅ Image attached: {$record['Image']}");
+        } catch (\Exception $e) {
+            $this->warn("  ⚠️  Failed to attach image: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Display import summary
+     *
+     * @return void
+     */
+    private function displaySummary(): void
+    {
+        $this->newLine();
+        $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        $this->info(' 📊 Import Summary');
+        $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        $this->info(" ✅ Success: {$this->successCount}");
+
+        if ($this->errorCount > 0) {
+            $this->error("❌ Errors: {$this->errorCount}");
+
+            if (!empty($this->errors)) {
+                $this->newLine();
+                $this->error('Error Details:');
+                foreach ($this->errors as $error) {
+                    $this->error("  • {$error}");
+                }
+            }
+        }
+
+        $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     }
 }

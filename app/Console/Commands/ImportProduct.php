@@ -19,7 +19,8 @@ use Illuminate\Console\Command;
 class ImportProduct extends Command
 {
     protected $signature = 'app:import-product
-                            {--file= : CSV file path inside storage/app/private}
+                            {--file= : CSV file name (default: products.csv)}
+                            {--images-dir=images : Images directory name}
                             {--dry-run : Run without saving to database}';
 
     protected $description = 'Import products from a CSV file and attach images';
@@ -28,6 +29,7 @@ class ImportProduct extends Command
     private int $successCount = 0;
     private int $errorCount = 0;
     private array $errors = [];
+    private string $imagesDir = 'images';
 
     /**
      * Execute the console command.
@@ -35,7 +37,10 @@ class ImportProduct extends Command
     public function handle(): int
     {
         $file = $this->option('file') ?? 'products.csv';
-        $path = storage_path("app/private/products/{$file}");
+        $imagesDir = $this->option('images-dir') ?? 'images';
+
+        // Use 'imports' directory instead of 'products'
+        $path = storage_path("app/private/imports/{$file}");
 
         if (!$this->validateFile($path)) {
             return Command::FAILURE;
@@ -51,7 +56,7 @@ class ImportProduct extends Command
 
         try {
             $csv = $this->readCsv($path);
-            $this->processRecords($csv);
+            $this->processRecords($csv, $imagesDir);
         } catch (CsvException $e) {
             $this->error("CSV Error: {$e->getMessage()}");
             return Command::FAILURE;
@@ -105,8 +110,10 @@ class ImportProduct extends Command
     /**
      * Process all CSV records
      */
-    private function processRecords(Reader $csv): void
+    private function processRecords(Reader $csv, string $imagesDir): void
     {
+        $this->imagesDir = $imagesDir;
+
         $records = iterator_to_array($csv->getRecords());
         $bar = $this->output->createProgressBar(count($records));
         $bar->start();
@@ -135,10 +142,13 @@ class ImportProduct extends Command
                 return;
             }
 
+            // Get or create category
             $category = $this->getOrCreateCategory($record['Category'] ?? 'Uncategorized');
 
+            // Get or create attribute values
             $attributeValues = $this->getAttributeValues($record);
 
+            // Check if record contains multiple products
             if ($this->hasMultipleProducts($record)) {
                 $this->importMultipleProducts($record, $attributeValues, $category->id);
             } else {
@@ -185,6 +195,7 @@ class ImportProduct extends Command
             ['attribute_id' => $brand->id, 'value' => $record['Brand'] ?? 'Generic']
         );
         $attributeValueIds[] = $brandValue->id;
+
         return $attributeValueIds;
     }
 
@@ -295,16 +306,16 @@ class ImportProduct extends Command
         string $categoryId,
         array $variantsRecord = []
     ): void {
-        // Create or get product
+
         $now = now();
+        // Create or get product
         $product = Product::firstOrCreate(
             ['name' => $record['Name'] ?? 'Unnamed Product'],
             ['name' => $record['Name']]
         );
 
-        // Check if product already existed
         if($now->greaterThan($product->created_at)) {
-            $this->warn('Product name '.$product->name. ' exists');
+            $this->warn("Product : $product->name already exists");
             return;
         }
 
@@ -347,11 +358,8 @@ class ImportProduct extends Command
 
     /**
      * Create a single variant
-     * @param Product $product
-     * @param array $record
-     * @return ProductVariant|Model
      */
-    private function createVariant(Product $product, array $record): ProductVariant | Model
+    private function createVariant(Product $product, array $record): ProductVariant|Model
     {
         return $product->variants()->firstOrCreate(
             ['sku' => $record['Code'] ?? null],
@@ -366,8 +374,6 @@ class ImportProduct extends Command
 
     /**
      * Create inventory for variant
-     * @param ProductVariant $variant
-     * @param array $record
      */
     private function createInventory(ProductVariant $variant, array $record): void
     {
@@ -387,8 +393,6 @@ class ImportProduct extends Command
 
     /**
      * Parse quantity to integer
-     * @param mixed $quantity
-     * @return int
      */
     private function parseQuantity(mixed $quantity): int
     {
@@ -400,8 +404,6 @@ class ImportProduct extends Command
 
     /**
      * Attach image to model
-     * @param  $model
-     * @param array $record
      */
     private function attachImage($model, array $record): void
     {
@@ -409,7 +411,8 @@ class ImportProduct extends Command
             return;
         }
 
-        $imagePath = "products/images/{$record['Image']}";
+        // Use configurable images directory
+        $imagePath = "imports/{$this->imagesDir}/{$record['Image']}";
 
         if (!Storage::disk('local')->exists($imagePath)) {
             $this->warn("  ⚠️  Image not found: {$imagePath}");
@@ -427,16 +430,14 @@ class ImportProduct extends Command
 
     /**
      * Display import summary
-     *
-     * @return void
      */
     private function displaySummary(): void
     {
         $this->newLine();
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        $this->info(' 📊 Import Summary');
+        $this->info('📊 Import Summary');
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        $this->info(" ✅ Success: {$this->successCount}");
+        $this->info("✅ Success: {$this->successCount}");
 
         if ($this->errorCount > 0) {
             $this->error("❌ Errors: {$this->errorCount}");

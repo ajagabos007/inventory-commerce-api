@@ -111,7 +111,7 @@ trait HasAttachments
         $_attachment = new Attachment;
         $_attachment->name = $options['file_name'] ?? pathinfo($fullPath, PATHINFO_BASENAME);
         $_attachment->path = $path;
-        $_attachment->url = $storage->url($path);
+        $_attachment->url = $storage->url($directory);
         $_attachment->type = explode('/', $mime_type)[0];
         $_attachment->mime_type = $mime_type;
         $_attachment->extension = pathinfo($fullPath, PATHINFO_EXTENSION);

@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Store;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use League\Csv\Exception as CsvException;
@@ -313,10 +314,12 @@ class ImportProducts extends Command
             ['name' => $record['Name']]
         );
 
-        if($product->created_at->lt($now)) {
-           $this->warn("Product '{$product->name}' already exists. Skipping creation.");
-           return;
-        }
+
+//        if($product->created_at->lt($now)) {
+//           $this->warn("Product '{$product->name}' already exists. Skipping creation.");
+//           return;
+//        }
+
 
         // Sync relationships
         $product->attributeValues()->syncWithoutDetaching($attributeValues);
@@ -357,8 +360,11 @@ class ImportProducts extends Command
 
     /**
      * Create a single variant
+     * @param Product $product
+     * @param array $record
+     * @return ProductVariant|Model
      */
-    private function createVariant(Product $product, array $record): ProductVariant
+    private function createVariant(Product $product, array $record): ProductVariant | Model
     {
         return $product->variants()->firstOrCreate(
             ['sku' => $record['Code'] ?? null],
@@ -410,6 +416,10 @@ class ImportProducts extends Command
             return;
         }
 
+        if($model->images()->where('name', $record['Image'])->exists()) {
+            $this->warn(" Image '{$record['Image']}' already exists.");
+            return;
+        }
         // Use configurable images directory
         $imagePath = "imports/{$this->imagesDir}/{$record['Image']}";
 
@@ -452,7 +462,7 @@ class ImportProducts extends Command
 
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        // Offer to cleanup imports if successful
+        // Offer to clean up imports if successful
         if ($this->successCount > 0 && !$this->option('dry-run')) {
             $this->newLine();
 

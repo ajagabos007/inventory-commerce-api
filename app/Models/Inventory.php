@@ -63,7 +63,7 @@ class Inventory extends Pivot
     {
         static::addGlobalScope('store', function (Builder $builder) {
             $builder->when(! app()->runningInConsole(), function ($builder) {
-                //                $builder->where('store_id', current_store()?->id);
+                $builder->where('store_id', current_store()?->id);
             });
         });
     }
@@ -130,13 +130,14 @@ class Inventory extends Pivot
                 $query->where('name', 'LIKE', "%{$term}%");
             })
             ->orWhereHas('productVariant', function ($query) use ($term) {
-                $query->where('sku', 'like', "%{$term}%")
+                $query->where('name', 'like', "%{$term}%")
+                    ->orWhere('sku', 'LIKE', "%{$term}%")
                     ->orWhere('price', 'like', "%{$term}%")
                     ->orWhere('compare_price', 'like', "%{$term}%")
                     ->orWhere('cost_price', 'like', "%{$term}%")
                     ->orWhereHas('product', function ($query) use ($term) {
                         $query->where('slug', 'like', "%{$term}%")
-                            ->orWhere('description', 'like', "%{$term}%")
+                            ->orWhere('name', 'LIKE', "%{$term}%")
                             ->orWhere('short_description', 'like', "%{$term}%")
                             ->orWhere('display_price', 'like', "%{$term}%")
                             ->orWhere('display_compare_price', 'like', "%{$term}%");

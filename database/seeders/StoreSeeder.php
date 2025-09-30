@@ -21,7 +21,7 @@ class StoreSeeder extends Seeder
         }
 
         $warehouse = [
-            'name' => $name = 'CBM MALL HQ',
+            'name' => $name = 'CBM MALL',
             'slug' => SlugService::createSlug(Store::class, 'slug', $name),
             'country' => 'Nigeria',
             'city' => 'Abuja',

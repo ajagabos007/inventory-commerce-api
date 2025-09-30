@@ -43,6 +43,20 @@ class SaleObserver
     }
 
     /**
+     * Handle the Sale "saving" event.
+     */
+    public function saving(Sale $sale): void
+    {
+        if (blank($sale->invoice_number)) {
+            $sale->invoice_number = Sale::generateInvoiceNumber();
+        }
+
+        if (blank($sale->barcode)) {
+            $sale->barcode = $sale->generateBarcode();
+        }
+    }
+
+    /**
      * Handle the Sale "deleted" event.
      */
     public function deleted(Sale $sale): void

@@ -58,56 +58,7 @@ trait HasAttachments
             throw new Exception('Please pass in a file that exists');
         }
 
-        if (\strlen($baseFolder) == 0) {
-            // set base folder using the model's class name
-            $modelClass = Str::of($this::class)->classBasename();
-            $baseFolder = Str::kebab(Str::plural($modelClass));
-        }
-
-        $baseFolder = \strip_tags($baseFolder);
-        $baseFolder = \stripslashes($baseFolder);
-
-        // remove trailing forward slashes
-        foreach ($explodes = \explode('/', $baseFolder) as $key => $value) {
-            if ($key == array_key_first($explodes)) {
-                $baseFolder = '';
-            }
-
-            if (strlen($value) == 0) {
-                continue;
-            }
-
-            if (strlen($baseFolder) == 0) {
-                $baseFolder = $value;
-            } else {
-                $baseFolder = $baseFolder.'/'.$value;
-            }
-        }
-
-        // remove trailing backward slashes
-        foreach ($explodes = \explode('\\', $baseFolder) as $key => $value) {
-            if ($key == array_key_first($explodes)) {
-                $baseFolder = '';
-            }
-
-            if (strlen($value) == 0) {
-                continue;
-            }
-
-            if (strlen($baseFolder) == 0) {
-                $baseFolder = $value;
-            } else {
-                $baseFolder = $baseFolder.'/'.$value;
-            }
-        }
-
-        // reset base folder to uploads if empty
-        if (\strlen($baseFolder) == 0) {
-            $baseFolder = 'uploads';
-        }
-
-        $directory = $baseFolder.'/'.now()->format('Y').'/'.now()->format('m');
-
+        $directory = $this->getDirectory($baseFolder);
         $storage = Storage::disk($this->attachmentDefaultDisk());
         $path = $storage->put($directory, $file);
 
@@ -137,6 +88,42 @@ trait HasAttachments
         return $_attachment;
     }
 
+
+    /**
+     * Attach Attachment to a Model
+     *
+     * @param  array<string,string>  $options
+     *
+     * @throws Exception
+     */
+    public function attachFileContent(String $file, array $options = [], string $baseFolder = ''): Attachment
+    {
+        $directory = $this->getDirectory($baseFolder);
+        $directory.= '/'.($options['file_name'] ?? uniqid().'.txt');
+
+        $storage = Storage::disk($this->attachmentDefaultDisk());
+
+        $storage->put($directory, $file);
+
+        $mime_type = $storage->mimeType($directory);
+        $fullPath = $storage->path($directory); // Get the absolute path to the file
+
+        $_attachment = new Attachment;
+        $_attachment->name = $options['file_name'] ?? pathinfo($fullPath, PATHINFO_BASENAME);
+        $_attachment->path = $directory;
+        $_attachment->url = $storage->url($directory);
+        $_attachment->type = explode('/', $mime_type)[0];
+        $_attachment->mime_type = $mime_type;
+        $_attachment->extension = pathinfo($fullPath, PATHINFO_EXTENSION);
+        $_attachment->size = $storage->size($directory);  // size in bytes
+        $_attachment->storage = $this->attachmentDefaultDisk();
+
+        $_attachment->user_id = auth()->id();
+        $this->attachments()->save($_attachment);
+
+        return $_attachment;
+    }
+
     /**
      * Attach Attachment to a Model
      *
@@ -157,6 +144,8 @@ trait HasAttachments
 
         return $this->attachUploadedFile($file, $options, $baseFolder);
     }
+
+
 
     /**
      * Attach Attachment to a Model
@@ -272,5 +261,59 @@ trait HasAttachments
         static::deleted(function ($model) {
             $model->detachAttachments();
         });
+    }
+
+    private function getDirectory($baseFolder): string
+    {
+        if (\strlen($baseFolder) == 0) {
+            // set base folder using the model's class name
+            $modelClass = Str::of($this::class)->classBasename();
+            $baseFolder = Str::kebab(Str::plural($modelClass));
+        }
+
+        $baseFolder = \strip_tags($baseFolder);
+        $baseFolder = \stripslashes($baseFolder);
+
+        // remove trailing forward slashes
+        foreach ($explodes = \explode('/', $baseFolder) as $key => $value) {
+            if ($key == array_key_first($explodes)) {
+                $baseFolder = '';
+            }
+
+            if (strlen($value) == 0) {
+                continue;
+            }
+
+            if (strlen($baseFolder) == 0) {
+                $baseFolder = $value;
+            } else {
+                $baseFolder = $baseFolder.'/'.$value;
+            }
+        }
+
+        // remove trailing backward slashes
+        foreach ($explodes = \explode('\\', $baseFolder) as $key => $value) {
+            if ($key == array_key_first($explodes)) {
+                $baseFolder = '';
+            }
+
+            if (strlen($value) == 0) {
+                continue;
+            }
+
+            if (strlen($baseFolder) == 0) {
+                $baseFolder = $value;
+            } else {
+                $baseFolder = $baseFolder.'/'.$value;
+            }
+        }
+
+        // reset base folder to uploads if empty
+        if (\strlen($baseFolder) == 0) {
+            $baseFolder = 'uploads';
+        }
+
+        return $baseFolder.'/'.now()->format('Y').'/'.now()->format('m');
+
     }
 }

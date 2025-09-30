@@ -42,7 +42,6 @@ jobs:
 
             php artisan migrate --force
             php artisan optimize:clear
-            php artisan migrate:rollback --step=1 --force
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
@@ -83,8 +82,10 @@ jobs:
             echo "⚙️ Running Laravel setup..."
 
             php artisan migrate --force
+            rm -rf storage/app/public/products
+            rm -rf storage/app/public/products
+            php artisan app:import-products
             php artisan optimize:clear
-            php artisan migrate:rollback --step=1 --force
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache

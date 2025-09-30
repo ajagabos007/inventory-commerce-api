@@ -40,7 +40,7 @@ jobs:
             composer dumpautoload
             echo "⚙️ Running Laravel setup..."
 
-            php artisan migrate --force
+            php artisan migrate:fresh --force
             php artisan db:seed --force
             rm -rf storage/app/public/products
             rm -rf storage/app/public/product-variants

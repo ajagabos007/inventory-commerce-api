@@ -142,7 +142,7 @@ class ImportProducts extends Command
                 return;
             }
 
-            $this->line(" \n  Importing: {$record['Name']}");
+            $this->line(" \n Importing: {$record['Name']}");
             // Get or create category
             $category = $this->getOrCreateCategory($record['Category'] ?? 'Uncategorized');
 

@@ -371,8 +371,8 @@ class ImportProducts extends Command
             ['sku' => $record['Code'] ?? null],
             [
                 'name' => $record['Name'] ?? null,
-                'price' => (float) ($record['Price'] ?? 0),
-                'cost_price' => (float) ($record['Cost'] ?? 0),
+                'price' => $this->splitAndParseFloat($record['Price']),
+                'cost_price' => $this->splitAndParseFloat($record['Price']),
                 'sku' => $record['Code'] ?? null,
             ]
         );

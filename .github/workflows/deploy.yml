@@ -41,6 +41,11 @@ jobs:
             echo "⚙️ Running Laravel setup..."
 
             php artisan migrate --force
+            php artisan db:seed --force
+            rm -rf storage/app/public/products
+            rm -rf storage/app/public/product-variants
+            rm -rf storage/app/public/categories
+            php artisan app:import-products
             php artisan optimize:clear
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache

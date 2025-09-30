@@ -237,7 +237,7 @@ class ImportProducts extends Command
         $products = $this->splitAndClean($record['Name'] ?? '');
         $prices = $this->splitAndParseFloat($record['Price'] ?? '0');
         $costs = $this->splitAndParseFloat($record['Cost'] ?? '0');
-        $quantities = $this->splitAndParseInt($record['Quantity'] ?? '0');
+        $quantities = $this->splitAndParseInt($record['Quantity'] ?? '1');
 
         $result = [];
         foreach ($products as $index => $name) {
@@ -409,6 +409,9 @@ class ImportProducts extends Command
 
     /**
      * Attach image to model
+     *
+     * @param  $model
+     * @param array $record
      */
     private function attachImage($model, array $record): void
     {
@@ -417,7 +420,7 @@ class ImportProducts extends Command
         }
 
         if($model->images()->where('name', $record['Image'])->exists()) {
-            $this->warn(" Image '{$record['Image']}' already exists.");
+            $this->warn("  ⚠️  Image '{$record['Image']}' already exists. skipping attachment.");
             return;
         }
         // Use configurable images directory

@@ -25,6 +25,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +54,13 @@ Route::controller(\App\Http\Controllers\Auth\ResetPasswordController::class)->gr
 });
 
 Route::get('enums', EnumController::class)->name('api.enums');
+
+Route::prefix('sync')->name('sync')->group(function() {
+    Route::get('products', [SyncController::class, 'products'])->name('sync.products');
+    Route::get('products/{product}', [SyncController::class, 'showProduct'])->name('sync.products.show');
+    Route::get('product-variants', [SyncController::class, 'productVariants'])->name('sync.productVariants');
+    Route::get('product-variants/{productVariant}', [SyncController::class, 'showProductVariant'])->name('sync.productVariants.show');
+});
 
 /*
 |--------------------------------------------------------------------------

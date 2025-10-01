@@ -1,5 +1,5 @@
 <x-mail::message>
-
+    {{-- Greeting --}}
 # Dear {{$user->name}}
 A default password has been automatically generated for your new account. Below are your login credentials:
 <ul>
@@ -7,7 +7,7 @@ A default password has been automatically generated for your new account. Below 
     <li><strong>Password: </strong> {{$password}}</li>
 </ul>
 
-@php 
+@php
     $action_text ="Login";
     $action_url = config('app.front_end.url').'/auth/login'
 @endphp
@@ -16,7 +16,7 @@ You can access your account by click the  "{{$action_text}}" button below
 
 <x-mail::button :url="$action_url">
     {{$action_text}}
-</x-mail::button> 
+</x-mail::button>
 
 Thanks,<br>
 {{ config('app.name') }}

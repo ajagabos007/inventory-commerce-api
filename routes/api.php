@@ -122,7 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::apiResource('product-variants', ProductVariantController::class);
     Route::apiResource('inventories', InventoryController::class)
-        ->only(['index', 'show']);
+        ->only(['index', 'show', 'update']);
 
     Route::apiResource('stores', StoreController::class);
     Route::apiResource('staff', StaffController::class);

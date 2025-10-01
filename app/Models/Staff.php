@@ -92,9 +92,9 @@ class Staff extends Model
                 throw new \RuntimeException("Unable to generate a unique staff no after {$attempt} attempts.");
             }
 
-            $staff_no = 'GW'.Str::random(8); // Generate a random staff no. with prefix 'GW'
+            $staff_no = Str::random(10); // Generate a random staff no.
 
-        } while (self::where('staff_no', $staff_no)->exists());
+        } while (self::where('staff_no', $staff_no)->withOutGlobalScope('store')->exists());
 
         return $staff_no;
     }

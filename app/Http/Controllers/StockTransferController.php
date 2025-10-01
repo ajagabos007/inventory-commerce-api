@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\StockTransferDispatchedNotification;
 use App\Notifications\StockTransferReceivedNotification;
 use App\Notifications\StockTransferRejectedNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +47,6 @@ class StockTransferController extends Controller
 
         $stock_transfersQ = StockTransfer::query();
 
-        if ($stock_transfersQ->clone()->where('status')) {
             $stock_transfers = QueryBuilder::for($stock_transfersQ)
                 ->defaultSort('-created_at')
                 ->allowedSorts(
@@ -79,7 +79,7 @@ class StockTransferController extends Controller
                     'stockTransferInventories.inventory.productVariant.images',
                     'stockTransferInventories.inventory.productVariant.product.images',
                 ]);
-        }
+
 
         if (request()->has('q')) {
             $stock_transfers->where(function ($query) {
@@ -220,6 +220,7 @@ class StockTransferController extends Controller
                 ]);
             }
 
+            $start_time = now();
             if ($entries->isNotEmpty()) {
                 StockTransferInventory::upsert(
                     $entries->toArray(),
@@ -228,16 +229,16 @@ class StockTransferController extends Controller
                 );
             }
 
+            $end_time = now();
+
+
             $stock_transfer->load([
                 'receiver',
                 'sender',
                 'fromStore',
                 'toStore',
-                'stockTransferInventories.inventory.item',
-                'stockTransferInventories.inventory.item.image',
-                'stockTransferInventories.inventory.item.category',
-                'stockTransferInventories.inventory.item.type',
-                'stockTransferInventories.inventory.item.colour',
+                'stockTransferInventories.inventory.productVariant.images',
+                'stockTransferInventories.inventory.productVariant.product.images',
             ]);
 
             $stock_transfer_resource = (new StockTransferResource($stock_transfer))->additional([
@@ -276,18 +277,13 @@ class StockTransferController extends Controller
             'sender',
             'fromStore',
             'toStore',
-            'stockTransferInventories.inventory.item',
-            'stockTransferInventories.inventory.item.image',
-            'stockTransferInventories.inventory.item.category',
-            'stockTransferInventories.inventory.item.type',
-            'stockTransferInventories.inventory.item.colour',
+            'stockTransferInventories.inventory.productVariant.images',
+            'stockTransferInventories.inventory.productVariant.product.images',
         ]);
 
-        $stock_transfer_resource = (new StockTransferResource($stock_transfer))->additional([
+        return (new StockTransferResource($stock_transfer))->additional([
             'message' => 'Stock transfer retrieved successfully',
         ]);
-
-        return $stock_transfer_resource;
     }
 
     /**
@@ -327,11 +323,8 @@ class StockTransferController extends Controller
                 'sender',
                 'fromStore',
                 'toStore',
-                'stockTransferInventories.inventory.item',
-                'stockTransferInventories.inventory.item.image',
-                'stockTransferInventories.inventory.item.category',
-                'stockTransferInventories.inventory.item.type',
-                'stockTransferInventories.inventory.item.colour',
+                'stockTransferInventories.inventory.productVariant.images',
+                'stockTransferInventories.inventory.productVariant.product.images',
             ]);
 
             $stock_transfer_resource = (new StockTransferResource($stock_transfer))->additional([
@@ -362,11 +355,9 @@ class StockTransferController extends Controller
     {
         $stock_transfer->delete();
 
-        $stock_transfer_resource = (new StockTransferResource(null))->additional([
+        return (new StockTransferResource(null))->additional([
             'message' => 'Stock transfer deleted successfully',
         ]);
-
-        return $stock_transfer_resource;
     }
 
     /**
@@ -381,11 +372,9 @@ class StockTransferController extends Controller
         try {
 
             if (! $stock_transfer->stockTransferInventories()->where('id', $stock_transfer_inventory->id)->exists()) {
-                $stock_transfer_resource = (new StockTransferResource($stock_transfer))->additional([
+                return (new StockTransferResource($stock_transfer))->additional([
                     'message' => 'stock transfer inventory deleted successfully',
                 ]);
-
-                return $stock_transfer_resource;
             }
 
             $stock_transfer_inventory->inventory->increment('quantity', $stock_transfer_inventory->quantity);
@@ -396,11 +385,9 @@ class StockTransferController extends Controller
 
             DB::commit();
 
-            $stock_transfer_resource = (new StockTransferResource($stock_transfer))->additional([
+            return (new StockTransferResource($stock_transfer))->additional([
                 'message' => 'Stock transfer inventory deleted successfully',
             ]);
-
-            return $stock_transfer_resource;
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -417,53 +404,69 @@ class StockTransferController extends Controller
     /**
      * Dispatch a stock transfer.
      *
-     * @param  \App\Models\StockTransfer  $stock_transfer  The stock transfer instance to be accepted.
-     * @return \App\Http\Resources\StockTransferResource The resource representation of the accepted stock transfer.
+     * @param StockTransfer $stock_transfer  The stock transfer instance to be accepted.
+     * @return JsonResponse|StockTransferResource The resource representation of the accepted stock transfer.
      */
     public function dispatch(StockTransfer $stock_transfer)
     {
         Gate::authorize('dispatch', $stock_transfer);
 
-        $stock_transfer->status = Status::DISPATCHED->value;
-        $stock_transfer->dispatched_at = now();
-        $stock_transfer->save();
+        try {
 
-        if ($stock_transfer->stockTransferInventories->isNotEmpty()) {
-            defer(function () use ($stock_transfer) {
-                foreach ($stock_transfer->stockTransferInventories as $stock_transfer_inventory) {
-                    $stock_transfer_inventory->inventory->decrement('quantity', $stock_transfer_inventory->quantity);
-                }
-            });
-        }
+                DB::beginTransaction();
 
-        $users = User::whereHas('staff', function ($query) use ($stock_transfer) {
-            $query->where('staff.store_id', $stock_transfer->to_store_id);
-        })
-            ->where(function ($query) {
-                $query->permission('stock_transfer.receive')
-                    ->orWhereHas('roles', function ($query) {
-                        $query->where('name', 'admin');
+                $stock_transfer->status = Status::DISPATCHED->value;
+                $stock_transfer->dispatched_at = now();
+                $stock_transfer->save();
+
+                if ($stock_transfer->stockTransferInventories->isNotEmpty()) {
+                    defer(function () use ($stock_transfer) {
+                        foreach ($stock_transfer->stockTransferInventories as $stock_transfer_inventory) {
+                            $stock_transfer_inventory->inventory->decrement('quantity', $stock_transfer_inventory->quantity);
+                        }
                     });
-            })
-            ->get();
+                }
 
-        if ($users->isNotEmpty()) {
-            defer(fn () => Notification::send($users, new StockTransferDispatchedNotification($stock_transfer)));
+                $users = User::whereHas('staff', function ($query) use ($stock_transfer) {
+                    $query->withOutGlobalScope('store')
+                            ->where('staff.store_id', $stock_transfer->to_store_id);
+                })
+        //        ->where(function ($query) {
+        //            $query->permission('stock_transfer.receive')
+        //                ->orWhereHas('roles', function ($query) {
+        //                    $query->where('name', 'admin');
+        //                });
+        //        })
+                ->get();
+
+                if ($users->isNotEmpty()) {
+                    defer(fn () => Notification::send($users, new StockTransferDispatchedNotification($stock_transfer)));
+                }
+
+                DB::commit();
+
+                return (new StockTransferResource($stock_transfer))->additional([
+                    'message' => 'Stock transfer dispatched successfully',
+                ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error($e);
+
+            return response()->json([
+                'message' => 'Failed to dispatch stock transfer inventory.',
+                'errors' => ['dispatch_stock_transfer_inventory' => $e->getMessage()],
+            ], 500);
         }
-
-        $stock_transfer_resource = (new StockTransferResource($stock_transfer))->additional([
-            'message' => 'Stock transfer dispatched successfully',
-        ]);
-
-        return $stock_transfer_resource;
     }
 
     /**
      * Accepts a stock transfer.
      *
-     * @param  \Illuminate\Http\Request  $request  The incoming HTTP request.
-     * @param  \App\Models\StockTransfer  $stock_transfer  The stock transfer instance to be accepted.
-     * @return \App\Http\Resources\StockTransferResource The resource representation of the accepted stock transfer.
+     * @param Request $request The incoming HTTP request.
+     * @param StockTransfer $stock_transfer The stock transfer instance to be accepted.
+     * @return StockTransferResource The resource representation of the accepted stock transfer.
+     * @throws \Throwable
      */
     public function accept(Request $request, StockTransfer $stock_transfer)
     {
@@ -471,18 +474,35 @@ class StockTransferController extends Controller
 
         $toStore = $stock_transfer->toStore;
         $inventories = $toStore->inventories()
-            ->whereIn('product_id', $stock_transfer->inventories()->pluck('product_id')->toArray())
+            ->withoutGlobalScope('store')
+            ->whereIn('product_variant_id', $stock_transfer->inventories()->withoutGlobalScope('store')->pluck('product_variant_id')->toArray())
             ->get();
+
+
 
         $entry = collect([]);
 
-        foreach ($stock_transfer->stockTransferInventories as $stock_transfer_inventory) {
+        $stock_transfer->load([
+            'stockTransferInventories' => function ($query) {
+                $query->withoutGlobalScope('store')->with([
+                    'inventory' => function ($query) {
+                        $query->withoutGlobalScope('store')->with([
+                            'productVariant.product' => function ($query) {
+                                $query->withoutGlobalScope('store');
+                            }
+                        ]);
+                    }
+                ]);
+            }
+        ]);
 
-            $inventory = $inventories->firstWhere('product_id', $stock_transfer_inventory->inventory->product_id);
+
+        foreach ($stock_transfer->stockTransferInventories as $stock_transfer_inventory) {
+            $inventory = $inventories->firstWhere('product_variant_id', $stock_transfer_inventory->inventory->product_variant_id);
             $quantiy = $inventory ? $inventory->quantity + $stock_transfer_inventory->quantity : $stock_transfer_inventory->quantity;
             $entry->push([
                 'store_id' => $stock_transfer->to_store_id,
-                'product_id' => $stock_transfer_inventory->inventory->product_id,
+                'product_variant_id' => $stock_transfer_inventory->inventory->product_variant_id,
                 'quantity' => $quantiy,
             ]);
         }
@@ -493,6 +513,7 @@ class StockTransferController extends Controller
 
             $stock_transfer->status = Status::ACCEPTED->value;
             $stock_transfer->accepted_at = now();
+            $stock_transfer->receiver_id = auth()->id();
 
             $stock_transfer->save();
 
@@ -514,10 +535,10 @@ class StockTransferController extends Controller
             $inventories = Inventory::whereBetween('created_at', [
                 $start_time_string,  $end_time_string,
             ])
-                ->orwhereBetween('updated_at', [
-                    $start_time_string,  $end_time_string,
-                ])
-                ->lazy();
+            ->orwhereBetween('updated_at', [
+                $start_time_string,  $end_time_string,
+            ])
+            ->lazy();
 
             defer(function () use ($inventories) {
                 if ($inventories->isEmpty()) {
@@ -535,7 +556,8 @@ class StockTransferController extends Controller
             DB::commit();
 
             if ($stock_transfer->sender) {
-                defer(fn () => $stock_transfer->sender->notify(new StockTransferReceivedNotification($stock_transfer)));
+                $stock_transfer->sender->notify(new StockTransferReceivedNotification($stock_transfer));
+//                defer(fn () => $stock_transfer->sender->notify(new StockTransferReceivedNotification($stock_transfer)));
             }
         } catch (\Exception $e) {
             DB::rollBack();
@@ -557,9 +579,9 @@ class StockTransferController extends Controller
     /**
      * Reject a stock transfer.
      *
-     * @param  \Illuminate\Http\Request  $request  The incoming HTTP request.
-     * @param  \App\Models\StockTransfer  $stock_transfer  The stock transfer instance to be rejected.
-     * @return \App\Http\Resources\StockTransferResource The resource representation of the rejected stock transfer.
+     * @param Request $request  The incoming HTTP request.
+     * @param StockTransfer $stock_transfer  The stock transfer instance to be rejected.
+     * @return StockTransferResource The resource representation of the rejected stock transfer.
      */
     public function reject(Request $request, StockTransfer $stock_transfer)
     {

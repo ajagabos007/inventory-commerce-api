@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Observers\StockTransferInventoryObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
+#[ObservedBy([StockTransferInventoryObserver::class])]
 class StockTransferInventory extends Pivot
 {
     use HasFactory;
@@ -29,7 +32,7 @@ class StockTransferInventory extends Pivot
      */
     public function scopeForRequestStore(Builder $builder): void
     {
-        $builder->whereHas('inventory.item', function ($builder) {
+        $builder->whereHas('inventory.productVariant', function ($builder) {
             $builder->where('store_id', request()->header('x-store'));
         });
     }

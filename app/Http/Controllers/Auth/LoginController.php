@@ -58,7 +58,7 @@ class LoginController extends Controller
             'status' => 'success',
             'message' => 'Login successfully',
             'user' => $user->load([
-                'staff',
+                'staff' => fn ($query) => $query->withOutGlobalScope('store')->with('store'),
             ])->append([
                 'is_admin', 'is_staff',
             ]),

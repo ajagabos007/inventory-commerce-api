@@ -54,7 +54,7 @@ class Attachment extends Model
     public function url(): Attribute
     {
         return Attribute::make(
-            get: function () {
+            get: function ($url) {
                 return Storage::disk($this->storage)->url($this->path);
             }
         );

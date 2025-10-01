@@ -91,7 +91,17 @@ class InventoryController extends Controller
      */
     public function update(UpdateInventoryRequest $request, Inventory $inventory)
     {
-        //
+        $validated = $request->validated();
+
+        if(array_key_exists('serial_number',$validated) && !$inventory->productVariant->is_serialized) {
+           $validated['serial_number'] = null;
+        }
+
+        $inventory->update($validated);
+
+        return (new InventoryResource($inventory))->additional([
+            'message' => 'Inventory updated successfully',
+        ]);
     }
 
     /**

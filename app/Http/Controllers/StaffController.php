@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\QueryBuilder;
-
+use App\Notifications\Auth\PasswordCreated;
 class StaffController extends Controller
 {
     /**
@@ -135,16 +135,14 @@ class StaffController extends Controller
             $staff->load(['user']);
 
             if (array_key_exists('role_id', $validated)) {
-
                 $staff->user->syncRoles([$validated['role_id']]);
-
             }
 
             $staff_resource = (new StaffResource($staff))->additional([
                 'message' => 'Staff created successfully',
             ]);
 
-            $user->notify(new \App\Notifications\Auth\PasswordCreated($user, $password));
+            $user->notify((new PasswordCreated($user, $password))->withoutDelay());
 
             DB::commit();
 

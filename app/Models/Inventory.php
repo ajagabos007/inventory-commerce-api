@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\InventoryStatus;
 use App\Traits\ModelRequestLoader;
+use Database\Factories\InventoryFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Inventory extends Pivot
 {
-    /** @use HasFactory<\Database\Factories\InventoryFactory> */
+    /** @use HasFactory<InventoryFactory> */
     use HasFactory;
 
     use HasUuids;
@@ -197,13 +199,18 @@ class Inventory extends Pivot
     {
         $this->quantity += $amount;
 
+        if($this->quantity > 0){
+            $this->status  = InventoryStatus::AVAILABLE->value;
+        }
+
         return $this->save();
     }
 
     /**
      * Decrement the quantity of the inventory.
      *
-     * @return self
+     * @param int $quanity
+     * @return bool
      */
     public function decrementQuantity(int $quanity): bool
     {
@@ -212,8 +219,10 @@ class Inventory extends Pivot
         }
 
         $this->quantity -= $quanity;
+
         if ($this->quantity < 0) {
             $this->qunatity = 0;
+            $this->status = InventoryStatus::OUT_OF_STOCK->value;
         }
 
         return $this->save();

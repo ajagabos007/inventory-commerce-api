@@ -7,13 +7,14 @@ use App\Http\Requests\UpdateStaffRequest;
 use App\Http\Resources\StaffResource;
 use App\Models\Staff;
 use App\Models\User;
+use App\Notifications\Auth\PasswordCreated;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\QueryBuilder;
-use App\Notifications\Auth\PasswordCreated;
+
 class StaffController extends Controller
 {
     /**

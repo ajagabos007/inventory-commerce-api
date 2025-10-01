@@ -88,7 +88,6 @@ trait HasAttachments
         return $_attachment;
     }
 
-
     /**
      * Attach Attachment to a Model
      *
@@ -96,10 +95,10 @@ trait HasAttachments
      *
      * @throws Exception
      */
-    public function attachFileContent(String $file, array $options = [], string $baseFolder = ''): Attachment
+    public function attachFileContent(string $file, array $options = [], string $baseFolder = ''): Attachment
     {
         $directory = $this->getDirectory($baseFolder);
-        $directory.= '/'.($options['file_name'] ?? uniqid().'.txt');
+        $directory .= '/'.($options['file_name'] ?? uniqid().'.txt');
 
         $storage = Storage::disk($this->attachmentDefaultDisk());
 
@@ -144,8 +143,6 @@ trait HasAttachments
 
         return $this->attachUploadedFile($file, $options, $baseFolder);
     }
-
-
 
     /**
      * Attach Attachment to a Model

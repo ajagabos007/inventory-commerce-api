@@ -52,11 +52,11 @@ class AttributeValue extends Model
     public function scopeSearch(Builder $query, string $term): Builder
     {
         return $query->where(function (Builder $query) use ($term) {
-                $query->where('value', 'like', "%{$term}%")
+            $query->where('value', 'like', "%{$term}%")
                 ->orWhere('display_value', 'like', "%{$term}%")
                 ->orWhereHas('attribute', function ($query) use ($term) {
                     $query->search($term);
                 });
-            });
+        });
     }
 }

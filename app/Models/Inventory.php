@@ -128,7 +128,7 @@ class Inventory extends Pivot
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         return $query->where(function ($q) use ($term) {
-                $q->where('quantity', 'LIKE', "%{$term}%")
+            $q->where('quantity', 'LIKE', "%{$term}%")
                 ->orWhereHas('store', function ($q) use ($term) {
                     $q->where('name', 'LIKE', "%{$term}%");
                 })
@@ -140,19 +140,18 @@ class Inventory extends Pivot
                             ->orWhere('compare_price', 'LIKE', "%{$term}%")
                             ->orWhere('cost_price', 'LIKE', "%{$term}%");
                     })
-                    ->orWhereHas('product', function ($q) use ($term) {
-                        $q->where(function ($q) use ($term) {
-                            $q->where('slug', 'LIKE', "%{$term}%")
-                                ->orWhere('name', 'LIKE', "%{$term}%")
-                                ->orWhere('short_description', 'LIKE', "%{$term}%")
-                                ->orWhere('display_price', 'LIKE', "%{$term}%")
-                                ->orWhere('display_compare_price', 'LIKE', "%{$term}%");
+                        ->orWhereHas('product', function ($q) use ($term) {
+                            $q->where(function ($q) use ($term) {
+                                $q->where('slug', 'LIKE', "%{$term}%")
+                                    ->orWhere('name', 'LIKE', "%{$term}%")
+                                    ->orWhere('short_description', 'LIKE', "%{$term}%")
+                                    ->orWhere('display_price', 'LIKE', "%{$term}%")
+                                    ->orWhere('display_compare_price', 'LIKE', "%{$term}%");
+                            });
                         });
-                    });
                 });
-            });
+        });
     }
-
 
     /**
      * Scope inventories low in stock
@@ -199,8 +198,8 @@ class Inventory extends Pivot
     {
         $this->quantity += $amount;
 
-        if($this->quantity > 0){
-            $this->status  = InventoryStatus::AVAILABLE->value;
+        if ($this->quantity > 0) {
+            $this->status = InventoryStatus::AVAILABLE->value;
         }
 
         return $this->save();
@@ -208,9 +207,6 @@ class Inventory extends Pivot
 
     /**
      * Decrement the quantity of the inventory.
-     *
-     * @param int $quanity
-     * @return bool
      */
     public function decrementQuantity(int $quanity): bool
     {

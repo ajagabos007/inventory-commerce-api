@@ -85,7 +85,7 @@ class StockTransferRejectedNotification extends Notification
                         'sn' => $i + 1,
                         'sku' => $inventory->productVariant->sku,
                         'quantity' => $inventory->pivot->quantity,
-                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first()
+                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first(),
                     ];
                 }),
             ],

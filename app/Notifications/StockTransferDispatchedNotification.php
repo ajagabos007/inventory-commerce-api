@@ -90,12 +90,13 @@ class StockTransferDispatchedNotification extends Notification
                 'total_quantity' => $stockTransfer->inventories->sum('pivot.quantity'),
                 'products' => $stockTransfer->inventories->map(function ($inventory, $i) {
                     $inventory->load('productVariant.images', 'productVariant.product.images');
+
                     return [
                         'sn' => $i + 1,
                         'name' => $inventory->productVariant->name,
                         'sku' => $inventory->productVariant->sku,
                         'quantity' => $inventory->pivot->quantity,
-                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first()
+                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first(),
                     ];
                 }),
             ],

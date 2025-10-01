@@ -55,6 +55,6 @@ class Customer extends Model
                 ->orWhere('country', 'like', "%{$term}%")
                 ->orWhere('city', 'like', "%{$term}%")
                 ->orWhere('address', 'like', "%{$term}%");
-            });
+        });
     }
 }

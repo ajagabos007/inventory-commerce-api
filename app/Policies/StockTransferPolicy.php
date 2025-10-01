@@ -43,12 +43,12 @@ class StockTransferPolicy
      */
     public function view(User $user, StockTransfer $stockTransfer): Response
     {
-         return Response::allow();
-//        if ($user->hasPermissionTo('stock_transfer.view') || $user->hasPermissionTo('stock_transfer.receive')) {
-//            return Response::allow();
-//        }
+        return Response::allow();
+        //        if ($user->hasPermissionTo('stock_transfer.view') || $user->hasPermissionTo('stock_transfer.receive')) {
+        //            return Response::allow();
+        //        }
 
-//        return Response::deny('You do not have permission to view the details of this stock transfer.');
+        //        return Response::deny('You do not have permission to view the details of this stock transfer.');
     }
 
     /**
@@ -155,19 +155,19 @@ class StockTransferPolicy
      */
     public function accept(User $user, StockTransfer $stockTransfer): Response
     {
-//        if (! $user->hasPermissionTo('stock_transfer.receive')) {
-//            return Response::deny('You do not have permission to accept stock transfers.');
-//        }
+        //        if (! $user->hasPermissionTo('stock_transfer.receive')) {
+        //            return Response::deny('You do not have permission to accept stock transfers.');
+        //        }
 
-//        if (empty($stockTransfer->dispatched_at)) {
-//            return Response::deny('Accepting failed: This stock transfer has not been dispatched yet.');
-//        }
-//        if (! empty($stockTransfer->rejected_at)) {
-//            return Response::deny('Accepting failed: This stock transfer has already been rejected.');
-//        }
-//        if (! empty($stockTransfer->accepted_at)) {
-//            return Response::deny('Accepting failed: This stock transfer has already been accepted.');
-//        }
+        //        if (empty($stockTransfer->dispatched_at)) {
+        //            return Response::deny('Accepting failed: This stock transfer has not been dispatched yet.');
+        //        }
+        //        if (! empty($stockTransfer->rejected_at)) {
+        //            return Response::deny('Accepting failed: This stock transfer has already been rejected.');
+        //        }
+        //        if (! empty($stockTransfer->accepted_at)) {
+        //            return Response::deny('Accepting failed: This stock transfer has already been accepted.');
+        //        }
 
         return Response::allow();
     }

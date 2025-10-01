@@ -2,11 +2,12 @@
 
 namespace App\Notifications\Auth;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Lang;
-use App\Models\User;
+
 class ResetPasswordToken extends Notification
 {
     use Queueable;
@@ -16,14 +17,14 @@ class ResetPasswordToken extends Notification
      */
     public int $token;
 
-    public null|User $user;
+    public ?User $user;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct(int $token, User $user=null)
+    public function __construct(int $token, ?User $user = null)
     {
         $this->token = $token;
         $this->user = $user;
@@ -45,7 +46,8 @@ class ResetPasswordToken extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $greeting = !is_null($this->user) ? Lang::get('Hello '.$this->user->first_name).',' : Lang::get('Hello!');
+        $greeting = ! is_null($this->user) ? Lang::get('Hello '.$this->user->first_name).',' : Lang::get('Hello!');
+
         return (new MailMessage)
             ->greeting($greeting)
             ->line(Lang::get('You are receiving this email because we received a password reset request for your account.'))

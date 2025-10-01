@@ -93,8 +93,8 @@ class InventoryController extends Controller
     {
         $validated = $request->validated();
 
-        if(array_key_exists('serial_number',$validated) && !$inventory->productVariant->is_serialized) {
-           $validated['serial_number'] = null;
+        if (array_key_exists('serial_number', $validated) && ! $inventory->productVariant->is_serialized) {
+            $validated['serial_number'] = null;
         }
 
         $inventory->update($validated);

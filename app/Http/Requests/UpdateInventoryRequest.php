@@ -24,7 +24,7 @@ class UpdateInventoryRequest extends FormRequest
     {
         return [
             'quantity' => ['sometimes', 'integer', 'min:0'],
-            'serial_number' => ['nullable', 'max:255', 'unique:inventories,serial_number,' . $this->inventory->id],
+            'serial_number' => ['nullable', 'max:255', 'unique:inventories,serial_number,'.$this->inventory->id],
             'batch_number' => ['sometimes', 'string', 'max:255'],
             'status' => ['sometimes', 'in:in_stock,out_of_stock,low_stock'],
         ];
@@ -39,12 +39,12 @@ class UpdateInventoryRequest extends FormRequest
             function (Validator $validator) {
                 $inventory = $this->inventory;
 
-                if($inventory && $inventory->productVariant->is_serialized) {
+                if ($inventory && $inventory->productVariant->is_serialized) {
                     if ($this->has('quantity') && $this->input('quantity') != $inventory->quantity) {
                         $validator->errors()->add('quantity', 'The quantity cannot be changed for serialized products.');
                     }
 
-                    if ($this->has('serial_number') && !$this->input('serial_number')) {
+                    if ($this->has('serial_number') && ! $this->input('serial_number')) {
                         $validator->errors()->add('serial_number', 'The serial number is required for serialized products.');
                     }
                 }
@@ -52,5 +52,4 @@ class UpdateInventoryRequest extends FormRequest
             },
         ];
     }
-
 }

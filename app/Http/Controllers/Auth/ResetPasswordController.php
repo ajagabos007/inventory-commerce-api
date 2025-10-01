@@ -23,8 +23,6 @@ class ResetPasswordController extends Controller
      * Send pass reset token to user
      *
      * @method POST  api/forget-password
-     *
-     * @return JsonResponse
      */
     public function sendPasswordResetToken(Request $request): JsonResponse
     {
@@ -59,7 +57,6 @@ class ResetPasswordController extends Controller
                 $user->notify(new ResetPasswordToken($token, $user));
             });
         }
-
 
         return response()->json([
             'status' => 'success',

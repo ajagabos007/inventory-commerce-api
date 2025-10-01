@@ -17,9 +17,13 @@ class CleanupImports extends Command
     protected $description = 'Clean up imported files and optionally archive them';
 
     private string $importsPath;
+
     private string $archivePath;
+
     private array $deletedFiles = [];
+
     private array $archivedFiles = [];
+
     private int $totalSize = 0;
 
     public function handle(): int
@@ -27,8 +31,9 @@ class CleanupImports extends Command
         $this->importsPath = storage_path('app/private/imports');
         $this->archivePath = storage_path('app/private/imports/archive');
 
-        if (!File::exists($this->importsPath)) {
+        if (! File::exists($this->importsPath)) {
             $this->error('❌ Imports directory not found');
+
             return Command::FAILURE;
         }
 
@@ -46,8 +51,9 @@ class CleanupImports extends Command
         $this->displayCleanupPlan($archive, $days);
 
         // Confirm unless forced
-        if (!$force && !$dryRun && !$this->confirm('Do you want to proceed?')) {
+        if (! $force && ! $dryRun && ! $this->confirm('Do you want to proceed?')) {
             $this->info('Cleanup cancelled');
+
             return Command::SUCCESS;
         }
 
@@ -59,7 +65,7 @@ class CleanupImports extends Command
         }
 
         // Clean old archives
-        if (!$dryRun) {
+        if (! $dryRun) {
             $this->cleanOldArchives($days);
         }
 
@@ -76,7 +82,7 @@ class CleanupImports extends Command
     {
         $this->info('📋 Cleanup Plan:');
         $this->line("   Directory: {$this->importsPath}");
-        $this->line("   Action: " . ($archive ? 'Archive files' : 'Delete files'));
+        $this->line('   Action: '.($archive ? 'Archive files' : 'Delete files'));
 
         if ($archive) {
             $this->line("   Archive location: {$this->archivePath}");
@@ -87,10 +93,10 @@ class CleanupImports extends Command
 
         // Count files to be cleaned
         $files = $this->getImportFiles();
-        $this->info("📊 Files to clean:");
-        $this->line("   CSV files: " . count($files['csv']));
-        $this->line("   Image files: " . count($files['images']));
-        $this->line("   Total size: " . $this->formatBytes($this->calculateTotalSize($files)));
+        $this->info('📊 Files to clean:');
+        $this->line('   CSV files: '.count($files['csv']));
+        $this->line('   Image files: '.count($files['images']));
+        $this->line('   Total size: '.$this->formatBytes($this->calculateTotalSize($files)));
         $this->newLine();
     }
 
@@ -105,13 +111,13 @@ class CleanupImports extends Command
         ];
 
         // Get CSV files
-        $csvFiles = File::glob($this->importsPath . '/*.csv');
+        $csvFiles = File::glob($this->importsPath.'/*.csv');
         foreach ($csvFiles as $file) {
             $files['csv'][] = $file;
         }
 
         // Get image files
-        $imagesPath = $this->importsPath . '/images';
+        $imagesPath = $this->importsPath.'/images';
         if (File::exists($imagesPath)) {
             $imageFiles = File::allFiles($imagesPath);
             foreach ($imageFiles as $file) {
@@ -150,13 +156,13 @@ class CleanupImports extends Command
     private function archiveImports(bool $dryRun): void
     {
         $timestamp = Carbon::now()->format('Y-m-d_His');
-        $archiveDir = $this->archivePath . '/' . $timestamp;
+        $archiveDir = $this->archivePath.'/'.$timestamp;
 
         $this->info('📦 Archiving files...');
 
-        if (!$dryRun) {
+        if (! $dryRun) {
             File::makeDirectory($archiveDir, 0755, true);
-            File::makeDirectory($archiveDir . '/images', 0755, true);
+            File::makeDirectory($archiveDir.'/images', 0755, true);
         }
 
         $files = $this->getImportFiles();
@@ -164,7 +170,7 @@ class CleanupImports extends Command
         // Archive CSV files
         foreach ($files['csv'] as $file) {
             $filename = basename($file);
-            $destination = $archiveDir . '/' . $filename;
+            $destination = $archiveDir.'/'.$filename;
 
             if ($dryRun) {
                 $this->line("   Would archive: {$filename}");
@@ -182,7 +188,7 @@ class CleanupImports extends Command
         // Archive images
         foreach ($files['images'] as $file) {
             $filename = basename($file);
-            $destination = $archiveDir . '/images/' . $filename;
+            $destination = $archiveDir.'/images/'.$filename;
 
             if ($dryRun) {
                 $this->line("   Would archive image: {$filename}");
@@ -195,10 +201,10 @@ class CleanupImports extends Command
         }
 
         // Clean up empty images directory
-        if (!$dryRun && File::exists($this->importsPath . '/images')) {
-            $remaining = File::files($this->importsPath . '/images');
+        if (! $dryRun && File::exists($this->importsPath.'/images')) {
+            $remaining = File::files($this->importsPath.'/images');
             if (empty($remaining)) {
-                File::deleteDirectory($this->importsPath . '/images');
+                File::deleteDirectory($this->importsPath.'/images');
             }
         }
     }
@@ -243,11 +249,11 @@ class CleanupImports extends Command
         }
 
         // Delete images directory if empty
-        if (!$dryRun && File::exists($this->importsPath . '/images')) {
-            $remaining = File::files($this->importsPath . '/images');
+        if (! $dryRun && File::exists($this->importsPath.'/images')) {
+            $remaining = File::files($this->importsPath.'/images');
             if (empty($remaining)) {
-                File::deleteDirectory($this->importsPath . '/images');
-                $this->line("   ✓ Removed empty images directory");
+                File::deleteDirectory($this->importsPath.'/images');
+                $this->line('   ✓ Removed empty images directory');
             }
         }
     }
@@ -257,7 +263,7 @@ class CleanupImports extends Command
      */
     private function cleanOldArchives(int $days): void
     {
-        if (!File::exists($this->archivePath)) {
+        if (! File::exists($this->archivePath)) {
             return;
         }
 
@@ -271,7 +277,7 @@ class CleanupImports extends Command
             $dirname = basename($archive);
 
             // Skip if not a date-based archive
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}_\d{6}$/', $dirname)) {
+            if (! preg_match('/^\d{4}-\d{2}-\d{2}_\d{6}$/', $dirname)) {
                 continue;
             }
 
@@ -289,7 +295,7 @@ class CleanupImports extends Command
         }
 
         if ($deletedCount === 0) {
-            $this->line("   No old archives to delete");
+            $this->line('   No old archives to delete');
         }
     }
 
@@ -303,20 +309,20 @@ class CleanupImports extends Command
         $this->info('📊 Cleanup Summary');
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        if (!empty($this->archivedFiles)) {
-            $this->info("📦 Archived: " . count($this->archivedFiles) . " files");
+        if (! empty($this->archivedFiles)) {
+            $this->info('📦 Archived: '.count($this->archivedFiles).' files');
         }
 
-        if (!empty($this->deletedFiles)) {
-            $this->info("🗑️  Deleted: " . count($this->deletedFiles) . " files");
+        if (! empty($this->deletedFiles)) {
+            $this->info('🗑️  Deleted: '.count($this->deletedFiles).' files');
         }
 
         if ($this->totalSize > 0) {
-            $this->info("💾 Space " . ($dryRun ? 'would be freed' : 'freed') . ": " . $this->formatBytes($this->totalSize));
+            $this->info('💾 Space '.($dryRun ? 'would be freed' : 'freed').': '.$this->formatBytes($this->totalSize));
         }
 
         if (empty($this->archivedFiles) && empty($this->deletedFiles)) {
-            $this->info("✨ No files to clean up");
+            $this->info('✨ No files to clean up');
         }
 
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -330,6 +336,6 @@ class CleanupImports extends Command
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
 
-        return number_format($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
+        return number_format($bytes / pow(1024, $power), 2).' '.$units[$power];
     }
 }

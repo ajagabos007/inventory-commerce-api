@@ -42,8 +42,6 @@ class StockTransferReceivedNotification extends Notification
             'inventories.productVariant.product.images',
         ]);
 
-
-
         return (new MailMessage)->markdown('mails.stock-transfer.received', [
             'stock_transfer' => $this->stock_transfer,
         ])
@@ -89,7 +87,7 @@ class StockTransferReceivedNotification extends Notification
                         'sn' => $i + 1,
                         'sku' => $inventory->productVariant->sku,
                         'quantity' => $inventory->pivot->quantity,
-                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first()
+                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first(),
                     ];
                 }),
             ],

@@ -61,7 +61,7 @@ class Sale extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(!app()->runningInConsole(), function ($builder) {
+            $builder->when(! app()->runningInConsole(), function ($builder) {
                 $builder->whereDoesntHave('inventories', function (Builder $builder) {
                     $builder->where('store_id', '<>', current_store()?->id);
                 });
@@ -74,33 +74,33 @@ class Sale extends Model
      */
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->where(function($query) use ($term) {
-                $query->where('invoice_number', 'like', "%{$term}%")
-                    ->orWhere('subtotal_price', 'like', "%{$term}%")
-                    ->orWhere('total_price', 'like', "%{$term}%")
-                    ->orWhere('payment_method', 'like', "%{$term}%")
-                    ->orWhere('tax', 'like', "%{$term}%")
-                    ->orWhere('channel', 'like', "%{$term}%")
-                    ->orWhereHas('buyerable', function ($buyerQuery) use ($term) {
-                        $model = $buyerQuery->getModel();
+        return $query->where(function ($query) use ($term) {
+            $query->where('invoice_number', 'like', "%{$term}%")
+                ->orWhere('subtotal_price', 'like', "%{$term}%")
+                ->orWhere('total_price', 'like', "%{$term}%")
+                ->orWhere('payment_method', 'like', "%{$term}%")
+                ->orWhere('tax', 'like', "%{$term}%")
+                ->orWhere('channel', 'like', "%{$term}%")
+                ->orWhereHas('buyerable', function ($buyerQuery) use ($term) {
+                    $model = $buyerQuery->getModel();
 
-                        return match (get_class($model)) {
-                            \App\Models\Customer::class => $buyerQuery->where('name', 'like', "%{$term}%")
-                                ->orWhere('email', 'like', "%{$term}%")
-                                ->orWhere('phone_number', 'like', "%{$term}%")
-                                ->orWhere('country', 'like', "%{$term}%")
-                                ->orWhere('city', 'like', "%{$term}%"),
+                    return match (get_class($model)) {
+                        \App\Models\Customer::class => $buyerQuery->where('name', 'like', "%{$term}%")
+                            ->orWhere('email', 'like', "%{$term}%")
+                            ->orWhere('phone_number', 'like', "%{$term}%")
+                            ->orWhere('country', 'like', "%{$term}%")
+                            ->orWhere('city', 'like', "%{$term}%"),
 
-                            \App\Models\User::class => $buyerQuery->where('first_name', 'like', "%{$term}%")
-                                ->orWhere('middle_name', 'like', "%{$term}%")
-                                ->orWhere('last_name', 'like', "%{$term}%")
-                                ->orWhere('email', 'like', "%{$term}%")
-                                ->orWhere('phone_number', 'like', "%{$term}%"),
+                        \App\Models\User::class => $buyerQuery->where('first_name', 'like', "%{$term}%")
+                            ->orWhere('middle_name', 'like', "%{$term}%")
+                            ->orWhere('last_name', 'like', "%{$term}%")
+                            ->orWhere('email', 'like', "%{$term}%")
+                            ->orWhere('phone_number', 'like', "%{$term}%"),
 
-                            default => $buyerQuery,
-                        };
-                    });
-            });
+                        default => $buyerQuery,
+                    };
+                });
+        });
     }
 
     /**

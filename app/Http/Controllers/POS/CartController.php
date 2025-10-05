@@ -5,7 +5,7 @@ namespace App\Http\Controllers\POS;
 // use Hnooz\LaravelCart\Facades\Cart;
 use App\Facades\Cart;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AddProductToCartRequest;
+use App\Http\Requests\POS\AddProductVariantToCartRequest;
 use App\Http\Resources\POS\CartResource;
 use App\Models\Inventory;
 use Illuminate\Http\Request;
@@ -17,29 +17,27 @@ class CartController extends Controller
      */
     public function index()
     {
-        $products = Cart::all();
+        $items = Cart::all();
 
-        $products_collection = CartResource::collection($products)
+        return CartResource::collection($items)
             ->additional([
                 'sub_total' => Cart::total(),
                 'status' => 'success',
                 'message' => 'Cart products retrieved successfully',
             ]);
-
-        return $products_collection;
     }
 
     /**
      * Add item to cart
      */
-    public function add(AddProductToCartRequest $request)
+    public function add(AddProductVariantToCartRequest $request)
     {
         $validated = $request->validated();
 
-        $inventory = Inventory::belongingToCurrentStaff()
-            ->whereHas('item', function ($query) use ($validated) {
-                $query->where('sku', $validated['sku']);
-            })
+        $inventory = Inventory::whereHas('productVariant', function ($query) use ($validated) {
+            $query->where('sku', $validated['sku']);
+        })
+            ->with('productVariant')
             ->first();
 
         if (! $inventory) {
@@ -48,23 +46,29 @@ class CartController extends Controller
                 'message' => 'No item in  found inventory',
             ], 422);
         }
+        $image = $inventory->productVariant->images()->first();
+        $image_url = null;
+        if (! blank($image)) {
+            $image->append('url');
+            $image_url = $image->toArray()['url'] ?? null;
+        }
 
         $options = [
-            'image_url' => $inventory->item->image?->url,
+            'image_url' => $image_url,
             'itemable_id' => $inventory->id,
             'itemable_type' => get_class($inventory),
-            'daily_gold_price_id' => $inventory->item->dailyGoldPrices()->today()->first()?->id,
+            'price' => $inventory->productVariant->price,
         ];
 
-        Cart::add($inventory->id, $inventory->item->name, $inventory->item->price, $validated['quantity'] ?? 20, $options);
+        Cart::add($inventory->id, $inventory->productVariant->name, $inventory->productVariant->price, $validated['quantity'] ?? 1, $options);
 
-        $products = Cart::all();
+        $items = Cart::all();
 
-        $cart_collection = CartResource::collection($products)
+        $cart_collection = CartResource::collection($items)
             ->additional([
                 'sub_total' => Cart::total(),
                 'status' => 'success',
-                'message' => 'Product added to cart successfully',
+                'message' => 'Item added to cart successfully',
             ]);
 
         return $cart_collection;
@@ -76,21 +80,18 @@ class CartController extends Controller
 
         $validated = $request->validate([
             'quantity' => ['nullable', 'integer', 'min:1'],
-            'price' => ['nullable', 'integer', 'min:0'],
         ]);
 
         Cart::update($id, $validated);
 
-        $products = Cart::all();
+        $items = Cart::all();
 
-        $cart_collection = CartResource::collection($products)
+        return CartResource::collection($items)
             ->additional([
                 'sub_total' => Cart::total(),
                 'status' => 'success',
-                'message' => 'Product updated successfully',
+                'message' => 'Item updated successfully',
             ]);
-
-        return $cart_collection;
     }
 
     public function increase(string $id, Request $request)

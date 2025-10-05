@@ -22,7 +22,7 @@ class SyncController
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
         $productQuery = Product::query()
-                        ->withoutGlobalScope('store');
+            ->withoutGlobalScope('store');
 
         $products = QueryBuilder::for($productQuery)
             ->defaultSort('-created_at')
@@ -133,9 +133,9 @@ class SyncController
         /**
          * Check if pagination is not disabled
          */
-        if (!in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
 
-            $perPage = !is_numeric($perPage) ? 15 : max(intval($perPage), 1);
+            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
 
             $productVariants = $productVariants->paginate($perPage)
                 ->appends(request()->query());

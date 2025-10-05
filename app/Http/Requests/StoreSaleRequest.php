@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\PaymentMethod;
 use App\Models\Sale;
 use App\Rules\In;
+use App\Rules\ValidDiscountCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -26,20 +27,7 @@ class StoreSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'discount_code' => ['nullable', 'exists:discounts,code', function ($attribute, $value, $fail) {
-                if ($value) {
-                    $discount = \App\Models\Discount::where('code', $value)->first();
-                    if (! $discount) {
-                        return;
-                    }
-
-                    if (! $discount->is_active) {
-                        $fail('The selected discount code is not active.');
-                    } elseif ($discount->expires_at && \Carbon\Carbon::parse($discount->expires_at)->isPast()) {
-                        $fail('The selected discount code has expired.');
-                    }
-                }
-            }],
+            'discount_code' => ['nullable', 'exists:discounts,code', new ValidDiscountCode],
             'customer_id' => ['required', 'exists:customers,id'],
             'tax' => ['numeric', 'min:0', 'max:100'],
             'payment_method' => ['required', 'string',   new In(PaymentMethod::values(), $caseSensitive = false)],

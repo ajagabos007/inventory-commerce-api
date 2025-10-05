@@ -35,7 +35,7 @@ return [
     | the "database" or "both" storage driver.
     |
     */
-    'table' => 'cart_products',
+    'table' => 'cart_items',
 
     /*
     |--------------------------------------------------------------------------

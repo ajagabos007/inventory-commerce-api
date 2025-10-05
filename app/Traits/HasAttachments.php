@@ -30,11 +30,29 @@ trait HasAttachments
     }
 
     /**
+     * Get the model's image.
+     */
+    public function image(): MorphOne
+    {
+        return $this->morphOne(Attachment::class, 'attachable')
+            ->where('type', 'image');
+    }
+
+    /**
      * GEt the  model's attachment that are images
      */
     public function images(): MorphMany
     {
         return $this->attachments()->where('type', 'image');
+    }
+
+    /**
+     * GEt the  model's attachment that are pdf
+     */
+    public function pdf(): MorphOne
+    {
+        return $this->morphOne(Attachment::class, 'attachable')
+            ->where('type', 'pdf');
     }
 
     /**

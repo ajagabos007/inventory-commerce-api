@@ -25,7 +25,7 @@ class CustomerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_staff;
     }
 
     /**
@@ -33,7 +33,7 @@ class CustomerPolicy
      */
     public function view(User $user, Customer $customer): bool
     {
-        return false;
+        return $user->is_staff;
     }
 
     /**

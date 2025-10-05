@@ -55,7 +55,7 @@ Route::controller(\App\Http\Controllers\Auth\ResetPasswordController::class)->gr
 
 Route::get('enums', EnumController::class)->name('api.enums');
 
-Route::prefix('sync')->name('sync')->group(function() {
+Route::prefix('sync')->name('sync')->group(function () {
     Route::get('products', [SyncController::class, 'products'])->name('sync.products');
     Route::get('products/{product}', [SyncController::class, 'showProduct'])->name('sync.products.show');
     Route::get('product-variants', [SyncController::class, 'productVariants'])->name('sync.productVariants');
@@ -207,7 +207,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('stock-transfers', StockTransferController::class);
 
     Route::controller(CartController::class)->group(function () {
-        Route::name('pos.cart-products')->prefix('pos/cart-products')->group(function () {
+        Route::name('pos.cart-items')->prefix('pos/cart-items')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'add')->name('add');
             Route::match(['PUT', 'PATCH'], '/{id}', 'update')->name('update');

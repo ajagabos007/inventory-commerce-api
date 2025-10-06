@@ -34,6 +34,7 @@ class SyncController
             ->allowedIncludes([
                 'images',
                 'variants',
+                'variants.images',
                 'categories',
                 'attributeValues',
             ])

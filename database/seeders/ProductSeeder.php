@@ -13,6 +13,9 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        if(Product::exists()){
+            return;
+        }
         $products = Product::factory(30)->make()->toArray();
 
         $start_time = now();

@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('currencies', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
-            $table->string('code')->unique();
-            $table->string('symbol');
+            $table->string('code',3)->unique();
+            $table->string('symbol',10)->nullable();
+            $table->decimal('exchange_rate', 10, 6)->default(1.000000);
             $table->boolean('is_default')->default(false);
-            $table->timestamp('disabled_at');
-            $table->string('disabled_reason');
+            $table->timestamp('disabled_at')->nullable();
+            $table->string('disabled_reason')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

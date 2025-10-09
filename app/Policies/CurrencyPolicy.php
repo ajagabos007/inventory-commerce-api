@@ -8,6 +8,19 @@ use Illuminate\Auth\Access\Response;
 
 class CurrencyPolicy
 {
+
+    /**
+     * Perform pre-authorization checks.
+     */
+    public function before(User $user, string $ability): ?Response
+    {
+        if ($user->hasAnyRole('admin')) {
+            return Response::allow();
+        }
+
+        return null;
+    }
+
     /**
      * Determine whether the user can view any models.
      */

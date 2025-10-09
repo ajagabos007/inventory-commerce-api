@@ -28,6 +28,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CurrencyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('attributes', AttributeController::class);
     Route::apiResource('attribute-values', AttributeValueController::class);
+    Route::apiResource('currencies', CurrencyController::class);
 
     Route::prefix('products/{product}/')->name('product-variants')->group(function () {
         Route::controller(ProductController::class)->group(function () {

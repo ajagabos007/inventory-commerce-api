@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Currency;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCurrencyRequest extends FormRequest
@@ -11,18 +13,22 @@ class StoreCurrencyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('create', Currency::class);
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<string,mixed>|string>
      */
     public function rules(): array
     {
         return [
-            //
+            'name'=> ['required', 'string', 'max:191'],
+            'code' => ['required', 'string', 'size:3', 'unique:currencies,code'],
+            'symbol' => ['required', 'string', 'max:10'],
+            'exchange_rate' => ['required', 'numeric', 'min:0.000001'],
+            'is_default' => ['sometimes', 'boolean'],
         ];
     }
 }

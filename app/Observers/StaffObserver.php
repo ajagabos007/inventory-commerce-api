@@ -2,11 +2,22 @@
 
 namespace App\Observers;
 
+use App\Models\Sale;
 use App\Models\Staff;
 use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 
 class StaffObserver implements ShouldHandleEventsAfterCommit
 {
+    /**
+     * Handle the Sale "created" event.
+     */
+    public function creating(Staff $staff): void
+    {
+        if (blank($staff->staff_no)) {
+            $staff->staff_no = Staff::generateStaffNo();
+        }
+    }
+
     /**
      * Handle the Staff "created" event.
      */

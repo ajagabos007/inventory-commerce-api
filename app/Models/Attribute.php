@@ -58,6 +58,6 @@ class Attribute extends Model
             $query->where('name', 'like', "%{$term}%")
                 ->orWhere('slug', 'like', "%{$term}%")
                 ->orWhere('type', 'like', "%{$term}%");
-            });
+        });
     }
 }

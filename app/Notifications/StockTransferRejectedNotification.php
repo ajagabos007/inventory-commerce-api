@@ -38,11 +38,8 @@ class StockTransferRejectedNotification extends Notification
         $this->stock_transfer->load([
             'fromStore',
             'toStore',
-            'inventories.item',
-            'inventories.item.image',
-            'inventories.item.category',
-            'inventories.item.type',
-            'inventories.item.colour',
+            'inventories.productVariant',
+            'inventories.productVariant.image',
         ]);
 
         return (new MailMessage)->markdown('mails.stock-transfer.rejected', [
@@ -83,11 +80,12 @@ class StockTransferRejectedNotification extends Notification
                 'driver_phone' => $stockTransfer->phone_number,
                 'inventory_count' => $stockTransfer->inventories->count(),
                 'total_quantity' => $stockTransfer->inventories->sum('pivot.quantity'),
-                'products' => $stockTransfer->inventories->take(3)->map(function ($inventory, $i) {
+                'products' => $stockTransfer->inventories->map(function ($inventory, $i) {
                     return [
                         'sn' => $i + 1,
-                        'sku' => $inventory->item->sku,
+                        'sku' => $inventory->productVariant->sku,
                         'quantity' => $inventory->pivot->quantity,
+                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first(),
                     ];
                 }),
             ],

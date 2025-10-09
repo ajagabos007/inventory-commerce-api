@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\InventoryStatus;
 use App\Traits\ModelRequestLoader;
+use Database\Factories\InventoryFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Inventory extends Pivot
 {
-    /** @use HasFactory<\Database\Factories\InventoryFactory> */
+    /** @use HasFactory<InventoryFactory> */
     use HasFactory;
 
     use HasUuids;
@@ -126,7 +128,7 @@ class Inventory extends Pivot
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         return $query->where(function ($q) use ($term) {
-                $q->where('quantity', 'LIKE', "%{$term}%")
+            $q->where('quantity', 'LIKE', "%{$term}%")
                 ->orWhereHas('store', function ($q) use ($term) {
                     $q->where('name', 'LIKE', "%{$term}%");
                 })
@@ -138,19 +140,18 @@ class Inventory extends Pivot
                             ->orWhere('compare_price', 'LIKE', "%{$term}%")
                             ->orWhere('cost_price', 'LIKE', "%{$term}%");
                     })
-                    ->orWhereHas('product', function ($q) use ($term) {
-                        $q->where(function ($q) use ($term) {
-                            $q->where('slug', 'LIKE', "%{$term}%")
-                                ->orWhere('name', 'LIKE', "%{$term}%")
-                                ->orWhere('short_description', 'LIKE', "%{$term}%")
-                                ->orWhere('display_price', 'LIKE', "%{$term}%")
-                                ->orWhere('display_compare_price', 'LIKE', "%{$term}%");
+                        ->orWhereHas('product', function ($q) use ($term) {
+                            $q->where(function ($q) use ($term) {
+                                $q->where('slug', 'LIKE', "%{$term}%")
+                                    ->orWhere('name', 'LIKE', "%{$term}%")
+                                    ->orWhere('short_description', 'LIKE', "%{$term}%")
+                                    ->orWhere('display_price', 'LIKE', "%{$term}%")
+                                    ->orWhere('display_compare_price', 'LIKE', "%{$term}%");
+                            });
                         });
-                    });
                 });
-            });
+        });
     }
-
 
     /**
      * Scope inventories low in stock
@@ -197,13 +198,15 @@ class Inventory extends Pivot
     {
         $this->quantity += $amount;
 
+        if ($this->quantity > 0) {
+            $this->status = InventoryStatus::AVAILABLE->value;
+        }
+
         return $this->save();
     }
 
     /**
      * Decrement the quantity of the inventory.
-     *
-     * @return self
      */
     public function decrementQuantity(int $quanity): bool
     {
@@ -212,8 +215,10 @@ class Inventory extends Pivot
         }
 
         $this->quantity -= $quanity;
+
         if ($this->quantity < 0) {
             $this->qunatity = 0;
+            $this->status = InventoryStatus::OUT_OF_STOCK->value;
         }
 
         return $this->save();

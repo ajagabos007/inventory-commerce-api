@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateStaffRequest;
 use App\Http\Resources\StaffResource;
 use App\Models\Staff;
 use App\Models\User;
+use App\Notifications\Auth\PasswordCreated;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -135,16 +136,14 @@ class StaffController extends Controller
             $staff->load(['user']);
 
             if (array_key_exists('role_id', $validated)) {
-
                 $staff->user->syncRoles([$validated['role_id']]);
-
             }
 
             $staff_resource = (new StaffResource($staff))->additional([
                 'message' => 'Staff created successfully',
             ]);
 
-            $user->notify(new \App\Notifications\Auth\PasswordCreated($user, $password));
+            $user->notify((new PasswordCreated($user, $password))->withoutDelay());
 
             DB::commit();
 

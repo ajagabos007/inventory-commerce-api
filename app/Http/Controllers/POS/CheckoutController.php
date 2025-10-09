@@ -6,6 +6,7 @@ use App\Facades\Cart;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\POSCheckoutRequest;
 use App\Http\Resources\SaleResource;
+use App\Models\Customer;
 use App\Models\Discount;
 use App\Models\Inventory;
 use App\Models\Sale;
@@ -48,13 +49,10 @@ class CheckoutController extends Controller
 
             // Calculate tax and total
             $sale = Sale::create([
-                'user_id' => null,
                 'payment_method' => $request->payment_method,
-                'customer_id' => $request->customer_id,
-                'customer_name' => $request->customer_name,
-                'customer_phone_number' => $request->customer_phone_number,
-                'customer_email' => $request->customer_email,
-                'discount_id' => is_null($discount) ? null : $discount->id ?? null,
+                'buyerable_id' => $request->customer_id,
+                'buyerable_type' => Customer::class,
+                'discount_id' => is_null($discount) ? null : $discount->id,
                 'tax' => $request->tax ?? 0,
                 'subtotal_price' => $subtotal_price,
                 'total_price' => $total_price,
@@ -85,10 +83,8 @@ class CheckoutController extends Controller
                 $sale_item_data[] = [
                     'inventory_id' => $invent->id,
                     'quantity' => $item['quantity'],
-                    'weight' => $invent->item->weight,
-                    'price_per_gram' => $item['price'],
+                    'price' => $item['price'],
                     'total_price' => $item['price'] * $item['quantity'],
-                    'daily_gold_price_id' => data_get($item, 'daily_gold_price_id', null),
                 ];
             }
 
@@ -98,8 +94,12 @@ class CheckoutController extends Controller
 
             Cart::clear();
 
-            $sale->load('saleInventories.inventory.item.category');
-
+            $sale->load([
+                'buyerable',
+                'saleInventories.inventory.productVariant',
+                'discount',
+                'cashier.user',
+            ]);
             $sale_resource = (new SaleResource($sale))->additional([
                 'message' => 'Checkout successfuly successfully',
             ]);

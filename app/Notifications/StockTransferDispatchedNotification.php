@@ -18,7 +18,7 @@ class StockTransferDispatchedNotification extends Notification
      */
     public function __construct(public StockTransfer $stock_transfer)
     {
-        //
+        $this->afterCommit();
     }
 
     /**
@@ -39,11 +39,8 @@ class StockTransferDispatchedNotification extends Notification
         $this->stock_transfer->load([
             'fromStore',
             'toStore',
-            'inventories.item',
-            'inventories.item.image',
-            'inventories.item.category',
-            'inventories.item.type',
-            'inventories.item.colour',
+            'inventories.productVariant.images',
+            'inventories.productVariant.product.images',
         ]);
 
         return (new MailMessage)->markdown('mails.stock-transfer.dispatched', [
@@ -60,6 +57,13 @@ class StockTransferDispatchedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $stockTransfer = $this->stock_transfer;
+        $stockTransfer->load([
+            'fromStore',
+            'toStore',
+            'inventories.productVariant.images',
+            'inventories.productVariant.product.images',
+            'sender',
+        ]);
 
         return [
             'type' => 'stock_transfer_dispatched',
@@ -84,11 +88,15 @@ class StockTransferDispatchedNotification extends Notification
                 'driver_phone' => $stockTransfer->phone_number,
                 'inventory_count' => $stockTransfer->inventories->count(),
                 'total_quantity' => $stockTransfer->inventories->sum('pivot.quantity'),
-                'products' => $stockTransfer->inventories->take(3)->map(function ($inventory, $i) {
+                'products' => $stockTransfer->inventories->map(function ($inventory, $i) {
+                    $inventory->load('productVariant.images', 'productVariant.product.images');
+
                     return [
                         'sn' => $i + 1,
-                        'sku' => $inventory->item->sku,
+                        'name' => $inventory->productVariant->name,
+                        'sku' => $inventory->productVariant->sku,
                         'quantity' => $inventory->pivot->quantity,
+                        'image' => $inventory->productVariant->images->isNotEmpty() ? $inventory->productVariant->images->first() : $inventory->productVariant->product->images->first(),
                     ];
                 }),
             ],

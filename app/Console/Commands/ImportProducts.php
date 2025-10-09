@@ -26,9 +26,13 @@ class ImportProducts extends Command
     protected $description = 'Import products from a CSV file and attach images';
 
     private ?Store $warehouse = null;
+
     private int $successCount = 0;
+
     private int $errorCount = 0;
+
     private array $errors = [];
+
     private string $imagesDir = 'images';
 
     /**
@@ -42,11 +46,11 @@ class ImportProducts extends Command
         // Use 'imports' directory instead of 'products'
         $path = storage_path("app/private/imports/{$file}");
 
-        if (!$this->validateFile($path)) {
+        if (! $this->validateFile($path)) {
             return Command::FAILURE;
         }
 
-        if (!$this->initializeWarehouse()) {
+        if (! $this->initializeWarehouse()) {
             return Command::FAILURE;
         }
 
@@ -59,6 +63,7 @@ class ImportProducts extends Command
             $this->processRecords($csv, $imagesDir);
         } catch (CsvException $e) {
             $this->error("CSV Error: {$e->getMessage()}");
+
             return Command::FAILURE;
         }
 
@@ -72,12 +77,14 @@ class ImportProducts extends Command
      */
     private function validateFile(string $path): bool
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $this->error("❌ CSV file not found: {$path}");
+
             return false;
         }
 
         $this->info("📄 Reading CSV: {$path}");
+
         return true;
     }
 
@@ -88,12 +95,14 @@ class ImportProducts extends Command
     {
         $this->warehouse = Store::warehouses()->first();
 
-        if (!$this->warehouse) {
-            $this->error("❌ No warehouse found. Please create a warehouse first.");
+        if (! $this->warehouse) {
+            $this->error('❌ No warehouse found. Please create a warehouse first.');
+
             return false;
         }
 
         $this->info("🏭 Using warehouse: {$this->warehouse->name} (ID: {$this->warehouse->id})");
+
         return true;
     }
 
@@ -104,6 +113,7 @@ class ImportProducts extends Command
     {
         $csv = Reader::createFromPath($path, 'r');
         $csv->setHeaderOffset(0);
+
         return $csv;
     }
 
@@ -139,6 +149,7 @@ class ImportProducts extends Command
             if ($this->option('dry-run')) {
                 $this->info("Would import: {$record['Name']}");
                 DB::rollBack();
+
                 return;
             }
 
@@ -262,7 +273,7 @@ class ImportProducts extends Command
     {
         return array_filter(
             explode('<br>', $value),
-            fn($v) => !blank($v)
+            fn ($v) => ! blank($v)
         );
     }
 
@@ -272,8 +283,9 @@ class ImportProducts extends Command
     private function splitAndParseFloat(string $value): array
     {
         $parts = $this->splitAndClean($value);
+
         return array_map(
-            fn($v) => (float) filter_var($v, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
+            fn ($v) => (float) filter_var($v, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
             $parts
         );
     }
@@ -284,8 +296,9 @@ class ImportProducts extends Command
     private function splitAndParseInt(string $value): array
     {
         $parts = $this->splitAndClean($value);
+
         return array_map(
-            fn($v) => (int) filter_var($v, FILTER_SANITIZE_NUMBER_INT),
+            fn ($v) => (int) filter_var($v, FILTER_SANITIZE_NUMBER_INT),
             $parts
         );
     }
@@ -315,12 +328,10 @@ class ImportProducts extends Command
             ['name' => $record['Name']]
         );
 
-
-//        if($product->created_at->lt($now)) {
-//           $this->warn("Product '{$product->name}' already exists. Skipping creation.");
-//           return;
-//        }
-
+        //        if($product->created_at->lt($now)) {
+        //           $this->warn("Product '{$product->name}' already exists. Skipping creation.");
+        //           return;
+        //        }
 
         // Sync relationships
         $product->attributeValues()->syncWithoutDetaching($attributeValues);
@@ -330,7 +341,7 @@ class ImportProducts extends Command
         $this->attachImage($product, $record);
 
         // Create variants
-        if (!empty($variantsRecord)) {
+        if (! empty($variantsRecord)) {
             $this->createVariants($product, $variantsRecord);
         } else {
             $this->createMainVariant($product, $record);
@@ -361,18 +372,15 @@ class ImportProducts extends Command
 
     /**
      * Create a single variant
-     * @param Product $product
-     * @param array $record
-     * @return ProductVariant|Model
      */
-    private function createVariant(Product $product, array $record): ProductVariant | Model
+    private function createVariant(Product $product, array $record): ProductVariant|Model
     {
         return $product->variants()->firstOrCreate(
             ['sku' => $record['Code'] ?? null],
             [
                 'name' => $record['Name'] ?? null,
                 'price' => $this->splitAndParseFloat($record['Price'])[0] ?? '0',
-                'cost_price' => $this->splitAndParseFloat($record['Price'])[0]?? '0',
+                'cost_price' => $this->splitAndParseFloat($record['Price'])[0] ?? '0',
                 'sku' => $record['Code'] ?? null,
             ]
         );
@@ -405,14 +413,12 @@ class ImportProducts extends Command
         if (is_string($quantity)) {
             return (int) filter_var($quantity, FILTER_SANITIZE_NUMBER_INT);
         }
+
         return (int) $quantity;
     }
 
     /**
      * Attach image to model
-     *
-     * @param  $model
-     * @param array $record
      */
     private function attachImage($model, array $record): void
     {
@@ -420,15 +426,17 @@ class ImportProducts extends Command
             return;
         }
 
-        if($model->images()->where('name', $record['Image'])->exists()) {
+        if ($model->images()->where('name', $record['Image'])->exists()) {
             $this->warn("  ⚠️  Image '{$record['Image']}' already exists. skipping attachment.");
+
             return;
         }
         // Use configurable images directory
         $imagePath = "imports/{$this->imagesDir}/{$record['Image']}";
 
-        if (!Storage::disk('local')->exists($imagePath)) {
+        if (! Storage::disk('local')->exists($imagePath)) {
             $this->warn("  ⚠️  Image not found: {$imagePath}");
+
             return;
         }
 
@@ -455,7 +463,7 @@ class ImportProducts extends Command
         if ($this->errorCount > 0) {
             $this->error("❌ Errors: {$this->errorCount}");
 
-            if (!empty($this->errors)) {
+            if (! empty($this->errors)) {
                 $this->newLine();
                 $this->error('Error Details:');
                 foreach ($this->errors as $error) {
@@ -467,7 +475,7 @@ class ImportProducts extends Command
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         // Offer to clean up imports if successful
-        if ($this->successCount > 0 && !$this->option('dry-run')) {
+        if ($this->successCount > 0 && ! $this->option('dry-run')) {
             $this->newLine();
 
             if ($this->confirm('🗑️  Would you like to clean up the import files?', false)) {

@@ -129,7 +129,7 @@ return [
     |--------------------------------
      */
     'front_end' => [
-        'url' => env('APP_FRONT_END_URL', 'https://goldwise-jewelry.netlify.app'),
+        'url' => env('APP_FRONT_END_URL', 'http://localhost:3000'),
     ],
 
 ];

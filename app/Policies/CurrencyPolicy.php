@@ -2,38 +2,26 @@
 
 namespace App\Policies;
 
-use App\Models\Customer;
+use App\Models\Currency;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class CustomerPolicy
+class CurrencyPolicy
 {
-    /**
-     * Perform pre-authorization checks.
-     */
-    public function before(User $user, string $ability): ?Response
-    {
-        if ($user->hasAnyRole('admin')) {
-            return Response::allow();
-        }
-
-        return null;
-    }
-
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->is_staff;
+        return false;
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Customer $customer): bool
+    public function view(User $user, Currency $currency): bool
     {
-        return $user->is_staff;
+        return false;
     }
 
     /**
@@ -47,7 +35,7 @@ class CustomerPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Customer $customer): bool
+    public function update(User $user, Currency $currency): bool
     {
         return false;
     }
@@ -55,7 +43,7 @@ class CustomerPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Customer $customer): bool
+    public function delete(User $user, Currency $currency): bool
     {
         return false;
     }
@@ -63,7 +51,7 @@ class CustomerPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Customer $customer): bool
+    public function restore(User $user, Currency $currency): bool
     {
         return false;
     }
@@ -71,7 +59,7 @@ class CustomerPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Customer $customer): bool
+    public function forceDelete(User $user, Currency $currency): bool
     {
         return false;
     }

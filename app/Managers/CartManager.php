@@ -3,7 +3,7 @@
 namespace App\Managers;
 
 use Hnooz\LaravelCart\CartManager as BaseCartManager;
-use Hnooz\LaravelCart\Models\CartProduct;
+use Hnooz\LaravelCart\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 
 class CartManager extends BaseCartManager
@@ -38,12 +38,12 @@ class CartManager extends BaseCartManager
         }
 
         if ($this->driver === 'database') {
-            return $this->getDatabaseProducts()->toArray();
+            return $this->getDatabaseItems()->toArray();
         }
 
         // For 'both' driver, prefer database if user is authenticated
         if ($this->authCheck()) {
-            return $this->getDatabaseProducts()->toArray();
+            return $this->getDatabaseItems()->toArray();
         }
 
         return $this->session->get($this->sessionKey, []);
@@ -80,7 +80,7 @@ class CartManager extends BaseCartManager
     protected function updateToDatabase(string $id, array $data): void
     {
         // Build the where clause based on authentication status
-        $whereConditions = ['product_id' => $id];
+        $whereConditions = ['item_id' => $id];
 
         if ($this->authCheck()) {
             // For authenticated users, use user_id
@@ -92,7 +92,7 @@ class CartManager extends BaseCartManager
             $whereConditions['user_id'] = null;
         }
 
-        $item = CartProduct::where($whereConditions)->first();
+        $item = CartItem::where($whereConditions)->first();
 
         if (! $item) {
             return;
@@ -108,7 +108,7 @@ class CartManager extends BaseCartManager
     protected function addToDatabase(array $item): void
     {
         // Build the where clause based on authentication status
-        $whereConditions = ['product_id' => $item['id']];
+        $whereConditions = ['item_id' => $item['id']];
 
         if ($this->authCheck()) {
             // For authenticated users, use user_id
@@ -120,22 +120,22 @@ class CartManager extends BaseCartManager
             $whereConditions['user_id'] = null;
         }
 
-        $existingProduct = CartProduct::where($whereConditions)->first();
+        $existingItem = CartItem::where($whereConditions)->first();
 
-        if ($existingProduct) {
+        if ($existingItem) {
             // Update existing item - increase quantity
-            $existingProduct->increment('quantity', $item['quantity']);
-            $existingProduct->update([
+            $existingItem->increment('quantity', $item['quantity']);
+            $existingItem->update([
                 'name' => $item['name'],
                 'price' => $item['price'],
                 'options' => $item['options'],
             ]);
         } else {
             // Create new item
-            CartProduct::create([
+            CartItem::create([
                 'session_id' => $this->authCheck() ? null : $this->sessionId(),
                 'user_id' => $this->authId(),
-                'product_id' => $item['id'],
+                'item_id' => $item['id'],
                 'name' => $item['name'],
                 'price' => $item['price'],
                 'quantity' => $item['quantity'],
@@ -153,13 +153,13 @@ class CartManager extends BaseCartManager
 
     protected function removeFromDatabase(string $id): void
     {
-        CartProduct::when($this->authCheck(), function ($query) {
+        CartItem::when($this->authCheck(), function ($query) {
             $query->where('user_id', $this->authId());
         }, function ($query) {
             $query->where('user_id', $this->authId())
                 ->where('session_id', $this->sessionId());
         })
-            ->where('product_id', $id)
+            ->where('item_id', $id)
             ->delete();
     }
 
@@ -175,13 +175,13 @@ class CartManager extends BaseCartManager
 
     protected function increaseInDatabase(string $id, int $quantity): void
     {
-        CartProduct::when($this->authCheck(), function ($query) {
+        CartItem::when($this->authCheck(), function ($query) {
             $query->where('user_id', $this->authId());
         }, function ($query) {
             $query->where('user_id', $this->authId())
                 ->where('session_id', $this->sessionId());
         })
-            ->where('product_id', $id)
+            ->where('item_id', $id)
             ->increment('quantity', $quantity);
     }
 
@@ -197,13 +197,13 @@ class CartManager extends BaseCartManager
 
     protected function decreaseInDatabase(string $id, int $quantity): void
     {
-        $item = CartProduct::when($this->authCheck(), function ($query) {
+        $item = CartItem::when($this->authCheck(), function ($query) {
             $query->where('user_id', $this->authId());
         }, function ($query) {
             $query->where('user_id', $this->authId())
                 ->where('session_id', $this->sessionId());
         })
-            ->where('product_id', $id)
+            ->where('item_id', $id)
             ->first();
 
         if ($item) {
@@ -214,7 +214,7 @@ class CartManager extends BaseCartManager
 
     protected function clearDatabase(): void
     {
-        CartProduct::when($this->authCheck(), function ($query) {
+        CartItem::when($this->authCheck(), function ($query) {
             $query->where('user_id', $this->authId());
         }, function ($query) {
             $query->where('user_id', $this->authId())
@@ -225,12 +225,12 @@ class CartManager extends BaseCartManager
 
     protected function clearAllDatabase(): void
     {
-        CartProduct::query()->delete();
+        CartItem::query()->delete();
     }
 
-    protected function getDatabaseProducts()
+    protected function getDatabaseItems()
     {
-        return CartProduct::when($this->authCheck(), function ($query) {
+        return CartItem::when($this->authCheck(), function ($query) {
             $query->where('user_id', $this->authId());
         }, function ($query) {
             $query->where('user_id', $this->authId())
@@ -238,7 +238,7 @@ class CartManager extends BaseCartManager
         })
             ->get()
             ->map(fn ($item) => [
-                'id' => $item->product_id,
+                'id' => $item->item_id,
                 'name' => $item->name,
                 'price' => $item->price,
                 'quantity' => $item->quantity,
@@ -246,25 +246,25 @@ class CartManager extends BaseCartManager
             ]);
     }
 
-    protected function mergeDatabaseProducts(): void
+    protected function mergeDatabaseItems(): void
     {
-        $guestProducts = CartProduct::where('session_id', $this->sessionId())
+        $guestItems = CartItem::where('session_id', $this->sessionId())
             ->whereNull('user_id')
             ->get();
 
-        foreach ($guestProducts as $guestProduct) {
-            $userProduct = CartProduct::where('product_id', $guestProduct->product_id)
+        foreach ($guestItems as $guestItem) {
+            $userItem = CartItem::where('item_id', $guestItem->item_id)
                 ->where('user_id', $this->authId())
                 ->first();
 
-            if ($userProduct) {
-                $userProduct->quantity += $guestProduct->quantity;
-                $userProduct->save();
-                $guestProduct->delete();
+            if ($userItem) {
+                $userItem->quantity += $guestItem->quantity;
+                $userItem->save();
+                $guestItem->delete();
             } else {
-                $guestProduct->user_id = $this->authId();
-                $guestProduct->session_id = null; // optional, since it’s now a user row
-                $guestProduct->save();
+                $guestItem->user_id = $this->authId();
+                $guestItem->session_id = null; // optional, since it’s now a user row
+                $guestItem->save();
             }
         }
     }
@@ -277,7 +277,7 @@ class CartManager extends BaseCartManager
         }
 
         if ($this->shouldUseDatabase()) {
-            CartProduct::query()->delete();
+            CartItem::query()->delete();
         }
     }
 }

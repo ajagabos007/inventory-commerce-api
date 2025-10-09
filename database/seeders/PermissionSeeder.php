@@ -45,12 +45,18 @@ class PermissionSeeder extends Seeder
             ['name' => 'inventory.delete'],
 
             // Sales
+            ['name' => 'sale.viewAny'],
             ['name' => 'sale.view'],
             ['name' => 'sale.create'],
+            ['name' => 'sale.update'],
+            ['name' => 'sale.delete'],
 
             // Transfers
-            ['name' => 'attribute.view'],
+            ['name' => 'stock_transfer.viewAny'],
+            ['name' => 'stock_transfer.view'],
             ['name' => 'stock_transfer.create'],
+            ['name' => 'stock_transfer.update'],
+            ['name' => 'stock_transfer.delete'],
             ['name' => 'stock_transfer.receive'],
 
             // Reports
@@ -67,7 +73,6 @@ class PermissionSeeder extends Seeder
             // Customer-level
             ['name' => 'customer.viewAny'],
             ['name' => 'customer.view'],
-            ['name' => 'customer.switch'],
             ['name' => 'customer.create'],
             ['name' => 'customer.update'],
             ['name' => 'customer.delete'],

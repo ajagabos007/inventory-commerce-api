@@ -9,7 +9,7 @@ enum InventoryStatus: string
     use Enumerable;
 
     case AVAILABLE = 'available';
-    case UNAVAILABLE  = 'unavailable';
+    case UNAVAILABLE = 'unavailable';
     case RESERVED = 'reserved';
     case SOLD = 'sold';
     case DAMAGED = 'damaged';

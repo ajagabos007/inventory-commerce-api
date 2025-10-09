@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
+})->purpose('Display an inspiring quote')->daily();
 
 Schedule::command('queue:work --stop-when-empty')->everyMinute()
-    ->runInBackground()->withoutOverlapping();
-
-Schedule::command('gold:seed-daily-prices')->daily()
     ->runInBackground()->withoutOverlapping();

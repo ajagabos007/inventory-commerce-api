@@ -58,12 +58,12 @@ class StockTransfer extends Model
      */
     protected static function booted(): void
     {
-        //        static::addGlobalScope('store', function (Builder $builder) {
-        //            $builder->when(app()->bound('currentStoreId'), function ($builder) {
-        //                $builder->where('to_store_id', app('currentStoreId'))
-        //                    ->orWhere('from_store_id', app('currentStoreId'));
-        //            });
-        //        });
+        static::addGlobalScope('store', function (Builder $builder) {
+            $builder->when(! app()->runningInConsole(), function ($builder) {
+                $builder->where('to_store_id', current_store()?->id)
+                    ->orWhere('from_store_id', current_store()?->id);
+            });
+        });
     }
 
     /**
@@ -112,7 +112,8 @@ class StockTransfer extends Model
     public function inventories(): BelongsToMany
     {
         return $this->belongsToMany(Inventory::class, StockTransferInventory::class, 'stock_transfer_id', 'inventory_id')
-            ->withPivot('id', 'quantity')->using(StockTransferInventory::class);
+            ->withPivot('id', 'quantity')->using(StockTransferInventory::class)
+            ->withoutGlobalScope('store');
     }
 
     /**
@@ -154,7 +155,7 @@ class StockTransfer extends Model
                 throw new \RuntimeException("Failed to generate a unique stock transfer reference number after {$maxAttempts} attempts.");
             }
 
-            $reference_no = 'ST-'.strtoupper(Str::random(8));
+            $reference_no = strtoupper(Str::random(10));
         } while (self::where('reference_no', $reference_no)->exists());
 
         return $reference_no;

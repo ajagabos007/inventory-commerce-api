@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PaymentGateway;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -32,6 +33,7 @@ class DatabaseSeeder extends Seeder
             //            StockTransferSeeder::class,
             //            StockTransferInventorySeeder::class,
             //            ScrapeSeeder::class,
+            PaymentGatewaySeeder::class,
         ]);
     }
 }

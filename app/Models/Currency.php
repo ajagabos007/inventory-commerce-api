@@ -45,6 +45,7 @@ class Currency extends Model
             get: fn () => !blank($this->disabled_at)
         );
     }
+
     /**
      * Search scope
      */

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->timestamp('disabled_at')->nullable();
             $table->string('disabled_reason')->nullable();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

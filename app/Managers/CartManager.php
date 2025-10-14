@@ -110,17 +110,9 @@ class CartManager extends BaseCartManager
         // Build the where clause based on authentication status
         $whereConditions = ['item_id' => $item['id']];
 
-        if ($this->authCheck()) {
-            // For authenticated users, use user_id
-            $whereConditions['user_id'] = $this->authId();
-        } else {
-
-            // For guests, use session_id and null user_id
-            $whereConditions['session_id'] = $this->sessionId();
-            $whereConditions['user_id'] = null;
-        }
-
-        $existingItem = CartItem::where($whereConditions)->first();
+        $existingItem =  $this->cartItemQuery()
+            ->where($whereConditions)
+            ->first();
 
         if ($existingItem) {
             // Update existing item - increase quantity
@@ -175,12 +167,7 @@ class CartManager extends BaseCartManager
 
     protected function increaseInDatabase(string $id, int $quantity): void
     {
-        CartItem::when($this->authCheck(), function ($query) {
-            $query->where('user_id', $this->authId());
-        }, function ($query) {
-            $query->where('user_id', $this->authId())
-                ->where('session_id', $this->sessionId());
-        })
+            $this->cartItemQuery()
             ->where('item_id', $id)
             ->increment('quantity', $quantity);
     }
@@ -197,15 +184,9 @@ class CartManager extends BaseCartManager
 
     protected function decreaseInDatabase(string $id, int $quantity): void
     {
-        $item = CartItem::when($this->authCheck(), function ($query) {
-            $query->where('user_id', $this->authId());
-        }, function ($query) {
-            $query->where('user_id', $this->authId())
-                ->where('session_id', $this->sessionId());
-        })
-            ->where('item_id', $id)
-            ->first();
-
+        $item = $this->cartItemQuery()
+                ->where('item_id', $id)
+                ->first();
         if ($item) {
             $newQuantity = max(1, $item->quantity - $quantity);
             $item->update(['quantity' => $newQuantity]);
@@ -214,13 +195,7 @@ class CartManager extends BaseCartManager
 
     protected function clearDatabase(): void
     {
-        CartItem::when($this->authCheck(), function ($query) {
-            $query->where('user_id', $this->authId());
-        }, function ($query) {
-            $query->where('user_id', $this->authId())
-                ->where('session_id', $this->sessionId());
-        })
-            ->delete();
+        $this->cartItemQuery()->delete();
     }
 
     protected function clearAllDatabase(): void
@@ -230,12 +205,7 @@ class CartManager extends BaseCartManager
 
     protected function getDatabaseItems()
     {
-        return CartItem::when($this->authCheck(), function ($query) {
-            $query->where('user_id', $this->authId());
-        }, function ($query) {
-            $query->where('user_id', $this->authId())
-                ->where('session_id', $this->sessionId());
-        })
+        return $this->cartItemQuery()
             ->get()
             ->map(fn ($item) => [
                 'id' => $item->item_id,
@@ -279,5 +249,16 @@ class CartManager extends BaseCartManager
         if ($this->shouldUseDatabase()) {
             CartItem::query()->delete();
         }
+    }
+
+    private function cartItemQuery()
+    {
+       return CartItem::when($this->authCheck(), function ($query) {
+            $query->where('user_id', $this->authId())
+                ->whereNull('session_id');
+        }, function ($query) {
+            $query->whereNull('user_id')
+            ->where('session_id', $this->sessionId());
+        });
     }
 }

@@ -34,6 +34,8 @@ class Order extends Model
         'pickup_address',
         'status',
         'payment_method',
+        'total_price',
+        'subtotal_price',
     ];
 
     /**

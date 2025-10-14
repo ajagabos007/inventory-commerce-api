@@ -98,6 +98,15 @@ class PaymentGateway extends Model
     }
 
     /**
+     * Scope default
+     */
+    public function scopeDefault($query, $disabled = true)
+    {
+        $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
+        return $query->where('is_default', $disabled);
+    }
+
+    /**
      * Search scope
      */
     public function scopeSearch(Builder $query, string $term): Builder

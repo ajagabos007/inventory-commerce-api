@@ -20,6 +20,7 @@ use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\POS\CartController as CartPOSController;
 use App\Http\Controllers\POS\CheckoutController as CheckoutPOSController;
+use App\Http\Controllers\ECommerce\CheckoutController as CheckoutECommerceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
@@ -77,6 +78,17 @@ Route::apiResource('product-variants', ProductVariantController::class)
     ->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
+
+Route::prefix('checkout')->name('checkout.')->group(function (){
+    Route::controller(CheckoutECommerceController::class)->group(function () {
+        Route::get('', 'summary' )->name('checkout.index');
+        Route::get('summary', 'summary' )->name('checkout.summary');
+        Route::match(['post','put', 'patch'], 'delivery-address/{address}', 'upsertDeliveryAddress' )->name('checkout.devliveryAddress.upsert');
+        Route::match(['post','put', 'patch'], 'coupon', 'addCoupon' )->name('checkout.coupon.add');
+        Route::match(['post','put', 'patch'], 'payment-gateway/{payment_gateway}', 'upsertPaymentGateway' )->name('checkout.paymentGateway.upsert');
+        Route::post( 'confirm-order', 'confirmOrder')->name('confirmOrder');
+    });
+});
 
 Route::controller(CartECommerceController::class)->group(function () {
     Route::name('e-commerce.cart-items')->prefix('e-commerce/cart-items')->group(function () {

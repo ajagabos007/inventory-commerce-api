@@ -76,7 +76,8 @@ Route::apiResource('products', ProductController::class)
 
 Route::apiResource('product-variants', ProductVariantController::class)
     ->only(['index','show']);
-
+Route::apiResource('categories', CategoryController::class)
+    ->only(['index','show']);
 
 Route::controller(CartECommerceController::class)->group(function () {
     Route::name('e-commerce.cart-items')->prefix('e-commerce/cart-items')->group(function () {
@@ -198,7 +199,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('suppliers', SupplierController::class);
-    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('categories', CategoryController::class)
+        ->only(['store','update','destroy']);
 
     /**
      * Admin routes

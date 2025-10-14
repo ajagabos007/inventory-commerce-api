@@ -61,7 +61,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.attribute_value_ids.*' => ['required', 'exists:attribute_values,id'],
             'variants.*.is_serialized' => ['boolean'],
             'variants.*.serial_number' => ['exclude_unless:variants.*.is_serialized,true', 'required_if:variants.*.is_serialized,true', 'unique:inventories,serial_number'],
-            'variants.*.batch_number' => ['nullable','string', 'max:191'],
+            'variants.*.batch_number' => ['nullable', 'string', 'max:191'],
             'variants.*.images' => ['required', 'array', 'min:1', 'max:4'],
             'variants.*.images*' => [
                 'required',

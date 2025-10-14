@@ -15,6 +15,7 @@ class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */
     use HasFactory;
+
     use HasUuids;
 
     /**
@@ -44,8 +45,6 @@ class Payment extends Model
 
     /**
      * Name accessor for is paid state.
-     *
-     * @return Attribute
      */
     protected function isPaid(): Attribute
     {
@@ -56,8 +55,6 @@ class Payment extends Model
 
     /**
      * Name accessor for is verified state.
-     *
-     * @return Attribute
      */
     protected function isVerified(): Attribute
     {
@@ -68,9 +65,6 @@ class Payment extends Model
 
     /**
      * Search scope
-     * @param Builder $query
-     * @param bool $isPaid
-     * @return Builder
      */
     public function scopeIsPaid(Builder $query, bool $isPaid): Builder
     {
@@ -83,9 +77,6 @@ class Payment extends Model
 
     /**
      * Search scope
-     * @param Builder $query
-     * @param bool $isVerified
-     * @return Builder
      */
     public function scopeIsVerified(Builder $query, bool $isVerified): Builder
     {
@@ -98,10 +89,6 @@ class Payment extends Model
 
     /**
      * Search scope
-     *
-     * @param Builder $query
-     * @param string $term
-     * @return Builder
      */
     public function scopeSearch(Builder $query, string $term): Builder
     {
@@ -118,10 +105,10 @@ class Payment extends Model
                     $query->where('first_name', 'like', "%{$term}%")
                         ->orWhere('last_name', 'like', "%{$term}%")
                         ->orWhere('email', 'like', "%{$term}%")
-                        ->orWhere('phone_number', 'like', "%{$term}%");                });
+                        ->orWhere('phone_number', 'like', "%{$term}%");
+                });
         });
     }
-
 
     /**
      * Get all the payables
@@ -131,18 +118,12 @@ class Payment extends Model
         return $this->hasMany(Payable::class, 'payment_id');
     }
 
-    /**
-     * @return BelongsTo
-     */
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return BelongsTo
-     */
-    public function gateway() : BelongsTo
+    public function gateway(): BelongsTo
     {
         return $this->belongsTo(PaymentGateway::class, 'payment_gateway_id');
     }

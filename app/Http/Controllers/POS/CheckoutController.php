@@ -101,7 +101,7 @@ class CheckoutController extends Controller
                 'cashier.user',
             ]);
 
-           return  (new SaleResource($sale))->additional([
+            return (new SaleResource($sale))->additional([
                 'message' => 'Checkout  successfully',
             ]);
 

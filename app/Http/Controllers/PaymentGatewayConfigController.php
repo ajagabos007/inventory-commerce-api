@@ -6,7 +6,6 @@ use App\Http\Requests\StorePaymentGatewayConfigRequest;
 use App\Http\Requests\UpdatePaymentGatewayConfigRequest;
 use App\Http\Resources\PaymentGatewayConfigResource;
 use App\Models\PaymentGatewayConfig;
-use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class PaymentGatewayConfigController extends Controller
@@ -32,7 +31,7 @@ class PaymentGatewayConfigController extends Controller
                 'mode',
             ])
             ->allowedIncludes([
-                'gateway'
+                'gateway',
             ])
             ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);
@@ -61,13 +60,14 @@ class PaymentGatewayConfigController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePaymentGatewayConfigRequest $request) {
+    public function store(StorePaymentGatewayConfigRequest $request)
+    {
         $validated = $request->validated();
 
         $paymentGatewayConfig = PaymentGatewayConfig::updateOrCreate([
             'payment_gateway_id' => $validated['payment_gateway_id'],
-            'mode'  => $validated['mode'],
-        ],$validated);
+            'mode' => $validated['mode'],
+        ], $validated);
 
         return (new PaymentGatewayConfigResource($paymentGatewayConfig))->additional([
             'message' => 'Payment gateway config created successfully',
@@ -92,7 +92,6 @@ class PaymentGatewayConfigController extends Controller
     public function update(UpdatePaymentGatewayConfigRequest $request, PaymentGatewayConfig $paymentGatewayConfig)
     {
         $validated = $request->validated();
-
 
         $paymentGatewayConfig->update($validated);
 

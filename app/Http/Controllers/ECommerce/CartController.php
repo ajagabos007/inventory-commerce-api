@@ -37,15 +37,15 @@ class CartController extends Controller
         $productVariantId = data_get($validated, 'product_variant_id');
         $productId = data_get($validated, 'product_id');
 
-        $inventory = Inventory::whereHas('productVariant', function ($query) use($productVariantId,$productId) {
-            $query->when(!blank($productVariantId), function ($query) use($productVariantId) {
+        $inventory = Inventory::whereHas('productVariant', function ($query) use ($productVariantId, $productId) {
+            $query->when(! blank($productVariantId), function ($query) use ($productVariantId) {
                 $query->where('id', $productVariantId);
-            }, function ($query) use($productId) {
+            }, function ($query) use ($productId) {
                 $query->where('product_id', $productId);
             });
         })
-        ->with('productVariant')
-        ->first();
+            ->with('productVariant')
+            ->first();
 
         if (blank($inventory)) {
             return response()->json([

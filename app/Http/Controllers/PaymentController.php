@@ -49,7 +49,6 @@ class PaymentController extends Controller
                 $query->search(request()->q);
             });
 
-
         /**
          * Check if pagination is not disabled
          */
@@ -75,7 +74,7 @@ class PaymentController extends Controller
      */
     public function store(StorePaymentRequest $request): \Illuminate\Http\JsonResponse|PaymentResource
     {
-      return (new PaymentResource(null));
+        return new PaymentResource(null);
     }
 
     /**

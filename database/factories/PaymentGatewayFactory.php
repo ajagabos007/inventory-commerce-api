@@ -19,8 +19,8 @@ class PaymentGatewayFactory extends Factory
         return [
             'code' => $code = fake()->randomElement(['paystack', 'flutterwave']),
             'name' => $name = ucwords($code),
-            'description' =>  $name. ' payment gateway',
-            'is_default' => false
+            'description' => $name.' payment gateway',
+            'is_default' => false,
         ];
     }
 }

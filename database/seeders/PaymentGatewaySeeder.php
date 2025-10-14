@@ -47,45 +47,45 @@ class PaymentGatewaySeeder extends Seeder
          * --- PAYSTACK CONFIG SCHEMA ---
          */
         $paystackSchema = [
-            "supported_currencies" => ["NGN", "USD", "GHS", "ZAR"],
-            "credentials" => [
+            'supported_currencies' => ['NGN', 'USD', 'GHS', 'ZAR'],
+            'credentials' => [
                 [
-                    "key" => "secret_key",
-                    "label" => "Secret Key",
-                    "input" => "password",
-                    "hint" => "Your Paystack secret key, e.g., sk_test_xxxxxxx.",
-                    "required" => true,
-                    "sensitive" => true,
-                    "validation" => "required|string",
+                    'key' => 'secret_key',
+                    'label' => 'Secret Key',
+                    'input' => 'password',
+                    'hint' => 'Your Paystack secret key, e.g., sk_test_xxxxxxx.',
+                    'required' => true,
+                    'sensitive' => true,
+                    'validation' => 'required|string',
                 ],
                 [
-                    "key" => "public_key",
-                    "label" => "Public Key",
-                    "input" => "text",
-                    "hint" => "Your Paystack public key, e.g., pk_test_xxxxxxx.",
-                    "required" => true,
-                    "sensitive" => false,
-                    "validation" => "required|string",
+                    'key' => 'public_key',
+                    'label' => 'Public Key',
+                    'input' => 'text',
+                    'hint' => 'Your Paystack public key, e.g., pk_test_xxxxxxx.',
+                    'required' => true,
+                    'sensitive' => false,
+                    'validation' => 'required|string',
                 ],
             ],
-            "settings" => [
+            'settings' => [
                 [
-                    "key" => "merchant_email",
-                    "label" => "Merchant Email",
-                    "input" => "text",
-                    "hint" => "Email associated with your Paystack account.",
-                    "required" => false,
-                    "sensitive" => false,
-                    "validation" => "nullable|email",
+                    'key' => 'merchant_email',
+                    'label' => 'Merchant Email',
+                    'input' => 'text',
+                    'hint' => 'Email associated with your Paystack account.',
+                    'required' => false,
+                    'sensitive' => false,
+                    'validation' => 'nullable|email',
                 ],
                 [
-                    "key" => "webhook_secret",
-                    "label" => "Webhook Secret",
-                    "input" => "password",
-                    "hint" => "Secret used to verify Paystack webhook signatures.",
-                    "required" => false,
-                    "sensitive" => true,
-                    "validation" => "nullable|string",
+                    'key' => 'webhook_secret',
+                    'label' => 'Webhook Secret',
+                    'input' => 'password',
+                    'hint' => 'Secret used to verify Paystack webhook signatures.',
+                    'required' => false,
+                    'sensitive' => true,
+                    'validation' => 'nullable|string',
                 ],
             ],
         ];
@@ -96,56 +96,56 @@ class PaymentGatewaySeeder extends Seeder
          * --- FLUTTERWAVE CONFIG SCHEMA ---
          */
         $flutterwaveSchema = [
-            "supported_currencies" => [
-                "NGN", "USD", "GHS", "KES", "TZS", "UGX", "ZMW", "ZAR", "GBP", "EUR"
+            'supported_currencies' => [
+                'NGN', 'USD', 'GHS', 'KES', 'TZS', 'UGX', 'ZMW', 'ZAR', 'GBP', 'EUR',
             ],
-            "credentials" => [
+            'credentials' => [
                 [
-                    "key" => "secret_key",
-                    "label" => "Secret Key",
-                    "input" => "password",
-                    "hint" => "Your Flutterwave secret key, e.g., FLWSECK-xxxxxx.",
-                    "required" => true,
-                    "sensitive" => true,
-                    "validation" => "required|string",
+                    'key' => 'secret_key',
+                    'label' => 'Secret Key',
+                    'input' => 'password',
+                    'hint' => 'Your Flutterwave secret key, e.g., FLWSECK-xxxxxx.',
+                    'required' => true,
+                    'sensitive' => true,
+                    'validation' => 'required|string',
                 ],
                 [
-                    "key" => "public_key",
-                    "label" => "Public Key",
-                    "input" => "text",
-                    "hint" => "Your Flutterwave public key, e.g., FLWPUBK-xxxxxx.",
-                    "required" => true,
-                    "sensitive" => false,
-                    "validation" => "required|string",
+                    'key' => 'public_key',
+                    'label' => 'Public Key',
+                    'input' => 'text',
+                    'hint' => 'Your Flutterwave public key, e.g., FLWPUBK-xxxxxx.',
+                    'required' => true,
+                    'sensitive' => false,
+                    'validation' => 'required|string',
                 ],
                 [
-                    "key" => "encryption_key",
-                    "label" => "Encryption Key",
-                    "input" => "password",
-                    "hint" => "Your Flutterwave encryption key used for secure requests.",
-                    "required" => true,
-                    "sensitive" => true,
-                    "validation" => "required|string",
+                    'key' => 'encryption_key',
+                    'label' => 'Encryption Key',
+                    'input' => 'password',
+                    'hint' => 'Your Flutterwave encryption key used for secure requests.',
+                    'required' => true,
+                    'sensitive' => true,
+                    'validation' => 'required|string',
                 ],
             ],
-            "settings" => [
+            'settings' => [
                 [
-                    "key" => "merchant_email",
-                    "label" => "Merchant Email",
-                    "input" => "text",
-                    "hint" => "Email associated with your Flutterwave merchant account.",
-                    "required" => false,
-                    "sensitive" => false,
-                    "validation" => "nullable|email",
+                    'key' => 'merchant_email',
+                    'label' => 'Merchant Email',
+                    'input' => 'text',
+                    'hint' => 'Email associated with your Flutterwave merchant account.',
+                    'required' => false,
+                    'sensitive' => false,
+                    'validation' => 'nullable|email',
                 ],
                 [
-                    "key" => "webhook_secret",
-                    "label" => "Webhook Secret",
-                    "input" => "password",
-                    "hint" => "Secret used to verify Flutterwave webhook payloads.",
-                    "required" => false,
-                    "sensitive" => true,
-                    "validation" => "nullable|string",
+                    'key' => 'webhook_secret',
+                    'label' => 'Webhook Secret',
+                    'input' => 'password',
+                    'hint' => 'Secret used to verify Flutterwave webhook payloads.',
+                    'required' => false,
+                    'sensitive' => true,
+                    'validation' => 'nullable|string',
                 ],
             ],
         ];
@@ -160,7 +160,7 @@ class PaymentGatewaySeeder extends Seeder
     {
         $gateway = PaymentGateway::where('code', $code)->first();
 
-        if (!$gateway) {
+        if (! $gateway) {
             return;
         }
 

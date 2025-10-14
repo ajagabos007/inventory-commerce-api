@@ -33,10 +33,7 @@ class StoreDeliveryLocationRequest extends FormRequest
         ];
     }
 
-    public function prepareForValidation(){
-
-    }
-
+    public function prepareForValidation() {}
 
     public function attributes(): array
     {

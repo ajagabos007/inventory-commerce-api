@@ -6,14 +6,12 @@ use App\Observers\PaymentGatewayConfigObserver;
 use App\Traits\ModelRequestLoader;
 use Database\Factories\PaymentGatewayConfigFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Str;
 
 #[ObservedBy([PaymentGatewayConfigObserver::class])]
 class PaymentGatewayConfig extends Model
@@ -53,7 +51,7 @@ class PaymentGatewayConfig extends Model
     {
         $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
 
-        return  $query->when($enabled, function ($query) {
+        return $query->when($enabled, function ($query) {
             $query->whereNull('disabled_at');
         }, function ($query) {
             $query->whereNotNull('disabled_at');
@@ -67,13 +65,12 @@ class PaymentGatewayConfig extends Model
     {
         $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
 
-        return  $query->when($disabled, function ($query) {
+        return $query->when($disabled, function ($query) {
             $query->whereNotNull('disabled_at');
         }, function ($query) {
             $query->whereNull('disabled_at');
         });
     }
-
 
     /**
      * Get the gateway.
@@ -140,7 +137,7 @@ class PaymentGatewayConfig extends Model
                     $values[$key] = Crypt::encryptString((string) $values[$key]);
                 } catch (\Throwable $e) {
                     // Log error in production if needed; fallback to unencrypted
-                    \Log::warning('Failed to encrypt credential field: ' . $key, ['error' => $e->getMessage()]);
+                    \Log::warning('Failed to encrypt credential field: '.$key, ['error' => $e->getMessage()]);
                 }
             }
         }
@@ -161,7 +158,7 @@ class PaymentGatewayConfig extends Model
                     $values[$key] = Crypt::decryptString($values[$key]);
                 } catch (\Throwable $e) {
                     // Skip if invalid or already decrypted; log if needed
-                    \Log::warning('Failed to decrypt credential field: ' . $key, ['error' => $e->getMessage()]);
+                    \Log::warning('Failed to decrypt credential field: '.$key, ['error' => $e->getMessage()]);
                 }
             }
         }

@@ -23,7 +23,7 @@ class UpdateCurrencyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=> ['sometimes','required', 'string', 'max:191'],
+            'name' => ['sometimes', 'required', 'string', 'max:191'],
             'code' => [
                 'sometimes',
                 'required',
@@ -33,8 +33,8 @@ class UpdateCurrencyRequest extends FormRequest
                 Rule::unique('currencies', 'code')
                     ->ignore($this->currency),
             ],
-            'symbol' => ['sometimes','required', 'string', 'max:10'],
-            'exchange_rate' => ['sometimes','required', 'numeric', 'min:0.000001'],
+            'symbol' => ['sometimes', 'required', 'string', 'max:10'],
+            'exchange_rate' => ['sometimes', 'required', 'numeric', 'min:0.000001'],
             'is_default' => ['sometimes', 'boolean'],
         ];
     }

@@ -14,6 +14,7 @@ class Payable extends Model
 {
     /** @use HasFactory<PayableFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
 

@@ -12,6 +12,7 @@ class OrderItem extends Model
 {
     /** @use HasFactory<OrderItemFactory> */
     use HasFactory;
+
     use HasUuids;
 
     protected $fillable = [

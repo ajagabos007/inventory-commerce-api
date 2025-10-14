@@ -6,17 +6,20 @@ use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeliveryLocationController;
 use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\ECommerce\CartController as CartECommerceController;
 use App\Http\Controllers\EnumController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentGatewayConfigController;
+use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\POS\CartController as CartPOSController;
 use App\Http\Controllers\POS\CheckoutController as CheckoutPOSController;
-use App\Http\Controllers\ECommerce\CartController as CartECommerceController;
-use App\Http\Controllers\ECommerce\CheckoutController as CheckoutECommerceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
@@ -30,10 +33,6 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CurrencyController;
-use App\Http\Controllers\PaymentGatewayController;
-use App\Http\Controllers\PaymentGatewayConfigController;
-use App\Http\Controllers\DeliveryLocationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,15 +68,15 @@ Route::prefix('sync')->name('sync')->group(function () {
 });
 
 Route::apiResource('stores', StoreController::class)
-    ->only(['index','show']);
+    ->only(['index', 'show']);
 
 Route::apiResource('products', ProductController::class)
     ->only(['index', 'show']);
 
 Route::apiResource('product-variants', ProductVariantController::class)
-    ->only(['index','show']);
+    ->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)
-    ->only(['index','show']);
+    ->only(['index', 'show']);
 
 Route::controller(CartECommerceController::class)->group(function () {
     Route::name('e-commerce.cart-items')->prefix('e-commerce/cart-items')->group(function () {
@@ -146,7 +145,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('products', ProductController::class)
-        ->only(['update','destroy']);
+        ->only(['update', 'destroy']);
 
     Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
         Route::controller(ProductVariantController::class)->group(function () {
@@ -163,13 +162,13 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('product-variants', ProductVariantController::class)
-        ->only(['store','update','destroy']);
+        ->only(['store', 'update', 'destroy']);
 
     Route::apiResource('inventories', InventoryController::class)
-        ->only(['store','update', 'destroy']);
+        ->only(['store', 'update', 'destroy']);
 
     Route::apiResource('stores', StoreController::class)
-        ->only(['store','update','destroy']);
+        ->only(['store', 'update', 'destroy']);
 
     Route::apiResource('staff', StaffController::class);
     Route::prefix('roles/{role}')->name('roles.')->group(function () {
@@ -200,7 +199,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('categories', CategoryController::class)
-        ->only(['store','update','destroy']);
+        ->only(['store', 'update', 'destroy']);
 
     /**
      * Admin routes

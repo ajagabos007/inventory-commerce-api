@@ -49,11 +49,12 @@ class OrderController extends Controller
             ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);
             })
-            ->when(!in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+            ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
                 $perPage = request()->per_page;
                 $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
+
                 return $query->paginate($perPage)
-                        ->appends(request()->query());
+                    ->appends(request()->query());
             }, function ($query) {
                 return $query->get();
             });
@@ -83,7 +84,7 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): \Illuminate\Http\JsonResponse|OrderResource
     {
-        return (new OrderResource(null));
+        return new OrderResource(null);
     }
 
     /**

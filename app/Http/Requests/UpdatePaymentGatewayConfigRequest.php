@@ -28,7 +28,7 @@ class UpdatePaymentGatewayConfigRequest extends FormRequest
             ?? $this->input('payment_gateway_config')->gateway;
 
         $rules = [
-            'payment_gateway_id' => ['sometimes','required', 'exists:payment_gateways,id'],
+            'payment_gateway_id' => ['sometimes', 'required', 'exists:payment_gateways,id'],
             'mode' => [
                 'required',
                 'in:test,live',
@@ -41,14 +41,14 @@ class UpdatePaymentGatewayConfigRequest extends FormRequest
         ];
 
         // Build dynamic credential validation rules
-        if (!empty($gateway->credential_schema['fields'])) {
+        if (! empty($gateway->credential_schema['fields'])) {
             foreach ($gateway->credential_schema['fields'] as $field) {
                 $rules["credentials.{$field['key']}"] = $field['validation'] ?? 'nullable';
             }
         }
 
         // Build dynamic setting validation rules
-        if (!empty($gateway->setting_schema['fields'])) {
+        if (! empty($gateway->setting_schema['fields'])) {
             foreach ($gateway->setting_schema['fields'] as $field) {
                 $rules["settings.{$field['key']}"] = $field['validation'] ?? 'nullable';
             }
@@ -63,7 +63,6 @@ class UpdatePaymentGatewayConfigRequest extends FormRequest
             'payment_gateway_id' => 'payment gateway.',
         ];
     }
-
 
     public function messages(): array
     {

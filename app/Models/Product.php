@@ -55,8 +55,8 @@ class Product extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(!app()->runningInConsole(), function ($builder) {
-                $builder->whereHas('variants.inventories',function($query) {
+            $builder->when(! app()->runningInConsole(), function ($builder) {
+                $builder->whereHas('variants.inventories', function ($query) {
                     $query->where('store_id', current_store()?->id);
                 });
             });

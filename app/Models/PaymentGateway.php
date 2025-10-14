@@ -11,11 +11,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 #[ObservedBy([PaymentGatewayObserver::class])]
 class PaymentGateway extends Model
@@ -58,7 +55,7 @@ class PaymentGateway extends Model
         return [
             'credential_schema' => 'array',
             'setting_schema' => 'array',
-            'supported_currencies' => 'array'
+            'supported_currencies' => 'array',
         ];
     }
 
@@ -79,7 +76,7 @@ class PaymentGateway extends Model
     {
         $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
 
-        return  $query->when($enabled, function ($query) {
+        return $query->when($enabled, function ($query) {
             $query->whereNull('disabled_at');
         }, function ($query) {
             $query->whereNotNull('disabled_at');
@@ -87,13 +84,13 @@ class PaymentGateway extends Model
     }
 
     /**
-    * Scope disabled
-    */
+     * Scope disabled
+     */
     public function scopeDisabled($query, $disabled = true)
     {
         $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
 
-        return  $query->when($disabled, function ($query) {
+        return $query->when($disabled, function ($query) {
             $query->whereNotNull('disabled_at');
         }, function ($query) {
             $query->whereNull('disabled_at');
@@ -128,6 +125,7 @@ class PaymentGateway extends Model
 
         });
     }
+
     /**
      * Update the user's logo.
      *
@@ -181,6 +179,7 @@ class PaymentGateway extends Model
             'logo_path' => null,
         ])->save();
     }
+
     /**
      * Get the default logo URL if no logo has been uploaded.
      *

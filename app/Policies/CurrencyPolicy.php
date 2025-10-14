@@ -8,7 +8,6 @@ use Illuminate\Auth\Access\Response;
 
 class CurrencyPolicy
 {
-
     /**
      * Perform pre-authorization checks.
      */

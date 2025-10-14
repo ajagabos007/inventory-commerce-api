@@ -24,7 +24,7 @@ class StoreCurrencyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=> ['required', 'string', 'max:191'],
+            'name' => ['required', 'string', 'max:191'],
             'code' => ['required', 'string', 'size:3', 'unique:currencies,code'],
             'symbol' => ['required', 'string', 'max:10'],
             'exchange_rate' => ['required', 'numeric', 'min:0.000001'],

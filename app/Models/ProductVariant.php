@@ -48,15 +48,14 @@ class ProductVariant extends Model
         'is_serialized',
     ];
 
-
     /**
      * The "booted" method of the model.
      */
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(!app()->runningInConsole(), function ($builder) {
-                $builder->whereHas('inventories',function($query) {
+            $builder->when(! app()->runningInConsole(), function ($builder) {
+                $builder->whereHas('inventories', function ($query) {
                     $query->where('store_id', current_store()?->id);
                 });
             });

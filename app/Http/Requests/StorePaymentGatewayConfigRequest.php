@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Models\PaymentGatewayConfig;
 use App\Models\PaymentGateway;
+use App\Models\PaymentGatewayConfig;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -39,19 +39,19 @@ class StorePaymentGatewayConfigRequest extends FormRequest
             'settings' => ['nullable', 'array'],
         ];
 
-        if(blank($gateway)) {
+        if (blank($gateway)) {
             return $rules;
         }
 
         // Build dynamic credential validation rules
-        if (!empty($gateway->credential_schema['fields'])) {
+        if (! empty($gateway->credential_schema['fields'])) {
             foreach ($gateway->credential_schema['fields'] as $field) {
                 $rules["credentials.{$field['key']}"] = $field['validation'] ?? 'nullable';
             }
         }
 
         // Build dynamic setting validation rules
-        if (!empty($gateway->setting_schema['fields'])) {
+        if (! empty($gateway->setting_schema['fields'])) {
             foreach ($gateway->setting_schema['fields'] as $field) {
                 $rules["settings.{$field['key']}"] = $field['validation'] ?? 'nullable';
             }
@@ -66,7 +66,6 @@ class StorePaymentGatewayConfigRequest extends FormRequest
             'payment_gateway_id' => 'payment gateway.',
         ];
     }
-
 
     public function messages(): array
     {

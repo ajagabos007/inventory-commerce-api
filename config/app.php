@@ -134,7 +134,7 @@ return [
         ],
         'ecommerce' => [
             'url' => env('APP_FRONT_END_ECOMMERCE_URL', 'http://localhost:3000'),
-        ]
+        ],
     ],
 
 ];

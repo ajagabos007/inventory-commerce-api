@@ -13,10 +13,9 @@ enum DeliveryMethod: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PICKUP => 'Pickup from Store',
             self::DOOR_DELIVERY => 'Door Delivery',
         };
     }
-
 }

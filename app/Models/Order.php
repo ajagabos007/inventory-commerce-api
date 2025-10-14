@@ -14,8 +14,9 @@ class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory;
-    use HasUuids;
+
     use HasPayments;
+    use HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -48,17 +49,17 @@ class Order extends Model
         ];
     }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function store() : BelongsTo
+    public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
     }
 
-    public function items() : HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }

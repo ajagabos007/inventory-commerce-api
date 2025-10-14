@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\DeliveryLocation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,12 +23,12 @@ class UpdateDeliveryLocationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'store_id' => ['sometimes','required', 'exists:stores,id'],
-            'country_id' => ['sometimes','required', 'exists:countries,id'],
-            'state_id' => ['sometimes','required', 'exists:states,id'],
+            'store_id' => ['sometimes', 'required', 'exists:stores,id'],
+            'country_id' => ['sometimes', 'required', 'exists:countries,id'],
+            'state_id' => ['sometimes', 'required', 'exists:states,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
-            'delivery_fee' => ['sometimes','required', 'numeric', 'min:0'],
-            'estimated_delivery_days' => ['sometimes','required', 'integer', 'min:0'],
+            'delivery_fee' => ['sometimes', 'required', 'numeric', 'min:0'],
+            'estimated_delivery_days' => ['sometimes', 'required', 'integer', 'min:0'],
         ];
     }
 

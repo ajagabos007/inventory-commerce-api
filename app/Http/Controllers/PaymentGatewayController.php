@@ -21,7 +21,6 @@ class PaymentGatewayController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-
         $paymentGateways = QueryBuilder::for(PaymentGateway::class)
             ->defaultSort('-created_at')
             ->allowedSorts(
@@ -35,7 +34,7 @@ class PaymentGatewayController extends Controller
                 AllowedFilter::scope('enabled', 'enabled'),
             ])
             ->allowedIncludes([
-                'configs'
+                'configs',
             ]);
 
         $paymentGateways->when(request()->filled('q'), function ($query) {
@@ -85,7 +84,7 @@ class PaymentGatewayController extends Controller
     public function update(UpdatePaymentGatewayRequest $request, PaymentGateway $paymentGateway)
     {
         $validated = $request->validated();
-        $isDisabled = boolVal(data_get($validated, 'is_disabled'));
+        $isDisabled = boolval(data_get($validated, 'is_disabled'));
         $validated['disabled_at'] = $isDisabled ? now() : null;
 
         $paymentGateway->update($validated);

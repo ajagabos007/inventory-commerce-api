@@ -42,7 +42,7 @@ class Currency extends Model
     protected function isDisabled(): Attribute
     {
         return Attribute::make(
-            get: fn () => !blank($this->disabled_at)
+            get: fn () => ! blank($this->disabled_at)
         );
     }
 
@@ -66,10 +66,10 @@ class Currency extends Model
     {
         $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
 
-        return  $query->when($disabled, function ($query) {
-                     $query->whereNotNull('disabled_at');
-                }, function ($query) {
-                     $query->whereNull('disabled_at');
-                });
+        return $query->when($disabled, function ($query) {
+            $query->whereNotNull('disabled_at');
+        }, function ($query) {
+            $query->whereNull('disabled_at');
+        });
     }
 }

@@ -2,7 +2,4 @@
 
 namespace App\Gateways;
 
-class PaystackGateway
-{
-
-}
+class PaystackGateway {}

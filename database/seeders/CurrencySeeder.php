@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Currency;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CurrencySeeder extends Seeder
@@ -13,7 +12,7 @@ class CurrencySeeder extends Seeder
      */
     public function run(): void
     {
-        if(Currency::exists()) {
+        if (Currency::exists()) {
             return;
         }
 

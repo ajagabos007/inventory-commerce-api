@@ -18,10 +18,10 @@ class CurrencyFactory extends Factory
     {
         return [
             'name' => $code = fake()->randomElement(['NGN', 'USD', 'GBP']),
-            'code' => $code ,
+            'code' => $code,
             'symbol' => $code,
             'is_default' => fake()->boolean,
-            'disabled_at' => $disabled_at =  fake()->boolean ? fake()->dateTime: null,
+            'disabled_at' => $disabled_at = fake()->boolean ? fake()->dateTime : null,
             'disabled_reason' => blank($disabled_at) ? null : fake()->realText(),
         ];
     }

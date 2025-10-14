@@ -2,12 +2,10 @@
 
 namespace App\Traits;
 
-use App\Models\Payment;
 use App\Models\Payable;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Models\Payment;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-
 
 trait HasPayments
 {
@@ -29,7 +27,7 @@ trait HasPayments
     public function payments(): MorphToMany
     {
         return $this->morphToMany(Payment::class, 'payable')
-            ->withPivot('amount','verifier_id', 'verified_at')
+            ->withPivot('amount', 'verifier_id', 'verified_at')
             ->withTimestamps();
     }
 
@@ -43,5 +41,4 @@ trait HasPayments
             $model->payments()->delete();
         });
     }
-
 }

@@ -6,7 +6,6 @@ use App\Http\Requests\StoreDeliveryLocationRequest;
 use App\Http\Requests\UpdateDeliveryLocationRequest;
 use App\Http\Resources\DeliveryLocationResource;
 use App\Models\DeliveryLocation;
-use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class DeliveryLocationController extends Controller
@@ -46,26 +45,26 @@ class DeliveryLocationController extends Controller
                 'status',
             ])
             ->allowedIncludes([
-               'country',
+                'country',
                 'state',
-                'city'
+                'city',
             ])
-            ->when(request()->filled('q'),function ($query) {
+            ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);
             })
 
             /**
              * Check if pagination is not disabled
              */
-            ->when(!in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+            ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
                 $perPage = request()->per_page;
                 $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
+
                 return $query->paginate($perPage)
                     ->appends(request()->query());
             }, function ($query) {
                 return $query->get();
             });
-
 
         return DeliveryLocationResource::collection($deliveryLocations)->additional([
             'status' => 'success',
@@ -81,7 +80,7 @@ class DeliveryLocationController extends Controller
         $validated = $request->validated();
         $deliveryLocation = DeliveryLocation::create($validated);
 
-        return  (new DeliveryLocationResource($deliveryLocation))->additional([
+        return (new DeliveryLocationResource($deliveryLocation))->additional([
             'message' => 'Delivery location created successfully',
         ]);
     }
@@ -123,5 +122,4 @@ class DeliveryLocationController extends Controller
             'message' => 'Delivery location deleted successfully',
         ]);
     }
-
 }

@@ -17,6 +17,7 @@ class DeliveryLocation extends Model
 {
     /** @use HasFactory<DeliveryLocationFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
 
@@ -39,41 +40,26 @@ class DeliveryLocation extends Model
      */
     public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->where(function (Builder $query) use ($term) {
-
-        });
+        return $query->where(function (Builder $query) {});
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function state(): BelongsTo
     {
         return $this->belongsTo(State::class);
     }
-    /**
-     * @return BelongsTo
-     */
+
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }
-
-
 }

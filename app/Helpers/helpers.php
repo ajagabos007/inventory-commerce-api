@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Str;
 
 if (! function_exists('current_store')) {
@@ -9,7 +10,7 @@ if (! function_exists('current_store')) {
     }
 }
 
-if (!function_exists('generateGatewayKeys')) {
+if (! function_exists('generateGatewayKeys')) {
     function generateGatewayKeys(string $gateway = 'generic', bool $isLive = false): array
     {
         $prefix = match (strtolower($gateway)) {
@@ -20,9 +21,9 @@ if (!function_exists('generateGatewayKeys')) {
         };
 
         return [
-            'secret_key' => $prefix[0] . Str::upper(Str::random(32)),
-            'public_key' => $prefix[1] . Str::upper(Str::random(32)),
-            'hash_key' => Str::upper(Str::random(15))
+            'secret_key' => $prefix[0].Str::upper(Str::random(32)),
+            'public_key' => $prefix[1].Str::upper(Str::random(32)),
+            'hash_key' => Str::upper(Str::random(15)),
         ];
     }
 }

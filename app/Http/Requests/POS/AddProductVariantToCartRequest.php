@@ -40,8 +40,8 @@ class AddProductVariantToCartRequest extends FormRequest
                 $inventoryExists = Inventory::whereHas('productVariant', function ($query) {
                     $query->where('sku', $this->sku);
                 })
-                ->outOfStock(false)
-                ->exists();
+                    ->outOfStock(false)
+                    ->exists();
                 if (! $inventoryExists) {
                     $validator->errors()->add('sku', 'Product SKU does not exists or out of stock');
                 }

@@ -13,7 +13,7 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        if(Product::exists()){
+        if (Product::exists()) {
             return;
         }
         $products = Product::factory(30)->make()->toArray();

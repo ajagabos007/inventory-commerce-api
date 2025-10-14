@@ -78,8 +78,8 @@ class StorePolicy
     public function switch(?User $user): Response
     {
         return Response::allow();
-//       return  $user->hasAnyPermission(['store.switch'])
-//                ?Response::allow()
-//                : Response::deny('You do not have permission to access this page.');
+        //       return  $user->hasAnyPermission(['store.switch'])
+        //                ?Response::allow()
+        //                : Response::deny('You do not have permission to access this page.');
     }
 }

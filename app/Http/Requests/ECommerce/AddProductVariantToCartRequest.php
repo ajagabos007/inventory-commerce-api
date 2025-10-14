@@ -40,14 +40,14 @@ class AddProductVariantToCartRequest extends FormRequest
             function (Validator $validator) {
 
                 $inventoryExists = Inventory::whereHas('productVariant', function ($query) {
-                    $query->when(!blank($this->product_variant_id), function ($query) {
+                    $query->when(! blank($this->product_variant_id), function ($query) {
                         $query->where('id', $this->product_variant_id);
                     }, function ($query) {
                         $query->where('product_id', $this->product_id);
                     });
                 })
-                ->outOfStock(false)
-                ->exists();
+                    ->outOfStock(false)
+                    ->exists();
 
                 if (! $inventoryExists) {
                     $validator->errors()->add('product_variant_id', 'Product does not exists or out of stock');
@@ -60,7 +60,7 @@ class AddProductVariantToCartRequest extends FormRequest
     {
         return [
             'product_variant_id' => 'Product variant',
-            'product_id' => 'Product'
+            'product_id' => 'Product',
         ];
     }
 }

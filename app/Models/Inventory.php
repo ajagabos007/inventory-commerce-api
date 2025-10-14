@@ -63,11 +63,11 @@ class Inventory extends Pivot
      */
     protected static function booted(): void
     {
-        static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(! app()->runningInConsole(), function ($builder) {
-                $builder->where('store_id', current_store()?->id);
-            });
-        });
+//        static::addGlobalScope('store', function (Builder $builder) {
+//            $builder->when(! app()->runningInConsole(), function ($builder) {
+//                $builder->where('store_id', current_store()?->id);
+//            });
+//        });
     }
 
     /**
@@ -168,7 +168,7 @@ class Inventory extends Pivot
     /**
      * Scope inventories out of stock
      */
-    public function scopeOutOfStock($query, $out_of_stock = true)
+    public function scopeOutOfStock(Builder $query, $out_of_stock = true): Builder
     {
         $out_of_stock = filter_var($out_of_stock, FILTER_VALIDATE_BOOLEAN);
 

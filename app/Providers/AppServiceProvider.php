@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -44,7 +45,9 @@ class AppServiceProvider extends ServiceProvider
 
             $store = $user?->store;
 
-            if ($user && $user->can('switch', Store::class)) {
+            $canSwitchStore = Gate::allows('switch', Store::class);
+
+            if ($canSwitchStore) {
                 $xStore = request()->header('X-Store');
                 if (! blank($xStore)) {
                     $store = Store::find($xStore);

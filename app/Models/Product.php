@@ -50,6 +50,20 @@ class Product extends Model
     ];
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('store', function (Builder $builder) {
+            $builder->when(!app()->runningInConsole(), function ($builder) {
+                $builder->whereHas('variants.inventories',function($query) {
+                    $query->where('store_id', current_store()?->id);
+                });
+            });
+        });
+    }
+
+    /**
      * Return the sluggable configuration array for this model.
      */
     public function sluggable(): array
@@ -145,7 +159,7 @@ class Product extends Model
     /**
      * Scope inventories out of stock
      */
-    public function scopeOutOfStock($query, $out_of_stock = true)
+    public function scopeOutOfStock(Builder $query, $out_of_stock = true): Builder
     {
         $out_of_stock = filter_var($out_of_stock, FILTER_VALIDATE_BOOLEAN);
 

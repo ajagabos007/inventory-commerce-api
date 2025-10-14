@@ -13,8 +13,10 @@ use App\Http\Controllers\EnumController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\POS\CartController;
-use App\Http\Controllers\POS\CheckoutController;
+use App\Http\Controllers\POS\CartController as CartPOSController;
+use App\Http\Controllers\POS\CheckoutController as CheckoutPOSController;
+use App\Http\Controllers\ECommerce\CartController as CartECommerceController;
+use App\Http\Controllers\ECommerce\CheckoutController as CheckoutECommerceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
@@ -31,6 +33,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PaymentGatewayConfigController;
+use App\Http\Controllers\DeliveryLocationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +68,28 @@ Route::prefix('sync')->name('sync')->group(function () {
     Route::get('product-variants/{productVariant}', [SyncController::class, 'showProductVariant'])->name('sync.productVariants.show');
 });
 
+Route::apiResource('stores', StoreController::class)
+    ->only(['index','show']);
+
+Route::apiResource('products', ProductController::class)
+    ->only(['index', 'show']);
+
+Route::apiResource('product-variants', ProductVariantController::class)
+    ->only(['index','show']);
+
+
+Route::controller(CartECommerceController::class)->group(function () {
+    Route::name('e-commerce.cart-items')->prefix('e-commerce/cart-items')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'add')->name('add');
+        Route::match(['PUT', 'PATCH'], '/{id}', 'update')->name('update');
+        Route::post('/{id}/increase-quantity', 'increase')->name('increase');
+        Route::post('/{id}/decrease-quantity', 'decrease')->name('decrease');
+        Route::delete('/{id}', 'remove')->name('remove');
+        Route::delete('/', 'clear')->name('clear');
+    });
+});
+
 /*
 |--------------------------------------------------------------------------
 | Auth Users' Routes : for only logged in users
@@ -96,6 +121,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('currencies', CurrencyController::class);
     Route::apiResource('payment-gateways', PaymentGatewayController::class);
     Route::apiResource('payment-gateway-configs', PaymentGatewayConfigController::class);
+    Route::apiResource('delivery-locations', DeliveryLocationController::class);
 
     Route::prefix('products/{product}/')->name('product-variants')->group(function () {
         Route::controller(ProductController::class)->group(function () {
@@ -118,7 +144,8 @@ Route::middleware('auth:sanctum')->group(function () {
             });
         });
     });
-    Route::apiResource('products', ProductController::class);
+    Route::apiResource('products', ProductController::class)
+        ->only(['update','destroy']);
 
     Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
         Route::controller(ProductVariantController::class)->group(function () {
@@ -134,11 +161,15 @@ Route::middleware('auth:sanctum')->group(function () {
             });
         });
     });
-    Route::apiResource('product-variants', ProductVariantController::class);
-    Route::apiResource('inventories', InventoryController::class)
-        ->only(['index', 'show', 'update']);
+    Route::apiResource('product-variants', ProductVariantController::class)
+        ->only(['store','update','destroy']);
 
-    Route::apiResource('stores', StoreController::class);
+    Route::apiResource('inventories', InventoryController::class)
+        ->only(['store','update', 'destroy']);
+
+    Route::apiResource('stores', StoreController::class)
+        ->only(['store','update','destroy']);
+
     Route::apiResource('staff', StaffController::class);
     Route::prefix('roles/{role}')->name('roles.')->group(function () {
         Route::post('sync-permissions', [RoleController::class, 'syncPermissions'])
@@ -181,7 +212,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['PUT', 'PATCH'], 'notifications/{notification}/mark-as-unread', [NotificationController::class, 'markAsUnread'])->name('notifications.mark-as-unread');
 
     Route::apiResource('sales', SaleController::class);
-    Route::apiResource('stores', StoreController::class)->only(['index', 'show']);
     Route::prefix('sales/{sale}')->name('sales.')->group(function () {
         Route::post('sale-inventories', [SaleController::class, 'storeSaleInventory'])
             ->name('sale-inventories.store');
@@ -212,7 +242,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::apiResource('stock-transfers', StockTransferController::class);
 
-    Route::controller(CartController::class)->group(function () {
+    Route::controller(CartPOSController::class)->group(function () {
         Route::name('pos.cart-items')->prefix('pos/cart-items')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'add')->name('add');
@@ -224,7 +254,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-    Route::post('pos/checkout', CheckoutController::class)
+    Route::post('pos/checkout', CheckoutPOSController::class)
         ->name('pos.checkout');
 
 });

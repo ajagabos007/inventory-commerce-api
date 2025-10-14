@@ -6,6 +6,7 @@ use App\Http\Requests\StoreStoreRequest;
 use App\Http\Requests\UpdateStoreRequest;
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class StoreController extends Controller
@@ -37,6 +38,7 @@ class StoreController extends Controller
             )
             ->allowedFilters([
                 'name',
+                AllowedFilter::exact('is_warehouse'),
             ])
             ->allowedIncludes([
             ]);

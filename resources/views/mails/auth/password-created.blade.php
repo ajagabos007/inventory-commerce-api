@@ -9,7 +9,7 @@ A default password has been automatically generated for your new account. Below 
 
 @php
     $action_text ="Login";
-    $action_url = config('app.front_end.url').'/auth/login'
+    $action_url = config('app.front_end.store.url').'/auth/login'
 @endphp
 
 You can access your account by click the  "{{$action_text}}" button below

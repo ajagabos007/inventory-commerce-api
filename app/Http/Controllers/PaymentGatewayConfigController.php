@@ -33,11 +33,10 @@ class PaymentGatewayConfigController extends Controller
             ])
             ->allowedIncludes([
                 'gateway'
-            ]);
-
-        $paymentGatewayConfigs->when(request()->filled('q'), function ($query) {
-            $query->search(request()->q);
-        });
+            ])
+            ->when(request()->filled('q'), function ($query) {
+                $query->search(request()->q);
+            });
 
         /**
          * Check if pagination is not disabled

@@ -106,7 +106,7 @@ return [
 					'length' => 3,
 				],
 				'native' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'region' => [
@@ -118,19 +118,19 @@ return [
 					'type' => 'string',
 				],
 				'latitude' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'longitude' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'emoji' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'emojiU' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 			],
@@ -144,20 +144,20 @@ return [
 					'length' => 3,
 				],
 				'state_code' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 					'length' => 5,
 				],
 				'type' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'latitude' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'longitude' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 			],
@@ -171,16 +171,16 @@ return [
 					'length' => 3,
 				],
 				'state_code' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 					'length' => 5,
 				],
 				'latitude' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 				'longitude' => [
-					'required' => false,
+					'required' => true,
 					'type' => 'string',
 				],
 			],

@@ -2,10 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\DailyGoldPrice;
+use App\Models\DeliveryLocation;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
-class DailyGoldPricePolicy
+class DeliveryLocationPolicy
 {
     /**
      * Perform pre-authorization checks.
@@ -26,7 +27,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function view(User $user, DeliveryLocation $deliveryLocation): bool
     {
         return false;
     }
@@ -42,7 +43,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function update(User $user, DeliveryLocation $deliveryLocation): bool
     {
         return false;
     }
@@ -50,7 +51,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function delete(User $user, DeliveryLocation $deliveryLocation): bool
     {
         return false;
     }
@@ -58,7 +59,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function restore(User $user, DeliveryLocation $deliveryLocation): bool
     {
         return false;
     }
@@ -66,7 +67,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function forceDelete(User $user, DeliveryLocation $deliveryLocation): bool
     {
         return false;
     }

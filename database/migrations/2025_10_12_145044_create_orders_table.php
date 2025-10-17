@@ -28,11 +28,10 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('delivery_method')->nullable();
             $table->json('delivery_address')->nullable();
-
+            $table->decimal('delivery_cost', 10, 2)->default(0);
             $table->json('pickup_address')->nullable();
             $table->string('status')->default('pending');
             $table->string('payment_method')->nullable();
-
             $table->foreignUuid('discount_id')
                 ->nullable()
                 ->constrained('discounts')

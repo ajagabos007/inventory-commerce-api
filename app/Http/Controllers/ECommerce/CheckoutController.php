@@ -17,11 +17,23 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Managers\CheckoutManager;
 Use App\Models\PaymentGateway;
-
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 
 class CheckoutController extends Controller
 {
+    private CheckoutManager $checkout ;
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function __construct(CheckoutManager $checkout){
+        $this->checkout = $checkout;
+        $this->checkout->initializeSession();
+    }
+
 
     /**
      * Generate or update the current order summary.
@@ -30,60 +42,19 @@ class CheckoutController extends Controller
      */
     public function summary(): array
     {
-        // Retrieve cart items
-        $items = Cart::all();
-        $totalPrice = 0;
-
-        // Calculate item totals
-        foreach ($items as $index => $item) {
-            $itemTotal = (float) $item['price'] * (int) $item['quantity'];
-            $items[$index]['total'] = $itemTotal;
-            $totalPrice += $itemTotal;
-        }
-
-        // Get payment gateway (fallback if none set)
-        $paymentGateway = PaymentGateway::enabled()->default()->first();
-
-        // Get the authenticated user (if any)
-        $user = auth()->user();
-
-        // Retrieve existing summary from session
-        $summaryKey = CheckoutManager::DEFAULT_INSTANCE;
-        $existingSummary = session($summaryKey);
-
-        // If no summary exists, create a new one
-        if (blank($existingSummary)) {
-            $order = new Order([
-                'user_id'        => $user?->id,
-                'subtotal_price' => $totalPrice,
-                'total_price'    => $totalPrice,
-            ]);
-
-            $summary = [
-                'order'              => $order,
-                'items'              => $items,
-                'payment_gateway_id' => $paymentGateway?->id,
-            ];
-        } else {
-            // Otherwise, update the existing summary
-            $summary = $existingSummary;
-            $summary['order']->subtotal_price = $totalPrice;
-            $summary['order']->total_price = $totalPrice;
-            $summary['items'] = $items;
-
-            $summary['payment_gateway_id'] = $summary['payment_gateway_id']
-                ?? $paymentGateway?->id;
-        }
-
-        // Persist updated summary in session
-        session([$summaryKey => $summary]);
-
-        return $summary;
+        return $this->checkout->getSummary();
     }
 
-    public function addCoupon(){
+    public function addCoupon(Request $request)
+    {
+
+        $this->checkout->applyDiscount($request->discount_code);
+
+
+        return $this->checkout->getSummary();
 
     }
+
     /**
      * Handle the incoming request.
      */

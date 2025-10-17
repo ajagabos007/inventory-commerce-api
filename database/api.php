@@ -79,7 +79,7 @@ Route::apiResource('product-variants', ProductVariantController::class)
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
-Route::prefix('checkout')->name('checkout.')->group(function (){
+Route::prefix('e-commerce/checkout')->name('e-commerce.checkout.')->group(function (){
     Route::controller(CheckoutECommerceController::class)->group(function () {
         Route::get('', 'summary' )->name('checkout.index');
         Route::get('summary', 'summary' )->name('checkout.summary');
@@ -176,8 +176,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('product-variants', ProductVariantController::class)
         ->only(['store', 'update', 'destroy']);
 
-    Route::apiResource('inventories', InventoryController::class)
-        ->only(['store', 'update', 'destroy']);
+    Route::apiResource('inventories', InventoryController::class);
 
     Route::apiResource('stores', StoreController::class)
         ->only(['store', 'update', 'destroy']);

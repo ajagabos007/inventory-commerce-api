@@ -112,7 +112,7 @@ class Sale extends Model
     }
 
     /**
-     * Get the Sale
+     * Get the discount
      */
     public function discount(): BelongsTo
     {

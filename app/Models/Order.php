@@ -26,6 +26,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'store_id',
+        'discount_id',
         'name',
         'phone_number',
         'email',
@@ -61,8 +62,17 @@ class Order extends Model
         return $this->belongsTo(Store::class);
     }
 
+    /**
+     * Get the discount
+     */
+    public function discount(): BelongsTo
+    {
+        return $this->belongsTo(Sale::class, 'discount_id');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
+
 }

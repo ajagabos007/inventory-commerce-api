@@ -48,6 +48,26 @@ class ProductVariant extends Model
         'is_serialized',
     ];
 
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['available_quantity'];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'json',
+        ];
+    }
+
     /**
      * The "booted" method of the model.
      */
@@ -69,9 +89,17 @@ class ProductVariant extends Model
     {
         return Attribute::make(
             get: function () {
-                $this->inventories()
-                    ->where('status', InventoryStatus::AVAILABLE)
+                $metadata = $this->metada ?? [];
+                if(array_key_exists('quantity', $metadata)) {
+                    return $metadata['quantity'];
+                }
+                $metadata['quantity'] = $this->inventories()
+//                    ->where('inventories.status', InventoryStatus::AVAILABLE)
                     ->sum('quantity');
+                $this->metadata = $metadata;
+                $this->saveQuietly();
+
+                return $metadata['quantity'];
             }
         );
     }
@@ -108,11 +136,31 @@ class ProductVariant extends Model
                 if (blank($name)) {
                     return $this->product->name;
                 }
-
                 return $name;
             }
         );
 
+    }
+
+    /**
+     * Get the available quantity
+     */
+    protected function availableQuantity(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $metadata = $this->metadata ?? [];
+
+                $availableQuantity = data_get($metadata, 'available_quantity', 0);
+
+                if(current_store()){
+                    $storeId = current_store()->id;
+                    $availableQuantity = data_get($metadata, 'stores.'.$storeId.'.available_quantity');
+                }
+
+                return $availableQuantity;
+            }
+        );
     }
 
     /**
@@ -189,4 +237,28 @@ class ProductVariant extends Model
 
         return $sku;
     }
+
+    /**
+     * @return void
+     */
+    public function updateAvailableQuantity(): void
+    {
+        $availableQuantity = $this->inventories()
+                                ->where('inventories.status', InventoryStatus::AVAILABLE)
+                                ->sum('quantity');
+
+        $medata = $this->metadata ?? [];
+
+        if(current_store()){
+            $medata['stores'][current_store()->id]['id'] = current_store()->id;
+            $medata['stores'][current_store()->id]['available_quantity'] = $availableQuantity;
+        }
+        else {
+            $medata['available_quantity'] =  $availableQuantity;
+        }
+
+        $this->metadata = $medata;
+        $this->saveQuietly();
+    }
+
 }

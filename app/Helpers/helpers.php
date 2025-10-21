@@ -1,12 +1,36 @@
 <?php
 
 use Illuminate\Support\Str;
+use App\Models\Store;
 
 if (! function_exists('current_store')) {
 
     function current_store()
     {
         return app()->bound('currentStore') ? app('currentStore') : null;
+    }
+}
+
+
+if (! function_exists('set_current_store')) {
+
+    /**
+     * Set the current store in the application container.
+     *
+     * @param  \App\Models\Store|int|null  $store
+     * @return void
+     */
+    function set_current_store($store): void
+    {
+        if (!$store instanceof Store)  {
+            $store = \App\Models\Store::find($store);
+        }
+
+        if ($store instanceof \App\Models\Store) {
+            app()->instance('currentStore', $store);
+        } else {
+            app()->forgetInstance('currentStore');
+        }
     }
 }
 

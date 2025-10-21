@@ -45,7 +45,7 @@ jobs:
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
-            php app:update-metadata
+            php artisan app:update-metadata
             php artisan config:cache
 
             echo "✅ Staging Deployment Complete"
@@ -87,7 +87,7 @@ jobs:
             chown www-data:www-data storage -R
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
-            php app:update-metadata
+            php artisan app:update-metadata
             php artisan config:cache
 
             echo "✅ Production Deployment Complete"

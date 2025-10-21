@@ -2,18 +2,28 @@
 
 namespace App\Models;
 
+use App\Observers\CouponObserver;
+
+use App\Traits\ModelRequestLoader;
 use Database\Factories\CouponFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
+#[ObservedBy([CouponObserver::class])]
 class Coupon extends Model
 {
+
     /** @use HasFactory<CouponFactory> */
     use HasFactory;
+    use HasUuids;
+    use ModelRequestLoader;
+
     protected $fillable = [
         'code',
         'name',
@@ -62,25 +72,64 @@ class Coupon extends Model
     // QUERY SCOPES
     // ============================================
 
-    public function scopeActive(Builder $query): Builder
+    public function scopeActive(Builder $query, bool $isActive=true): Builder
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', $isActive);
     }
 
-    public function scopeValid(Builder $query): Builder
+    /**
+     * @param Builder $query
+     * @param bool $isValid
+     * @return Builder
+     */
+    public function scopeValid(Builder $query, bool $isValid = true): Builder
     {
-        return $query->where('valid_from', '<=', now())
-            ->where('valid_until', '>=', now());
-    }
-
-    public function scopeAvailable(Builder $query): Builder
-    {
-        return $query->active()
-            ->valid()
-            ->where(function ($q) {
-                $q->whereNull('usage_limit')
-                    ->orWhereColumn('usage_count', '<', 'usage_limit');
+        return $query->when($isValid, function ($q) {
+            $q->where(function ($query) {
+                $query->where('valid_from', '<=', now())
+                    ->orWhereNull('valid_from');
+            })->where(function ($query) {
+                $query->where('valid_until', '>=', now())
+                    ->orWhereNull('valid_until');
             });
+        }, function ($q) {
+            $q->where(function ($query) {
+                $query->where('valid_from', '>', now())
+                    ->orWhere('valid_until', '<', now());
+            });
+        });
+    }
+
+    public function scopeAvailable(Builder $query, bool $isAvailable = true): Builder
+    {
+        return $query->when($isAvailable, function ($q) {
+            // Available: active, valid, and under usage limit (if any)
+            $q->active()
+                ->valid()
+                ->where(function ($query) {
+                    $query->whereNull('usage_limit')
+                        ->orWhereColumn('usage_count', '<', 'usage_limit');
+                });
+        }, function ($q) {
+            // Unavailable: inactive, expired, or usage limit reached
+            $q->where(function ($query) {
+                $query->where(function ($query) {
+                    $query->valid(false);
+                })
+                ->orWhere(function ($query) {
+                    $query->active(false);
+                })
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('usage_limit')
+                        ->whereColumn('usage_count', '>=', 'usage_limit');
+                });
+            });
+        });
+    }
+
+    public function scopeExpired(Builder $query, bool $isExpired = true): Builder
+    {
+        return $query->valid(!$isExpired);
     }
 
     // ============================================

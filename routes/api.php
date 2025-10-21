@@ -6,6 +6,7 @@ use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -157,7 +158,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('products', ProductController::class)
-        ->only(['update', 'destroy']);
+        ->only(['store','update', 'destroy']);
 
     Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
         Route::controller(ProductVariantController::class)->group(function () {
@@ -177,6 +178,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->only(['store', 'update', 'destroy']);
 
     Route::apiResource('inventories', InventoryController::class);
+    Route::apiResource('coupons', CouponController::class);
 
     Route::apiResource('stores', StoreController::class)
         ->only(['store', 'update', 'destroy']);

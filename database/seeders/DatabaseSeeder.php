@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             StoreSeeder::class,
             CustomerSeeder::class,
+            CouponSeeder::class,
             //            CategorySeeder::class,
             //            StaffSeeder::class,
             //            AttributeSeeder::class,

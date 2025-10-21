@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCouponRequest;
 use App\Http\Requests\UpdateCouponRequest;
 use App\Http\Resources\CouponResource;
 use App\Models\Coupon;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class CouponController extends Controller
@@ -32,20 +33,19 @@ class CouponController extends Controller
         $coupons = QueryBuilder::for(Coupon::class)
             ->defaultSort('-created_at')
             ->allowedSorts(
+                'code',
                 'name',
-                'name',
-                'email',
-                'phone_number',
                 'created_at',
                 'updated_at',
             )
             ->allowedFilters([
-                'user_id',
+                'type',
+                AllowedFilter::exact('is_active'),
+                AllowedFilter::scope('expired', 'expired'),
+                AllowedFilter::scope('available', 'available'),
             ])
             ->allowedIncludes([
-                'user',
-                'user.roles.permissions',
-                'user.roles',
+
             ]);
 
         $coupons->when(request()->filled('q'), function ($query) {
@@ -79,7 +79,7 @@ class CouponController extends Controller
     {
         $validated = $request->validated();
 
-        $coupon = Coupon::firstOrCreate($validated);
+        $coupon = Coupon::create($validated);
 
         return (new CouponResource($coupon))->additional([
             'message' => 'Coupon created successfully',

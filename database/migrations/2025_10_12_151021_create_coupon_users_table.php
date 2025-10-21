@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('coupon_users', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('coupon_id')->constrained('coupons')
+            $table->foreignUuid('coupon_id')->constrained('coupons')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')
+            $table->foreignUuid('user_id')->constrained('users')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->foreignId('order_id')->nullable()->constrained()
+            $table->foreignUuid('order_id')->nullable()->constrained()
                 ->onUpdate('cascade')
                 ->onDelete('set null');
             $table->decimal('discount_amount', 10, 2);

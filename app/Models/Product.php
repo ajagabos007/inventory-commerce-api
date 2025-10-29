@@ -168,6 +168,192 @@ class Product extends Model
         });
     }
 
+
+    /**
+     * Scope: Popular products based on total sales across all variants
+     *
+     * @param Builder $query
+     * @param bool $ordered If true, order by most sold. If false, just get products with sales.
+     * @return Builder
+     */
+    public function scopePopular(Builder $query, bool $ordered = true): Builder
+    {
+        // Get all column names from products table
+        $productColumns = $this->getConnection()
+            ->getSchemaBuilder()
+            ->getColumnListing($this->getTable());
+
+        // Build select statement with all columns
+        $selectColumns = array_map(fn($col) => "products.{$col}", $productColumns);
+
+        $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id');
+            })
+            ->groupBy(...array_map(fn($col) => "products.{$col}", $productColumns));
+
+        if ($ordered) {
+            $query->orderByDesc('total_sold');
+        } else {
+            $query->having('total_sold', '>', 0);
+        }
+        return $query;
+    }
+
+    /**
+     * Scope: Trending products (recent sales across all variants)
+     *
+     * @param Builder $query
+     * @param int $days Number of days to look back
+     * @return Builder
+     */
+    public function scopeTrending(Builder $query, int $days = 30): Builder
+    {
+        $startDate = now()->subDays($days)->toDateTimeString();
+
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($startDate) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '>=', $startDate);
+            })
+            ->groupBy('products.id')
+            ->having('total_sold', '>', 0)
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Products that have at least one sale
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeHasSales(Builder $query): Builder
+    {
+        return $query->whereHas('variants.inventories.saleInventories', function ($q) {
+            $q->whereHas('sale', function ($sq) {
+                $sq->where('status', 'completed');
+            });
+        });
+    }
+
+    /**
+     * Scope: Top selling products (limited)
+     *
+     * @param Builder $query
+     * @param int $limit Number of products to return
+     * @return Builder
+     */
+    public function scopeTopSelling(Builder $query, int $limit = 10): Builder
+    {
+        return $query->popular(true)->limit($limit);
+    }
+
+    /**
+     * Scope: Popular products from specific date
+     *
+     * @param Builder $query
+     * @param string $date Start date
+     * @return Builder
+     */
+    public function scopePopularFrom(Builder $query, string $date): Builder
+    {
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($date) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '>=', $date);
+            })
+            ->groupBy('products.id')
+            ->having('total_sold', '>', 0)
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Popular products up to specific date
+     *
+     * @param Builder $query
+     * @param string $date End date
+     * @return Builder
+     */
+    public function scopePopularTo(Builder $query, string $date): Builder
+    {
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($date) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '<=', $date);
+            })
+            ->groupBy('products.id')
+            ->having('total_sold', '>', 0)
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Popular products in date range
+     *
+     * @param Builder $query
+     * @param string $startDate
+     * @param string $endDate
+     * @return Builder
+     */
+    public function scopePopularInPeriod(Builder $query, string $startDate, string $endDate): Builder
+    {
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($startDate, $endDate) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->whereBetween('sales.created_at', [$startDate, $endDate]);
+            })
+            ->groupBy('products.id')
+            ->having('total_sold', '>', 0)
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Best sellers this week
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeBestSellersThisWeek(Builder $query): Builder
+    {
+        $startOfWeek = now()->startOfWeek()->toDateTimeString();
+        $endOfWeek = now()->endOfWeek()->toDateTimeString();
+
+        return $query->popularInPeriod($startOfWeek, $endOfWeek);
+    }
+
+    /**
+     * Scope: Best sellers this month
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeBestSellersThisMonth(Builder $query): Builder
+    {
+        $startOfMonth = now()->startOfMonth()->toDateTimeString();
+        $endOfMonth = now()->endOfMonth()->toDateTimeString();
+
+        return $query->popularInPeriod($startOfMonth, $endOfMonth);
+    }
+
     /**
      * Scope inventories low in stock
      */

@@ -102,10 +102,8 @@ class Inventory extends Pivot
         return $this->belongsToMany(Sale::class, SaleInventory::class, 'inventory_id', 'sale_id')
             ->withPivot(
                 'quantity',
-                'weight',
-                'price_per_gram',
+                'price',
                 'total_price',
-                'daily_gold_price_id',
                 'metadata',
             );
     }

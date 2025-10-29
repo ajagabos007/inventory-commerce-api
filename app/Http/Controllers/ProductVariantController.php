@@ -32,9 +32,6 @@ class ProductVariantController extends Controller
      */
     public function index()
     {
-        $paginate = request()->has('paginate') ? request()->paginate : true;
-        $perPage = request()->has('per_page') ? request()->per_page : 15;
-
         $productVariants = QueryBuilder::for(ProductVariant::class)
             ->defaultSort('-created_at')
             ->allowedSorts(
@@ -60,25 +57,28 @@ class ProductVariantController extends Controller
                 'product.attributeValues.attribute.id',
                 AllowedFilter::scope('low_stock', 'lowStock'),
                 AllowedFilter::scope('out_of_stock', 'outOfStock'),
-            ]);
 
-        $productVariants->when(request()->filled('q'), function ($query) {
-            $query->search(request()->q);
-        });
+                // Popular/Trending filters
+                AllowedFilter::scope('popular', 'popular'),
+                AllowedFilter::scope('trending', 'trending'),
+                AllowedFilter::scope('has_sales', 'hasSales'),
+                AllowedFilter::scope('top_selling', 'topSelling'),
 
-        /**
-         * Check if pagination is not disabled
-         */
-        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
+                // Date range for popularity
+                AllowedFilter::scope('popular_from', 'popularFrom'),
+                AllowedFilter::scope('popular_to', 'popularTo'),
+            ])
+            ->when(request()->filled('q'),function($query){
+                $query->search(request()->q);
+            })
+            ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+                $perPage = ! is_numeric(request()->per_page) ? 15 : max(intval(request()->per_page), 1);
 
-            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
-
-            $productVariants = $productVariants->paginate($perPage)
-                ->appends(request()->query());
-
-        } else {
-            $productVariants = $productVariants->get();
-        }
+                return $query->paginate($perPage)
+                    ->appends(request()->query());
+            }, function($query){
+                return $query->get();
+            });
 
         return ProductVariantResource::collection($productVariants)->additional([
             'status' => 'success',

@@ -126,6 +126,105 @@ class ProductVariant extends Model
     }
 
     /**
+     * Scope: Popular variants based on total sales
+     */
+    public function scopePopular(Builder $query, $ordered = true): Builder
+    {
+        $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.status', '=', 'completed');
+            })
+            ->groupBy('product_variants.id');
+
+        if ($ordered) {
+            $query->orderByDesc('total_sold');
+        } else {
+            $query->having('total_sold', '>', 0);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope: Trending variants (recent sales)
+     */
+    public function scopeTrending(Builder $query, $days = 30): Builder
+    {
+        $startDate = now()->subDays($days)->toDateTimeString();
+
+        return $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($startDate) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '>=', $startDate);
+            })
+            ->groupBy('product_variants.id')
+            ->having('total_sold', '>', 0)
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Variants that have at least one sale
+     */
+    public function scopeHasSales(Builder $query): Builder
+    {
+        return $query->whereHas('inventories.saleInventories', function ($q) {
+            $q->whereHas('sale', function ($sq) {
+                $sq->where('status', 'completed');
+            });
+        });
+    }
+
+    /**
+     * Scope: Top selling variants (limited)
+     */
+    public function scopeTopSelling(Builder $query, $limit = 10): Builder
+    {
+        return $query->popular(true)->limit($limit);
+    }
+
+    /**
+     * Scope: Popular from specific date
+     */
+    public function scopePopularFrom(Builder $query, $date): Builder
+    {
+        return $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($date) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '>=', $date);
+            })
+            ->groupBy('product_variants.id')
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Popular up to specific date
+     */
+    public function scopePopularTo(Builder $query, $date): Builder
+    {
+        return $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($date) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '<=', $date);
+            })
+            ->groupBy('product_variants.id')
+            ->orderByDesc('total_sold');
+    }
+
+
+    /**
      * Get the item's name
      */
     protected function name(): Attribute

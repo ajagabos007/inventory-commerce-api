@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Managers;
 
 use App\Facades\Cart;
@@ -9,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PaymentGateway;
+use App\Exceptions\CheckoutValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -181,8 +181,7 @@ class CheckoutManager
         $data['order'] = $order;
     }
 
-
-    public function proceedToPayment(array $options=[]): Payment
+    public function proceedToPayment(array $options = []): Payment
     {
         $this->validate();
 
@@ -195,21 +194,21 @@ class CheckoutManager
             $email = $order->email;
             $phone_number = $order->phone_number;
 
-            if($order->user){
+            if ($order->user) {
                 $full_name = $order->user->full_name;
                 $email = $order->user->email;
                 $phone_number = $order->user->phone_number;
             }
 
-            $payment =  Payment::create([
+            $payment = Payment::create([
                 'user_id' => $order->user_id,
                 'full_name' => $full_name,
                 'email' => $email,
                 'phone_number' => $phone_number,
                 'payment_gateway_id' => data_get($data, 'payment_gateway_id'),
-                'amount'  => $order->total_price,
+                'amount' => $order->total_price,
                 'currency' => 'NGN',
-                'description' => 'Payment for Order #' . $order->id,
+                'description' => 'Payment for order  '.$order->reference,
                 'callback_url' => data_get($options, 'callback_url'),
             ]);
 
@@ -231,7 +230,6 @@ class CheckoutManager
 
             throw $th;
         }
-
     }
 
     protected function createOrder(array $data): Order
@@ -269,29 +267,262 @@ class CheckoutManager
         return array_merge($this->getData(), ['checkout_token' => $this->token()]);
     }
 
-    private function validate():void
+    /**
+     * Validate checkout data before proceeding to payment
+     *
+     * @throws CheckoutValidationException
+     */
+    private function validate(): void
     {
         $data = $this->getData();
+        $errors = [];
 
-        if (empty($data['billing_address'])) {
-            throw new \Exception('Billing address is not set.');
+        // Validate cart items
+        $itemErrors = $this->validateItems($data);
+        if (!empty($itemErrors)) {
+            $errors['items'] = $itemErrors;
         }
 
-        if (empty($data['delivery_address'])) {
-            throw new \Exception('Delivery address is not set.');
-        }else {
-            $delivery = $data['delivery_address'];
-            if (empty($delivery['full_name']) || empty($delivery['phone_number']) || empty($delivery['email']) || empty($delivery['address']) || empty($delivery['state']) || empty($delivery['country'])) {
-                throw new \Exception('Delivery address is incomplete.');
+        // Validate billing address
+        $billingErrors = $this->validateBillingAddress($data);
+        if (!empty($billingErrors)) {
+            $errors['billing_address'] = $billingErrors;
+        }
+
+        // Validate delivery address
+        $deliveryErrors = $this->validateDeliveryAddress($data);
+        if (!empty($deliveryErrors)) {
+            $errors['delivery_address'] = $deliveryErrors;
+        }
+
+        // Validate payment gateway
+        $gatewayErrors = $this->validatePaymentGateway($data);
+        if (!empty($gatewayErrors)) {
+            $errors['payment_gateway_id'] = $gatewayErrors;
+        }
+
+        // Validate order totals
+        $amountErrors = $this->validateOrderAmount($data);
+        if (!empty($amountErrors)) {
+            $errors['amount'] = $amountErrors;
+        }
+
+        // If there are validation errors, throw exception
+        if (!empty($errors)) {
+            throw new CheckoutValidationException(
+                $errors,
+                'Please complete all required information before proceeding to payment.'
+            );
+        }
+    }
+
+    /**
+     * Validate cart items
+     */
+    private function validateItems(array $data): array
+    {
+        $errors = [];
+
+        if (empty($data['items']) || !is_array($data['items'])) {
+            $errors[] = 'Your cart is empty. Please add items before proceeding to checkout.';
+            return $errors;
+        }
+
+        if (count($data['items']) === 0) {
+            $errors[] = 'Your cart is empty. Please add items before proceeding to checkout.';
+            return $errors;
+        }
+
+        foreach ($data['items'] as $index => $item) {
+            $itemPosition = $index + 1;
+
+            if (empty($item['options']['itemable_type']) || empty($item['options']['itemable_id'])) {
+                $errors[] = "Item #{$itemPosition}: Product information is missing.";
+            }
+
+            if (empty($item['quantity']) || !is_numeric($item['quantity']) || $item['quantity'] < 1) {
+                $errors[] = "Item #{$itemPosition}: Invalid quantity.";
+            }
+
+            if (!isset($item['price']) || !is_numeric($item['price']) || $item['price'] < 0) {
+                $errors[] = "Item #{$itemPosition}: Invalid price.";
+            }
+
+            if (empty($item['name'])) {
+                $errors[] = "Item #{$itemPosition}: Product name is missing.";
             }
         }
 
-        if (empty($data['payment_gateway_id'])) {
-            throw new \Exception('Payment gateway is not set.');
+        return $errors;
+    }
+
+    /**
+     * Validate billing address
+     */
+    private function validateBillingAddress(array $data): array
+    {
+        $errors = [];
+
+        if (empty($data['billing_address'])) {
+            $errors[] = 'Billing address is required. Please provide your billing information.';
+            return [];
         }
 
-        if (empty($data['items'])) {
-            throw new \Exception('No items in the cart.');
+        $billing = $data['billing_address'];
+        $requiredFields = [
+            'full_name' => 'Full name',
+            'phone_number' => 'Phone number',
+            'email' => 'Email address',
+            'address' => 'Street address',
+            'country' => 'Country',
+        ];
+
+        foreach ($requiredFields as $field => $label) {
+            // Check for nested country/state/city objects
+            $value = $this->getNestedValue($billing, $field);
+
+            if (empty($value)) {
+                $errors[] = "{$label} is required in billing address.";
+            }
         }
+
+        // Validate email format
+        if (!empty($billing['email']) && !filter_var($billing['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Invalid email format in billing address.";
+        }
+
+        // Validate phone number format
+        if (!empty($billing['phone_number']) && !preg_match('/^[\d\s\+\-\(\)]+$/', $billing['phone_number'])) {
+            $errors[] = "Invalid phone number format in billing address.";
+        }
+
+        return [];
+    }
+
+    /**
+     * Validate delivery address
+     */
+    private function validateDeliveryAddress(array $data): array
+    {
+        $errors = [];
+
+        if (empty($data['delivery_address'])) {
+            $errors[] = 'Delivery address is required. Please provide your delivery information.';
+            return $errors;
+        }
+
+        $delivery = $data['delivery_address'];
+        $requiredFields = [
+            'full_name' => 'Full name',
+            'phone_number' => 'Phone number',
+            'email' => 'Email address',
+            'address' => 'Street address',
+            'state' => 'State',
+            'country' => 'Country',
+        ];
+
+        foreach ($requiredFields as $field => $label) {
+            // Check for nested country/state/city objects
+            $value = $this->getNestedValue($delivery, $field);
+
+            if (empty($value)) {
+                $errors[] = "{$label} is required in delivery address.";
+            }
+        }
+
+        // Validate email format
+        if (!empty($delivery['email']) && !filter_var($delivery['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Invalid email format in delivery address.";
+        }
+
+        // Validate phone number format
+        if (!empty($delivery['phone_number']) && !preg_match('/^[\d\s\+\-\(\)]+$/', $delivery['phone_number'])) {
+            $errors[] = "Invalid phone number format in delivery address.";
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Validate payment gateway
+     */
+    private function validatePaymentGateway(array $data): array
+    {
+        $errors = [];
+
+        if (empty($data['payment_gateway_id'])) {
+            $errors[] = 'Please select a payment method to continue.';
+            return $errors;
+        }
+
+        // Check if gateway exists and is enabled
+        $gateway = PaymentGateway::find($data['payment_gateway_id']);
+
+        if (!$gateway) {
+            $errors[] = 'Selected payment method does not exist. Please choose another payment option.';
+            return $errors;
+        }
+
+        if ($gateway->is_disabled) {
+            $errors[] = 'Selected payment method is currently unavailable. Please choose another payment option.';
+            return $errors;
+        }
+
+        // Check if gateway has active configuration for current mode
+        $mode = $gateway->mode;
+        $config = $gateway->configs()->where('mode', $mode)->first();
+
+        if (!$config) {
+            $errors[] = 'Payment method is not properly configured. Please contact support or choose another payment option.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Validate order amount
+     */
+    private function validateOrderAmount(array $data): array
+    {
+        $errors = [];
+
+        $order = $data['order'] ?? [];
+        $amount = $order['total_price'] ?? 0;
+
+        if ($amount <= 0) {
+            $errors[] = 'Order total must be greater than zero.';
+            return $errors;
+        }
+
+        // Validate minimum amount
+        $minAmount = config('payment.minimum_amount', 100);
+        if ($amount < $minAmount) {
+            $errors[] = "Order total must be at least ₦".number_format($minAmount, 2).".";
+        }
+
+        // Validate maximum amount
+        $maxAmount = config('payment.maximum_amount', 10000000);
+        if ($amount > $maxAmount) {
+            $errors[] = "Order total cannot exceed ₦".number_format($maxAmount, 2).".";
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Get nested value from address (handles both direct fields and nested objects)
+     */
+    private function getNestedValue(array $address, string $field): mixed
+    {
+        // Direct field access
+        if (isset($address[$field]) && !empty($address[$field])) {
+            // If it's an array (nested object like country/state/city), check for name
+            if (is_array($address[$field])) {
+                return $address[$field]['name'] ?? $address[$field]['id'] ?? null;
+            }
+            return $address[$field];
+        }
+
+        return null;
     }
 }

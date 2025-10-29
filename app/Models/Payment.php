@@ -135,7 +135,9 @@ class Payment extends Model
         return $this->belongsTo(PaymentGateway::class, 'payment_gateway_id');
     }
 
-    public static function genTranxRef(){
-        return 'TXN_' . strtoupper((string) Str::ulid());
+    public static function genTranxRef(): string
+    {
+        return 'TXN' . strtoupper((string) Str::ulid());
     }
+
 }

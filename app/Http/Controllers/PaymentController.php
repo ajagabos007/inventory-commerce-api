@@ -171,17 +171,65 @@ class PaymentController extends Controller
         }
     }
 
+
+    /**
+    * Handle callback from payment gateway
+    */
+    public function callback(Request $request, string $gateway) {
+
+        $callbackData = $request->query();
+        $headers = $request->headers->all();
+
+        try {
+
+            $reference = $this->extractReference($callbackData, $gateway);
+
+            $payment = Payment::where('transaction_reference', $reference)
+                ->orWhere('gateway_reference', $reference)
+                ->firstOrFail();
+
+            $gateway = $payment->gateway?->code ?? $gateway;
+
+            $handler = new PaymentHandler($payment);
+
+            // Verify and update payment
+            $result = $handler->verifyFromCallback($callbackData);
+
+            Log::info('callback processed successfully', [
+                'gateway' => $gateway,
+                'payment_id' => $payment->id,
+                'status' => $payment->status,
+            ]);
+
+            return response()->json([
+                'success'=> true,
+                'message' => 'Callback processed successful'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Callback processing error', [
+                'gateway' => $gateway,
+                'error' => $e->getMessage(),
+                'query' => $callbackData,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Callback processing failed'
+            ], 500);
+        }
+    }
+
     /**
      * Handle webhook from payment gateway
      */
     public function webhook(Request $request, string $gateway) {
-        $payload = $request->getContent();
+        $payload = $request->all();
         $headers = $request->headers->all();
 
         try {
             // Find payment from webhook data
-            $webhookData = json_decode($payload, true);
-            $reference = $this->extractReference($webhookData, $gateway);
+            $reference = $this->extractReference($payload, $gateway);
 
             $payment = Payment::where('transaction_reference', $reference)
                 ->orWhere('gateway_reference', $reference)
@@ -190,7 +238,7 @@ class PaymentController extends Controller
             $handler = new PaymentHandler($payment);
 
             // Validate webhook signature
-            if (!$handler->getGateway()->validateWebhookSignature($headers, $payload)) {
+            if (!$handler->getGateway()->validateWebhookSignature($headers, json_encode($payload))) {
                 Log::warning('Invalid webhook signature', [
                     'gateway' => $gateway,
                     'payment_id' => $payment->id,
@@ -199,15 +247,17 @@ class PaymentController extends Controller
             }
 
             // Verify and update payment
-            $result = $handler->verifyFromWebhook($webhookData);
+            $result = $handler->verifyFromWebhook($payload);
 
             Log::info('Webhook processed successfully', [
                 'gateway' => $gateway,
                 'payment_id' => $payment->id,
                 'status' => $payment->status,
+                'payload' => $payload,
             ]);
 
-            return response()->json(['message' => 'Webhook processed'], 200);
+
+            return response(200);
 
         } catch (\Exception $e) {
             Log::error('Webhook processing error', [
@@ -226,8 +276,8 @@ class PaymentController extends Controller
     private function extractReference(array $data, string $gateway): ?string {
         return match(strtolower($gateway)) {
             'paystack' => $data['data']['reference'] ?? null,
-            'flutterwave' => $data['data']['tx_ref'] ?? null,
-            default => null,
+            'flutterwave' => $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
+            default =>$data['data']['reference'] ?? $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
         };
     }
 

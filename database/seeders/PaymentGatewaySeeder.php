@@ -127,6 +127,15 @@ class PaymentGatewaySeeder extends Seeder
                     'sensitive' => true,
                     'validation' => 'required|string',
                 ],
+                [
+                    'key' => 'secret_hash',
+                    'label' => 'Webhook Secret Hash',
+                    'input' => 'password',
+                    'hint' => 'Secret used to verify Flutterwave webhook payloads.',
+                    'required' => true,
+                    'sensitive' => true,
+                    'validation' => 'required|string',
+                ],
             ],
             'settings' => [
                 [
@@ -138,15 +147,7 @@ class PaymentGatewaySeeder extends Seeder
                     'sensitive' => false,
                     'validation' => 'nullable|email',
                 ],
-                [
-                    'key' => 'webhook_secret',
-                    'label' => 'Webhook Secret',
-                    'input' => 'password',
-                    'hint' => 'Secret used to verify Flutterwave webhook payloads.',
-                    'required' => false,
-                    'sensitive' => true,
-                    'validation' => 'nullable|string',
-                ],
+
             ],
         ];
 

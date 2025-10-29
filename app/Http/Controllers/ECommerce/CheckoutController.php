@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\ECommerce;
 
+use App\Exceptions\CheckoutValidationException;
+use App\Exceptions\PaymentException;
+use App\Handlers\PaymentHandler;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PaymentResource;
 use App\Managers\CheckoutManager;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Http\Resources\CheckoutResource;
 
@@ -100,17 +104,49 @@ class CheckoutController extends Controller
      */
     public function confirmOrder(Request $request)
     {
-        $payment = $this->checkout->proceedToPayment(
-            $request->validate([
-                'payment_gateway_id' => 'nullable|exists:payment_gateways,id',
-                'callback_url' => 'nullable|url',
-                'cancel_url' => 'nullable|url',
-            ])
-        );
+        try {
+            // This will validate and throw CheckoutValidationException if invalid
+            $payment = $this->checkout->proceedToPayment($request->validate(
+                ['callback_url' => 'nullable|url', 'cancel_url' => 'nullable|url']
+            ));
 
-        return (new PaymentResource($payment))->additional([
-            'message' => 'Redirect to payment gateway url',
-        ]);
+            // Initialize payment with gateway
+            $handler = new PaymentHandler($payment);
+            $result = $handler->initializePayment();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment initialized successfully',
+                'data' => [
+                    'payment_id' => $payment->id,
+                    'checkout_url' => $payment->checkout_url,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                ],
+            ]);
+
+        } catch (CheckoutValidationException $e) {
+            // Returns 422 with validation errors
+            return $e->render();
+
+        } catch (PaymentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+
+        } catch (\Exception $e) {
+            \Log::error('Checkout payment error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while processing your checkout. Please try again.'. $e->getMessage(),
+            ], 500);
+        }
+
     }
 }
 

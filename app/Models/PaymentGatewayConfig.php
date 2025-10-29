@@ -35,44 +35,6 @@ class PaymentGatewayConfig extends Model
     ];
 
     /**
-     * Name accessor for disabled state.
-     */
-    protected function isDisabled(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => filled($this->disabled_at)
-        );
-    }
-
-    /**
-     * Scope enabled
-     */
-    public function scopeEnabled($query, $enabled = true)
-    {
-        $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
-
-        return $query->when($enabled, function ($query) {
-            $query->whereNull('disabled_at');
-        }, function ($query) {
-            $query->whereNotNull('disabled_at');
-        });
-    }
-
-    /**
-     * Scope disabled
-     */
-    public function scopeDisabled($query, $disabled = true)
-    {
-        $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
-
-        return $query->when($disabled, function ($query) {
-            $query->whereNotNull('disabled_at');
-        }, function ($query) {
-            $query->whereNull('disabled_at');
-        });
-    }
-
-    /**
      * Get the gateway.
      */
     public function gateway(): BelongsTo

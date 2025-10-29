@@ -17,6 +17,7 @@ use App\Http\Controllers\ECommerce\CheckoutController as CheckoutECommerceContro
 use App\Http\Controllers\EnumController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayConfigController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PermissionController;
@@ -92,6 +93,12 @@ Route::prefix('e-commerce/checkout')->name('e-commerce.checkout.')->group(functi
         Route::post('confirm-order', 'confirmOrder')->name('confirmOrder');
     });
 });
+
+Route::get('/callbacks/payment/{gateway}', [PaymentController::class, 'callback'])
+    ->name('payment.callback');
+
+Route::post('/webhooks/payment/{gateway}', [PaymentController::class, 'webhook'])
+    ->name('payment.webhook');
 
 Route::controller(CartECommerceController::class)->group(function () {
     Route::name('e-commerce.cart-items')->prefix('e-commerce/cart-items')->group(function () {

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('reference')->unique();
             $table->foreignUuid('user_id')
                 ->nullable()
                 ->constrained('users')

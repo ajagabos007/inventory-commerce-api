@@ -5,6 +5,7 @@ namespace App\Gateways;
 use App\Interfaces\Payable;
 use App\Models\Payment;
 use App\Exceptions\PaymentException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -24,10 +25,11 @@ class FlutterwaveGateway implements Payable {
             'tx_ref' => $payment->transaction_reference,
             'amount' => $payment->amount,
             'currency' => $payment->currency ?? 'NGN',
-            'redirect_url' => $payment->callback_url ?? route('payment.callback'),
+            'redirect_url' => $payment->callback_url ?? route('api.payment.callback','flutterwave'),
             'customer' => [
-                'email' => $payment->user->email,
-                'name' => $payment->user->full_name ?? $payment->user->first_name,
+                'email' => $payment->user?->email ?? $payment->email,
+                'phone_number' => $payment->user?->phone_number ?? $payment->phone_number,
+                'name' => $payment->user?->full_name ?? $payment->full_name,
             ],
             'customizations' => [
                 'title' => $payment->description ?? 'Payment',
@@ -39,7 +41,7 @@ class FlutterwaveGateway implements Payable {
         ];
 
         $response = Http::withToken($this->config['credentials']['secret_key'])
-//            ->timeout($this->config['settings']['timeout'] ?? 30)
+            ->timeout($this->config['settings']['timeout'] ?? 30)
             ->post($url, $payload);
 
         if (!$response->successful()) {
@@ -70,7 +72,39 @@ class FlutterwaveGateway implements Payable {
             throw new PaymentException("Invalid webhook data: missing transaction ID", 400);
         }
 
-        // Verify transaction with Flutterwave API
+        return  $this->verifyTransaction($transactionId);
+    }
+
+    public function validateWebhookSignature(array $headers, string $payload): bool {
+        $signature = $headers['verif-hash'][0] ?? null;
+        $secretHash = $this->config['credentials']['secret_hash'] ?? $this->config['credentials']['encryption_key'] ?? null;
+
+        if (!$signature) {
+            return false;
+        }
+
+        return hash_equals($secretHash, $signature);
+    }
+
+    public function verifyCallback(array $query, Payment $payment): array
+    {
+        $transactionId = data_get($query, 'transaction_id', null);
+
+        if (!$transactionId) {
+            throw new PaymentException("Invalid callback data: missing transaction id", 400);
+        }
+
+        return  $this->verifyTransaction($transactionId);
+    }
+
+    /**
+     * @param string $transactionId
+     * @return array
+     * @throws ConnectionException
+     * @throws PaymentException
+     */
+    public function verifyTransaction(string $transactionId): array {
+
         $url = "{$this->baseUrl}/transactions/{$transactionId}/verify";
 
         $response = Http::withToken($this->config['credentials']['secret_key'])
@@ -84,22 +118,14 @@ class FlutterwaveGateway implements Payable {
 
         return [
             'status' => $data['status'],
+            'transaction_status' => $data['status'],
             'amount' => $data['amount'],
             'currency' => $data['currency'],
             'method' => $data['payment_type'] ?? null,
             'reference' => $data['tx_ref'],
             'paid_at' => $data['created_at'] ?? now(),
+            'verified_at' => now(),
+            'ip_address' => $data['ip'] ?? null
         ];
-    }
-
-    public function validateWebhookSignature(array $headers, string $payload): bool {
-        $signature = $headers['verif-hash'] ?? null;
-        $secretHash = $this->config['credentials']['secret_hash'] ?? $this->config['credentials']['secret_key'];
-
-        if (!$signature) {
-            return false;
-        }
-
-        return hash_equals($secretHash, $signature);
     }
 }

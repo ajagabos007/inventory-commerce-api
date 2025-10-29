@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Inventory;
+
 use function Illuminate\Support\defer;
 
 class InventoryObserver
@@ -13,10 +14,10 @@ class InventoryObserver
     public function created(Inventory $inventory): void
     {
         defer(function () use ($inventory) {
-           foreach($inventory->productVariants as $variant){
-               $variant->updateAvailableQuantity();
-               $variant->product->updateAvailableQuantity();
-           }
+            foreach ($inventory->productVariants as $variant) {
+                $variant->updateAvailableQuantity();
+                $variant->product->updateAvailableQuantity();
+            }
         });
     }
 
@@ -27,8 +28,8 @@ class InventoryObserver
     {
 
         defer(function () use ($inventory) {
-            if($inventory->wasChanged(['quantity'])){
-                foreach($inventory->productVariants as $variant){
+            if ($inventory->wasChanged(['quantity'])) {
+                foreach ($inventory->productVariants as $variant) {
                     $variant->updateAvailableQuantity();
                     $variant->product->updateAvailableQuantity();
                 }

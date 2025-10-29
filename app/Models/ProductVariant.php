@@ -48,7 +48,6 @@ class ProductVariant extends Model
         'is_serialized',
     ];
 
-
     /**
      * The accessors to append to the model's array form.
      *
@@ -90,7 +89,7 @@ class ProductVariant extends Model
         return Attribute::make(
             get: function () {
                 $metadata = $this->metada ?? [];
-                if(array_key_exists('quantity', $metadata)) {
+                if (array_key_exists('quantity', $metadata)) {
                     return $metadata['quantity'];
                 }
                 $metadata['quantity'] = $this->inventories()
@@ -136,6 +135,7 @@ class ProductVariant extends Model
                 if (blank($name)) {
                     return $this->product->name;
                 }
+
                 return $name;
             }
         );
@@ -153,7 +153,7 @@ class ProductVariant extends Model
 
                 $availableQuantity = data_get($metadata, 'available_quantity', 0);
 
-                if(current_store()){
+                if (current_store()) {
                     $storeId = current_store()->id;
                     $availableQuantity = data_get($metadata, 'stores.'.$storeId.'.available_quantity');
                 }
@@ -238,27 +238,22 @@ class ProductVariant extends Model
         return $sku;
     }
 
-    /**
-     * @return void
-     */
     public function updateAvailableQuantity(): void
     {
         $availableQuantity = $this->inventories()
-                                ->where('inventories.status', InventoryStatus::AVAILABLE)
-                                ->sum('quantity');
+            ->where('inventories.status', InventoryStatus::AVAILABLE)
+            ->sum('quantity');
 
         $medata = $this->metadata ?? [];
 
-        if(current_store()){
+        if (current_store()) {
             $medata['stores'][current_store()->id]['id'] = current_store()->id;
             $medata['stores'][current_store()->id]['available_quantity'] = $availableQuantity;
-        }
-        else {
-            $medata['available_quantity'] =  $availableQuantity;
+        } else {
+            $medata['available_quantity'] = $availableQuantity;
         }
 
         $this->metadata = $medata;
         $this->saveQuietly();
     }
-
 }

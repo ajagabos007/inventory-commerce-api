@@ -143,8 +143,8 @@ return [
    |--------------------------------
     */
     'order' => [
-        'session'=>[
+        'session' => [
             'key' => env('APP_ORDER_SESSION_KEY', 'app.order.session.key'),
-        ]
-    ]
+        ],
+    ],
 ];

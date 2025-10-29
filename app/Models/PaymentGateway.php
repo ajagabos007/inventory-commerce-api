@@ -70,6 +70,22 @@ class PaymentGateway extends Model
     }
 
     /**
+     * Get the URL to the user's profile photo.
+     */
+    public function logoUrl(): Attribute
+    {
+        return Attribute::make(function (): string {
+
+            if (is_null($this->logo_path) || ! Storage::disk($this->logoDisk())->exists($this->logo_path)) {
+                return $this->defaultLogoUrl();
+            }
+
+            return Storage::disk($this->logoDisk())->url($this->logo_path);
+
+        });
+    }
+
+    /**
      * Scope enabled
      */
     public function scopeEnabled($query, $enabled = true)
@@ -103,6 +119,7 @@ class PaymentGateway extends Model
     public function scopeDefault($query, $disabled = true)
     {
         $disabled = filter_var($disabled, FILTER_VALIDATE_BOOLEAN);
+
         return $query->where('is_default', $disabled);
     }
 
@@ -120,19 +137,22 @@ class PaymentGateway extends Model
     }
 
     /**
-     * Get the URL to the user's profile photo.
+     * Get the configurations for this gateway
      */
-    public function logoUrl(): Attribute
+    public function configs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return Attribute::make(function (): string {
+        return $this->hasMany(PaymentGatewayConfig::class);
+    }
 
-            if (is_null($this->logo_path) || ! Storage::disk($this->logoDisk())->exists($this->logo_path)) {
-                return $this->defaultLogoUrl();
-            }
-
-            return Storage::disk($this->logoDisk())->url($this->logo_path);
-
-        });
+    /**
+     * Get the active configuration for a specific mode
+     */
+    public function getConfigForMode(string $mode): ?PaymentGatewayConfig
+    {
+        return $this->configs()
+            ->where('mode', $mode)
+            ->enabled()
+            ->first();
     }
 
     /**

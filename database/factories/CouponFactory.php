@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use Illuminate\Support\Str;
 use App\Models\Coupon;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Coupon>
@@ -16,14 +16,13 @@ class CouponFactory extends Factory
      *
      * @return array<string, mixed>
      */
-
     public function definition(): array
     {
         $type = $this->faker->randomElement(['percentage', 'fixed']);
 
         return [
             'code' => strtoupper($this->faker->unique()->bothify('????####')),
-            'name' => $this->faker->words(3, true) . ' Discount',
+            'name' => $this->faker->words(3, true).' Discount',
             'description' => $this->faker->realText(),
             'type' => $type,
             'value' => $type === 'percentage'
@@ -45,7 +44,7 @@ class CouponFactory extends Factory
     /**
      * Percentage discount coupon
      */
-    public function percentage(int $value = null): static
+    public function percentage(?int $value = null): static
     {
         return $this->state(fn (array $attributes) => [
             'type' => 'percentage',
@@ -57,7 +56,7 @@ class CouponFactory extends Factory
     /**
      * Fixed amount discount coupon
      */
-    public function fixed(float $value = null): static
+    public function fixed(?float $value = null): static
     {
         return $this->state(fn (array $attributes) => [
             'type' => 'fixed',
@@ -150,7 +149,7 @@ class CouponFactory extends Factory
     public function firstOrder(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'FIRST' . strtoupper(Str::random(4)),
+            'code' => 'FIRST'.strtoupper(Str::random(4)),
             'name' => 'First Order Discount',
             'description' => 'Special discount for your first order',
             'type' => 'percentage',
@@ -165,7 +164,7 @@ class CouponFactory extends Factory
     public function welcome(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'WELCOME' . $this->faker->numberBetween(10, 99),
+            'code' => 'WELCOME'.$this->faker->numberBetween(10, 99),
             'name' => 'Welcome Discount',
             'description' => 'Welcome to our store! Enjoy this special discount.',
             'type' => 'percentage',
@@ -180,9 +179,9 @@ class CouponFactory extends Factory
     public function seasonal(string $season = 'HOLIDAY'): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => strtoupper($season) . $this->faker->numberBetween(10, 99),
-            'name' => ucfirst(strtolower($season)) . ' Sale',
-            'description' => 'Special ' . strtolower($season) . ' discount offer',
+            'code' => strtoupper($season).$this->faker->numberBetween(10, 99),
+            'name' => ucfirst(strtolower($season)).' Sale',
+            'description' => 'Special '.strtolower($season).' discount offer',
             'type' => 'percentage',
             'value' => $this->faker->numberBetween(15, 30),
             'valid_from' => now(),
@@ -196,7 +195,7 @@ class CouponFactory extends Factory
     public function freeShipping(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'FREESHIP' . $this->faker->numberBetween(10, 99),
+            'code' => 'FREESHIP'.$this->faker->numberBetween(10, 99),
             'name' => 'Free Shipping',
             'description' => 'Get free shipping on your order',
             'type' => 'fixed',
@@ -211,7 +210,7 @@ class CouponFactory extends Factory
     public function vip(): static
     {
         return $this->state(fn (array $attributes) => [
-            'code' => 'VIP' . strtoupper(Str::random(6)),
+            'code' => 'VIP'.strtoupper(Str::random(6)),
             'name' => 'VIP Customer Exclusive',
             'description' => 'Exclusive discount for VIP customers',
             'type' => 'percentage',

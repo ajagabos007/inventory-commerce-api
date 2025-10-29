@@ -27,7 +27,7 @@ class Order extends Model
         'user_id',
         'store_id',
         'discount_id',
-        'name',
+        'full_name',
         'phone_number',
         'email',
         'delivery_method',
@@ -63,16 +63,15 @@ class Order extends Model
     }
 
     /**
-     * Get the discount
+     * Get the coupon
      */
-    public function discount(): BelongsTo
+    public function coupon(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'discount_id');
+        return $this->belongsTo(Sale::class, 'coupon_id');
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
-
 }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Observers\CouponObserver;
-
 use App\Traits\ModelRequestLoader;
 use Database\Factories\CouponFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -14,13 +13,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-
 #[ObservedBy([CouponObserver::class])]
 class Coupon extends Model
 {
-
     /** @use HasFactory<CouponFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
 
@@ -72,16 +70,11 @@ class Coupon extends Model
     // QUERY SCOPES
     // ============================================
 
-    public function scopeActive(Builder $query, bool $isActive=true): Builder
+    public function scopeActive(Builder $query, bool $isActive = true): Builder
     {
         return $query->where('is_active', $isActive);
     }
 
-    /**
-     * @param Builder $query
-     * @param bool $isValid
-     * @return Builder
-     */
     public function scopeValid(Builder $query, bool $isValid = true): Builder
     {
         return $query->when($isValid, function ($q) {
@@ -116,20 +109,20 @@ class Coupon extends Model
                 $query->where(function ($query) {
                     $query->valid(false);
                 })
-                ->orWhere(function ($query) {
-                    $query->active(false);
-                })
-                ->orWhere(function ($query) {
-                    $query->whereNotNull('usage_limit')
-                        ->whereColumn('usage_count', '>=', 'usage_limit');
-                });
+                    ->orWhere(function ($query) {
+                        $query->active(false);
+                    })
+                    ->orWhere(function ($query) {
+                        $query->whereNotNull('usage_limit')
+                            ->whereColumn('usage_count', '>=', 'usage_limit');
+                    });
             });
         });
     }
 
     public function scopeExpired(Builder $query, bool $isExpired = true): Builder
     {
-        return $query->valid(!$isExpired);
+        return $query->valid(! $isExpired);
     }
 
     // ============================================
@@ -138,7 +131,7 @@ class Coupon extends Model
 
     public function isValid(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -155,11 +148,11 @@ class Coupon extends Model
 
     public function canBeUsedByUser(?int $userId): bool
     {
-        if (!$userId) {
+        if (! $userId) {
             return false;
         }
 
-        if (!$this->isValid()) {
+        if (! $this->isValid()) {
             return false;
         }
 
@@ -172,7 +165,7 @@ class Coupon extends Model
 
     public function meetsMinimumAmount(float $orderAmount): bool
     {
-        if (!$this->minimum_order_amount) {
+        if (! $this->minimum_order_amount) {
             return true;
         }
 
@@ -185,7 +178,7 @@ class Coupon extends Model
 
     public function calculateDiscount(float $orderAmount): float
     {
-        if (!$this->meetsMinimumAmount($orderAmount)) {
+        if (! $this->meetsMinimumAmount($orderAmount)) {
             return 0;
         }
 
@@ -230,19 +223,18 @@ class Coupon extends Model
     public function getFormattedValueAttribute(): string
     {
         if ($this->type === 'percentage') {
-            return $this->value . '%';
+            return $this->value.'%';
         }
 
-        return '$' . number_format($this->value, 2);
+        return '$'.number_format($this->value, 2);
     }
 
     public function getRemainingUsesAttribute(): ?int
     {
-        if (!$this->usage_limit) {
+        if (! $this->usage_limit) {
             return null;
         }
 
         return max(0, $this->usage_limit - $this->usage_count);
     }
 }
-

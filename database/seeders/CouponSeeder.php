@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Coupon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CouponSeeder extends Seeder
@@ -13,8 +12,10 @@ class CouponSeeder extends Seeder
      */
     public function run(): void
     {
-        if(Coupon::query()->exists()) {
+        if (Coupon::query()->exists()) {
             $this->command->info('✅ Skipped seeded successfully!');
+
+            return;
         }
 
         // 1. Welcome/First Order Coupons
@@ -165,8 +166,8 @@ class CouponSeeder extends Seeder
             ->create();
 
         $this->command->info('✅ Coupons seeded successfully!');
-        $this->command->info('📊 Total coupons created: ' . Coupon::count());
-        $this->command->info('✅ Active coupons: ' . Coupon::active()->count());
-        $this->command->info('📅 Valid coupons: ' . Coupon::valid()->count());
+        $this->command->info('📊 Total coupons created: '.Coupon::count());
+        $this->command->info('✅ Active coupons: '.Coupon::active()->count());
+        $this->command->info('📅 Valid coupons: '.Coupon::valid()->count());
     }
 }

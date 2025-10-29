@@ -3,417 +3,295 @@
 namespace App\Managers;
 
 use App\Facades\Cart;
+use App\Models\CheckoutSession;
+use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\PaymentGateway;
-use App\Models\Discount;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Nnjeim\World\Models\City;
+use Nnjeim\World\Models\Country;
+use Nnjeim\World\Models\State;
 
 class CheckoutManager
 {
-    const SESSION_KEY = 'checkout-session';
+    protected CheckoutSession $session;
 
-    /**
-     * Clear the entire checkout session
-     */
-    public static function clear(): void
+    public function __construct()
     {
-        session()->forget(self::SESSION_KEY);
+        $this->loadSession();
+        $this->syncItems();
     }
 
-    /**
-     * Initialize or retrieve checkout session
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    public function initializeSession(): array
+    protected function loadSession(): void
     {
-        $sessionData = session(self::SESSION_KEY);
+        $token = request()->header('x-session-token') ?? Str::uuid()->toString();
 
-        if (blank($sessionData)) {
-            $sessionData = $this->createNewSession();
-            $this->persistSession($sessionData);
-        }
-
-        return $this->refreshOrderTotals($sessionData);
-    }
-
-    /**
-     * Create a new checkout session
-     */
-    protected function createNewSession(): array
-    {
         $user = auth()->user();
-        $items = Cart::all();
-        $paymentGateway = PaymentGateway::enabled()->default()->first();
 
-        $order = new Order([
-            'user_id' => $user?->id,
-            'subtotal_price' => 0,
-            'discount_amount' => 0,
-            'tax_amount' => 0,
-            'shipping_cost' => 0,
-            'total_price' => 0,
-        ]);
+        $this->session = match (true) {
+            $token && ($existing = CheckoutSession::find($token)) => $existing,
+            $user && ($existing = CheckoutSession::where('user_id', $user->id)->first()) => $existing,
+            default => CheckoutSession::create([
+                'id' => $token,
+                'user_id' => $user?->id,
+                'data' => $this->initialData(),
+            ]),
+        };
+    }
+
+    public function token(): string
+    {
+        return $this->session->id;
+    }
+
+    protected function getData(): array
+    {
+        return $this->session->data ?? [];
+    }
+
+    protected function save(array $data): void
+    {
+        $this->session->update(['data' => $data]);
+    }
+
+    protected function initialData(): array
+    {
+        $gateway = PaymentGateway::enabled()->default()->first();
 
         return [
-            'order' => $order,
-            'items' => $items,
-            'payment_gateway_id' => $paymentGateway?->id,
-            'payment_gateway' => $paymentGateway->only(['id','name','code', 'logo_url']),
+            'order' => [
+                'subtotal_price' => 0,
+                'discount_amount' => 0,
+                'tax_amount' => 0,
+                'shipping_cost' => 0,
+                'total_price' => 0,
+            ],
+            'items' => Cart::all(),
+            'payment_gateway_id' => $gateway?->id,
             'coupon_code' => null,
-            'coupon_discount' => 0,
             'billing_address' => null,
             'delivery_address' => null,
         ];
     }
 
-    /**
-     * Retrieve current session data
-     */
-    public function getSession(): ?array
-    {
-        return session(self::SESSION_KEY);
-    }
-
-    /**
-     * Get the order from session
-     */
-    public function getOrder(): ?Order
-    {
-        $session = $this->getSession();
-        return $session['order'] ?? null;
-    }
-
-    /**
-     * Update order in session
-     */
-    public function updateOrder(array $attributes): self
-    {
-        $session = $this->getSession() ?? $this->createNewSession();
-
-        foreach ($attributes as $key => $value) {
-            $session['order']->$key = $value;
-        }
-
-        $this->persistSession($session);
-        return $this;
-    }
-
-    /**
-     * Update items in session from cart
-     */
     public function syncItems(): self
     {
-        $session = $this->getSession() ?? $this->createNewSession();
-        $items = Cart::all();
-
-        $session['items'] = $items;
-        $this->persistSession($session);
-
-        return $this->recalculateTotals();
-    }
-
-    /**
-     * Set payment gateway
-     */
-    public function setPaymentGateway(int $gatewayId): self
-    {
-        $session = $this->getSession() ?? $this->createNewSession();
-
-        $gateway = PaymentGateway::enabled()->find($gatewayId);
-
-        if (!$gateway) {
-            throw new \InvalidArgumentException("Invalid payment gateway ID: {$gatewayId}");
-        }
-
-        $session['payment_gateway_id'] = $gatewayId;
-        $session['payment_gateway'] = $gateway->only(['id','name','code', 'logo_url']);
-
-        $this->persistSession($session);
+        $data = $this->getData();
+        $data['items'] = Cart::all();
+        $this->recalculateTotals($data);
+        $this->save($data);
 
         return $this;
     }
 
-    /**
-     * Get payment gateway ID
-     */
-    public function getPaymentGatewayId(): ?int
+    public function setPaymentGateway($id): self
     {
-        $session = $this->getSession();
-        return $session['payment_gateway_id'] ?? null;
-    }
-
-    /**
-     * Apply coupon code
-     */
-    public function applyDiscount(string $couponCode): self
-    {
-        $session = $this->getSession() ?? $this->createNewSession();
-
-        $coupon = Discount::valid()
-            ->where('code', $couponCode)
-            ->first();
-
-        if (!$coupon) {
-            throw new \InvalidArgumentException("Invalid or expired coupon code");
-        }
-
-        $session['coupon_code'] = $couponCode;
-        $session['discount_id'] = $coupon->id;
-        $session['discount'] = $coupon->only(['id','code','percentage']);
-
-        $this->persistSession($session);
-        return $this->recalculateTotals();
-    }
-
-    /**
-     * Remove coupon
-     */
-    public function removeDiscount(): self
-    {
-        $session = $this->getSession();
-
-        if ($session) {
-            $session['coupon_code'] = null;
-            $session['discount_id'] = null;
-            $session['coupon_discount'] = 0;
-
-            $this->persistSession($session);
-            $this->recalculateTotals();
-        }
+        $data = $this->getData();
+        $gateway = PaymentGateway::enabled()->findOrFail($id);
+        $data['payment_gateway_id'] = $id;
+        $data['payment_gateway'] = $gateway->only(['id', 'name', 'code', 'logo_url']);
+        $this->save($data);
 
         return $this;
     }
 
-    /**
-     * Set billing address
-     */
+    public function applyCoupon(string $code): self
+    {
+        $coupon = Coupon::valid()->where('code', $code)->firstOrFail();
+        $data = $this->getData();
+        $data['coupon_id'] = $coupon->id;
+        $data['coupon_code'] = $code;
+        $this->recalculateTotals($data);
+        $this->save($data);
+
+        return $this;
+    }
+
+    public function removeCoupon(): self
+    {
+        $data = $this->getData();
+        unset($data['coupon_id'], $data['coupon_code']);
+        $this->recalculateTotals($data);
+        $this->save($data);
+
+        return $this;
+    }
+
     public function setBillingAddress(array $address): self
     {
-        $session = $this->getSession() ?? $this->createNewSession();
-        $session['billing_address'] = $address;
+        $data = $this->getData();
+        $data['billing_address'] = $address;
+        $this->save($data);
 
-        $this->persistSession($session);
         return $this;
     }
 
-    /**
-     * Set shipping address
-     */
-    public function setShippingAddress(array $address): self
+    public function setDeliveryAddress(array $address): self
     {
-        $session = $this->getSession() ?? $this->createNewSession();
-        $session['delivery_address'] = $address;
+        $data = $this->getData();
+        $country = Country::find(data_get($address, 'country_id'));
+        if ($country) {
+            unset($address['country_id']);
+            $address['country'] = $country->toArray();
+        }
 
-        $this->persistSession($session);
+        $state = State::find(data_get($address, 'state_id'));
+        if ($state) {
+            unset($address['state_id']);
+            $address['state'] = $state->toArray();
+        }
+
+        $city = City::find(data_get($address, 'city_id'));
+        if ($city) {
+            unset($address['city_id']);
+            $address['city'] = $city->toArray();
+        }
+
+        $data['delivery_address'] = $address;
+        $this->save($data);
+
         return $this;
     }
 
-    /**
-     * Get billing address
-     */
-    public function getBillingAddress(): ?array
+    protected function recalculateTotals(array &$data): void
     {
-        $session = $this->getSession();
-        return $session['billing_address'] ?? null;
-    }
-
-    /**
-     * Get shipping address
-     */
-    public function getShippingAddress(): ?array
-    {
-        $session = $this->getSession();
-        return $session['delivery_address'] ?? null;
-    }
-
-    /**
-     * Recalculate order totals based on items and coupon
-     */
-    protected function recalculateTotals(): self
-    {
-        $session = $this->getSession();
-
-        if (!$session) {
-            return $this;
-        }
-
-        $items = $session['items'] ?? [];
-        $subtotal = 0;
-
-        // Calculate subtotal
-        foreach ($items as $index => $item) {
-            $itemTotal = (float) $item['price'] * (int) $item['quantity'];
-            $items[$index]['total'] = $itemTotal;
-            $subtotal += $itemTotal;
-        }
-
-        // Calculate discount
+        $items = $data['items'] ?? [];
+        $subtotal = collect($items)->sum(fn ($i) => $i['price'] * $i['quantity']);
         $discount = 0;
-        if (!empty($session['discount_id'])) {
-            $coupon = Discount::find($session['discount_id']);
 
+        if (! empty($data['coupon_id'])) {
+            $coupon = Coupon::find($data['coupon_id']);
             if ($coupon) {
-                $discount = ($subtotal * $coupon->value) / 100;
-
-//                if ($coupon->type === 'percentage') {
-//                    $discount = ($subtotal * $coupon->value) / 100;
-//                } elseif ($coupon->type === 'fixed') {
-//                    $discount = min($coupon->value, $subtotal);
-//                }
+                $discount = match ($coupon->type) {
+                    'percentage' => ($subtotal * $coupon->value) / 100,
+                    'fixed' => min($coupon->value, $subtotal),
+                    default => 0,
+                };
             }
         }
 
-        // Update order totals
-        $session['order']->subtotal_price = $subtotal;
-        $session['order']->discount_amount = $discount;
-        $session['coupon_discount'] = $discount;
-
-        // Calculate final total (you can add tax and shipping here)
-        $total = $subtotal - $discount;
-        $total += $session['order']->tax_amount ?? 0;
-        $total += $session['order']->shipping_cost ?? 0;
-
-        $session['order']->total_price = max(0, $total);
-        $session['items'] = $items;
-
-        $this->persistSession($session);
-        return $this;
+        $order = $data['order'] ?? [];
+        $order['subtotal_price'] = $subtotal;
+        $order['discount_amount'] = $discount;
+        $order['total_price'] = max(0, $subtotal - $discount);
+        $data['order'] = $order;
     }
 
-    /**
-     * Refresh order totals (called during initialization)
-     */
-    protected function refreshOrderTotals(array $session): array
+
+    public function proceedToPayment(array $options=[]): Payment
     {
-        $items = Cart::all();
-        $session['items'] = $items;
+        $this->validate();
 
-        $this->persistSession($session);
-        $this->recalculateTotals();
+        try {
+            DB::beginTransaction();
 
-        return $this->getSession();
+            $data = $this->getData();
+            $order = $this->createOrder($data);
+            $full_name = $order->full_name;
+            $email = $order->email;
+            $phone_number = $order->phone_number;
+
+            if($order->user){
+                $full_name = $order->user->full_name;
+                $email = $order->user->email;
+                $phone_number = $order->user->phone_number;
+            }
+
+            $payment =  Payment::create([
+                'user_id' => $order->user_id,
+                'full_name' => $full_name,
+                'email' => $email,
+                'phone_number' => $phone_number,
+                'payment_gateway_id' => data_get($data, 'payment_gateway_id'),
+                'amount'  => $order->total_price,
+                'currency' => 'NGN',
+                'description' => 'Payment for Order #' . $order->id,
+                'callback_url' => data_get($options, 'callback_url'),
+            ]);
+
+            $payment->payables()->create([
+                'payable_type' => Order::class,
+                'payable_id' => $order->id,
+                'amount' => $order->total_price,
+            ]);
+
+            DB::commit();
+
+            Cart::clear();
+            $this->session->delete();
+
+            return $payment;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            throw $th;
+        }
+
     }
 
-    /**
-     * Create and save the order to database
-     */
-    public function createOrder(): Order
+    protected function createOrder(array $data): Order
     {
-        $session = $this->getSession();
 
-        if (!$session) {
-            throw new \RuntimeException("No checkout session found");
+        $order = new Order($data['order']);
+
+        if ($user = Auth::user() ?? Auth::guard('sanctum')->user()) {
+            $order->user_id = $user->id;
+            $order->full_name = $user->full_name;
+            $order->email = $user->email;
+            $order->phone_number = $user->phone_number;
+        } else {
+            $order->full_name = data_get($data, 'delivery_address.full_name', 'Guest User');
+            $order->email = data_get($data, 'delivery_address.email');
+            $order->phone_number = data_get($data, 'delivery_address.phone_number');
         }
-
-        $order = $session['order'];
-
-        // Set payment gateway
-        if (!empty($session['payment_gateway_id'])) {
-            $order->payment_gateway_id = $session['payment_gateway_id'];
-        }
-
-        // Set coupon
-        if (!empty($session['discount_id'])) {
-            $order->discount_id = $session['discount_id'];
-        }
-
-        // Set addresses
-        if (!empty($session['billing_address'])) {
-            $order->billing_address = $session['billing_address'];
-        }
-
-        if (!empty($session['delivery_address'])) {
-            $order->delivery_address = $session['delivery_address'];
-        }
-
-        // Save the order
+        $order->store_id = current_store()?->id;
+        $order->coupon_id = $data['coupon_id'] ?? null;
+        $order->delivery_address = $data['delivery_address'] ?? null;
         $order->save();
 
-        // Attach order items
-        $items = $session['items'] ?? [];
-        foreach ($items as $item) {
-            $order->items()->create([
-                'product_id' => $item['id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'total' => $item['total'],
-            ]);
+        foreach ($data['items'] ?? [] as $item) {
+            $orderItem = new OrderItem($item);
+            $orderItem->order_id = $order->id;
+            $orderItem->options = $item['options'] ?? [];
+            $orderItem->save();
         }
 
         return $order;
     }
 
-    /**
-     * Validate checkout before proceeding to payment
-     */
-    public function validate(): bool
-    {
-        $session = $this->getSession();
-
-        if (!$session) {
-            return false;
-        }
-
-        // Check if items exist
-        if (empty($session['items'])) {
-            return false;
-        }
-
-        // Check if payment gateway is set
-        if (empty($session['payment_gateway_id'])) {
-            return false;
-        }
-
-        // Check if billing address is set
-        if (empty($session['billing_address'])) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Proceed to payment (creates order and returns payment URL/data)
-     */
-    public function proceedToPayment(): array
-    {
-        if (!$this->validate()) {
-            throw new \RuntimeException("Checkout validation failed");
-        }
-
-        // Create the order
-        $order = $this->createOrder();
-
-        // Get payment gateway
-        $gateway = PaymentGateway::find($this->getPaymentGatewayId());
-
-        // Clear cart and checkout session
-        Cart::clear();
-        self::clear();
-
-        return [
-            'order' => $order,
-            'payment_gateway' => $gateway,
-            'redirect_url' => route('payment.process', ['order' => $order->id]),
-        ];
-    }
-
-    /**
-     * Persist session data
-     */
-    protected function persistSession(array $session): void
-    {
-        session([self::SESSION_KEY => $session]);
-    }
-
-    /**
-     * Get summary for display
-     */
     public function getSummary(): array
     {
-        return $this->initializeSession();
+        return array_merge($this->getData(), ['checkout_token' => $this->token()]);
+    }
+
+    private function validate():void
+    {
+        $data = $this->getData();
+
+        if (empty($data['billing_address'])) {
+            throw new \Exception('Billing address is not set.');
+        }
+
+        if (empty($data['delivery_address'])) {
+            throw new \Exception('Delivery address is not set.');
+        }else {
+            $delivery = $data['delivery_address'];
+            if (empty($delivery['full_name']) || empty($delivery['phone_number']) || empty($delivery['email']) || empty($delivery['address']) || empty($delivery['state']) || empty($delivery['country'])) {
+                throw new \Exception('Delivery address is incomplete.');
+            }
+        }
+
+        if (empty($data['payment_gateway_id'])) {
+            throw new \Exception('Payment gateway is not set.');
+        }
+
+        if (empty($data['items'])) {
+            throw new \Exception('No items in the cart.');
+        }
     }
 }

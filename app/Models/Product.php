@@ -49,7 +49,6 @@ class Product extends Model
         'is_serialized',
     ];
 
-
     /**
      * The accessors to append to the model's array form.
      *
@@ -106,7 +105,7 @@ class Product extends Model
 
                 $availableQuantity = data_get($metadata, 'available_quantity', 0);
 
-                if(current_store()){
+                if (current_store()) {
                     $storeId = current_store()->id;
                     $availableQuantity = data_get($metadata, 'stores.'.$storeId.'.available_quantity');
                 }
@@ -243,9 +242,6 @@ class Product extends Model
         $this->save();
     }
 
-    /**
-     * @return void
-     */
     public function updateAvailableQuantity(): void
     {
         $availableQuantity = $this->inventories()
@@ -253,16 +249,14 @@ class Product extends Model
             ->sum('quantity');
         $medata = $this->metadata ?? [];
 
-        if(current_store()){
+        if (current_store()) {
             $medata['stores'][current_store()->id]['id'] = current_store()->id;
             $medata['stores'][current_store()->id]['available_quantity'] = $availableQuantity;
-        }
-        else {
-            $medata['available_quantity'] =  $availableQuantity;
+        } else {
+            $medata['available_quantity'] = $availableQuantity;
         }
 
         $this->metadata = $medata;
         $this->saveQuietly();
     }
-
 }

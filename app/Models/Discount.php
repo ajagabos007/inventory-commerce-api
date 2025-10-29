@@ -33,12 +33,7 @@ class Discount extends Model
         'is_active',
     ];
 
-    /**
-     * @param Builder $query
-     * @param bool $is_valid
-     * @return void
-     */
-    public function scopeValid(Builder $query, bool $is_valid=true): void
+    public function scopeValid(Builder $query, bool $is_valid = true): void
     {
         $query->when($is_valid, function (Builder $query) {
             $query->whereDate('expires_at', '>', now())

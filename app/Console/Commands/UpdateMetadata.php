@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Store;
 use App\Models\ProductVariant;
+use App\Models\Store;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -37,6 +37,7 @@ class UpdateMetadata extends Command
 
         if ($stores->isEmpty()) {
             $this->warn('No stores found to process.');
+
             return Command::SUCCESS;
         }
 

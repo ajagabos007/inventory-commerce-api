@@ -13,13 +13,13 @@ class CartManager extends BaseCartManager
      */
     protected function sessionId(): string
     {
-        $header = request()->header('x-cart-token');
+        $header = request()->header('x-session-token');
 
         return blank($header) ? $this->session->getId() : $header;
     }
 
     /**
-     * Check that a user is authenticad either by auth web:santum
+     * Check that a user is authenticate either by auth web:sanctum
      */
     protected function authCheck(): bool
     {
@@ -110,7 +110,7 @@ class CartManager extends BaseCartManager
         // Build the where clause based on authentication status
         $whereConditions = ['item_id' => $item['id']];
 
-        $existingItem =  $this->cartItemQuery()
+        $existingItem = $this->cartItemQuery()
             ->where($whereConditions)
             ->first();
 
@@ -167,7 +167,7 @@ class CartManager extends BaseCartManager
 
     protected function increaseInDatabase(string $id, int $quantity): void
     {
-            $this->cartItemQuery()
+        $this->cartItemQuery()
             ->where('item_id', $id)
             ->increment('quantity', $quantity);
     }
@@ -185,8 +185,8 @@ class CartManager extends BaseCartManager
     protected function decreaseInDatabase(string $id, int $quantity): void
     {
         $item = $this->cartItemQuery()
-                ->where('item_id', $id)
-                ->first();
+            ->where('item_id', $id)
+            ->first();
         if ($item) {
             $newQuantity = max(1, $item->quantity - $quantity);
             $item->update(['quantity' => $newQuantity]);
@@ -253,12 +253,12 @@ class CartManager extends BaseCartManager
 
     private function cartItemQuery()
     {
-       return CartItem::when($this->authCheck(), function ($query) {
+        return CartItem::when($this->authCheck(), function ($query) {
             $query->where('user_id', $this->authId())
                 ->whereNull('session_id');
         }, function ($query) {
             $query->whereNull('user_id')
-            ->where('session_id', $this->sessionId());
+                ->where('session_id', $this->sessionId());
         });
     }
 }

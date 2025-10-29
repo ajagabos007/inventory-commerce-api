@@ -8,6 +8,11 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+use App\Handlers\PaymentHandler;
+use App\Exceptions\PaymentException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -112,6 +117,135 @@ class PaymentController extends Controller
 
         return (new PaymentResource(null))->additional([
             'message' => 'Payment deleted successfully',
+        ]);
+    }
+
+    public function initialize(Request $request) {
+        $validated = $request->validate([
+            'payment_gateway_id' => 'required|exists:payment_gateways,id',
+            'amount' => 'required|numeric|min:0.01',
+            'currency' => 'nullable|string|size:3',
+            'description' => 'nullable|string',
+            'callback_url' => 'nullable|url',
+            'cancel_url' => 'nullable|url',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $payment = Payment::create([
+                'user_id' => auth()->id(),
+                'payment_gateway_id' => $validated['payment_gateway_id'],
+                'amount' => $validated['amount'],
+                'currency' => $validated['currency'] ?? 'NGN',
+                'description' => $validated['description'] ?? null,
+                'callback_url' => $validated['callback_url'] ?? null,
+                'cancel_url' => $validated['cancel_url'] ?? null,
+                'ip_address' => $request->ip(),
+                'status' => 'initiated',
+            ]);
+
+            $handler = new PaymentHandler($payment);
+            $result = $handler->initializePayment();
+
+            DB::commit();
+
+            return response()->json($result);
+
+        } catch (PaymentException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Payment initialization error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while initializing payment',
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle webhook from payment gateway
+     */
+    public function webhook(Request $request, string $gateway) {
+        $payload = $request->getContent();
+        $headers = $request->headers->all();
+
+        try {
+            // Find payment from webhook data
+            $webhookData = json_decode($payload, true);
+            $reference = $this->extractReference($webhookData, $gateway);
+
+            $payment = Payment::where('transaction_reference', $reference)
+                ->orWhere('gateway_reference', $reference)
+                ->firstOrFail();
+
+            $handler = new PaymentHandler($payment);
+
+            // Validate webhook signature
+            if (!$handler->getGateway()->validateWebhookSignature($headers, $payload)) {
+                Log::warning('Invalid webhook signature', [
+                    'gateway' => $gateway,
+                    'payment_id' => $payment->id,
+                ]);
+                return response()->json(['message' => 'Invalid signature'], 401);
+            }
+
+            // Verify and update payment
+            $result = $handler->verifyFromWebhook($webhookData);
+
+            Log::info('Webhook processed successfully', [
+                'gateway' => $gateway,
+                'payment_id' => $payment->id,
+                'status' => $payment->status,
+            ]);
+
+            return response()->json(['message' => 'Webhook processed'], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Webhook processing error', [
+                'gateway' => $gateway,
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+            ]);
+
+            return response()->json(['message' => 'Webhook processing failed'], 500);
+        }
+    }
+
+    /**
+     * Extract reference from webhook data based on gateway
+     */
+    private function extractReference(array $data, string $gateway): ?string {
+        return match(strtolower($gateway)) {
+            'paystack' => $data['data']['reference'] ?? null,
+            'flutterwave' => $data['data']['tx_ref'] ?? null,
+            default => null,
+        };
+    }
+
+    /**
+     * Get payment status (for React polling)
+     */
+    public function status(Payment $payment) {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $payment->id,
+                'status' => $payment->status,
+                'transaction_status' => $payment->transaction_status,
+                'amount' => $payment->amount,
+                'currency' => $payment->currency,
+                'is_paid' => $payment->is_paid,
+                'paid_at' => $payment->paid_at,
+            ],
         ]);
     }
 }

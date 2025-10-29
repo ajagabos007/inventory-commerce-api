@@ -20,8 +20,19 @@ class OrderItem extends Model
         'name',
         'quantity',
         'price',
-        'options',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'options' => 'array',
+        ];
+    }
 
     public function order(): BelongsTo
     {

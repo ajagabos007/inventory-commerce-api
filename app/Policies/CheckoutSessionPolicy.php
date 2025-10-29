@@ -2,19 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Coupon;
+use App\Models\CheckoutSession;
 use App\Models\User;
 
-class CouponPolicy
+class CheckoutSessionPolicy
 {
-    /**
-     * Perform pre-authorization checks.
-     */
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasAnyRole('admin') ? true : null;
-    }
-
     /**
      * Determine whether the user can view any models.
      */
@@ -26,7 +18,7 @@ class CouponPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Coupon $coupon): bool
+    public function view(User $user, CheckoutSession $checkoutSession): bool
     {
         return false;
     }
@@ -42,7 +34,7 @@ class CouponPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Coupon $coupon): bool
+    public function update(User $user, CheckoutSession $checkoutSession): bool
     {
         return false;
     }
@@ -50,7 +42,7 @@ class CouponPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Coupon $coupon): bool
+    public function delete(User $user, CheckoutSession $checkoutSession): bool
     {
         return false;
     }
@@ -58,7 +50,7 @@ class CouponPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Coupon $coupon): bool
+    public function restore(User $user, CheckoutSession $checkoutSession): bool
     {
         return false;
     }
@@ -66,7 +58,7 @@ class CouponPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Coupon $coupon): bool
+    public function forceDelete(User $user, CheckoutSession $checkoutSession): bool
     {
         return false;
     }

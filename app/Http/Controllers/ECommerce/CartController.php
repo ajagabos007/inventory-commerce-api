@@ -166,5 +166,4 @@ class CartController extends Controller
                 'message' => 'Cart cleared successfully',
             ]);
     }
-
 }

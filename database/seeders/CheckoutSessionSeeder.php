@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-class CouponUserSeeder extends Seeder
+class CheckoutSessionSeeder extends Seeder
 {
     /**
      * Run the database seeds.

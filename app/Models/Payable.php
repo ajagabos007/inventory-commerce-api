@@ -27,6 +27,7 @@ class Payable extends Model
         'payment_id',
         'payable_id',
         'payable_type',
+        'amount',
         'metadata',
         'verifier_id',
         'verified_at',

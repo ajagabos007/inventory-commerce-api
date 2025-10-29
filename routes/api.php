@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryLocationController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\ECommerce\CartController as CartECommerceController;
+use App\Http\Controllers\ECommerce\CheckoutController as CheckoutECommerceController;
 use App\Http\Controllers\EnumController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\NotificationController;
@@ -21,7 +22,6 @@ use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\POS\CartController as CartPOSController;
 use App\Http\Controllers\POS\CheckoutController as CheckoutPOSController;
-use App\Http\Controllers\ECommerce\CheckoutController as CheckoutECommerceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RoleController;
@@ -80,14 +80,16 @@ Route::apiResource('product-variants', ProductVariantController::class)
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
-Route::prefix('e-commerce/checkout')->name('e-commerce.checkout.')->group(function (){
+Route::prefix('e-commerce/checkout')->name('e-commerce.checkout.')->group(function () {
     Route::controller(CheckoutECommerceController::class)->group(function () {
-        Route::get('', 'summary' )->name('checkout.index');
-        Route::get('summary', 'summary' )->name('checkout.summary');
-        Route::match(['post','put', 'patch'], 'delivery-address/{address}', 'upsertDeliveryAddress' )->name('checkout.devliveryAddress.upsert');
-        Route::match(['post','put', 'patch'], 'coupon', 'addCoupon' )->name('checkout.coupon.add');
-        Route::match(['post','put', 'patch'], 'payment-gateway/{payment_gateway}', 'upsertPaymentGateway' )->name('checkout.paymentGateway.upsert');
-        Route::post( 'confirm-order', 'confirmOrder')->name('confirmOrder');
+        Route::get('', 'summary')->name('checkout.index');
+        Route::get('summary', 'summary')->name('checkout.summary');
+        Route::match(['post', 'put', 'patch'], 'delivery-address', 'setDeliveryAddress')->name('checkout.devliveryAddress.upsert');
+        Route::match(['post', 'put', 'patch'], 'payment-gateway', 'setPaymentGateway')->name('checkout.paymentGateway.upsert');
+        Route::match(['post', 'put', 'patch'], 'coupon', 'applyCoupon')->name('checkout.coupon.add');
+        Route::delete('coupon', 'removeCoupon')->name('checkout.coupon.remove');
+        Route::match(['post', 'put', 'patch'], 'payment-gateway/{payment_gateway}', 'upsertPaymentGateway')->name('checkout.paymentGateway.upsert');
+        Route::post('confirm-order', 'confirmOrder')->name('confirmOrder');
     });
 });
 
@@ -158,7 +160,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('products', ProductController::class)
-        ->only(['store','update', 'destroy']);
+        ->only(['store', 'update', 'destroy']);
 
     Route::prefix('product-variants/{product_variant}/')->name('product-variants')->group(function () {
         Route::controller(ProductVariantController::class)->group(function () {

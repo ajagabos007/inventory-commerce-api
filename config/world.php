@@ -106,7 +106,7 @@ return [
                     'length' => 3,
                 ],
                 'native' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'region' => [
@@ -118,19 +118,19 @@ return [
                     'type' => 'string',
                 ],
                 'latitude' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'longitude' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'emoji' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'emojiU' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
             ],
@@ -144,20 +144,20 @@ return [
                     'length' => 3,
                 ],
                 'state_code' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                     'length' => 5,
                 ],
                 'type' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'latitude' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'longitude' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
             ],
@@ -171,16 +171,16 @@ return [
                     'length' => 3,
                 ],
                 'state_code' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                     'length' => 5,
                 ],
                 'latitude' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
                 'longitude' => [
-                    'required' => true,
+                    'required' => false,
                     'type' => 'string',
                 ],
             ],

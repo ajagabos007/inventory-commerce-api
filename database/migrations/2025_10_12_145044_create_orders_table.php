@@ -23,7 +23,7 @@ return new class extends Migration
                 ->constrained('stores')
                 ->onUpdate('cascade')
                 ->nullOnDelete();
-            $table->string('name');
+            $table->string('full_name');
             $table->string('phone_number');
             $table->string('email')->nullable();
             $table->string('delivery_method')->nullable();
@@ -32,11 +32,12 @@ return new class extends Migration
             $table->json('pickup_address')->nullable();
             $table->string('status')->default('pending');
             $table->string('payment_method')->nullable();
-            $table->foreignUuid('discount_id')
+            $table->foreignUuid('coupon_id')
                 ->nullable()
-                ->constrained('discounts')
+                ->constrained('coupons')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
+            $table->decimal('discount_amount', 10, 2)->default(0);
             $table->decimal('tax', 10, 2)->default(0);
             $table->decimal('subtotal_price', 10, 2)->default(0);
             $table->decimal('total_price', 10, 2)->default(0);

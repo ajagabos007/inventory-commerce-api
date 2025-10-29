@@ -2,156 +2,115 @@
 
 namespace App\Http\Controllers\ECommerce;
 
-use App\Facades\Cart;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\POSCheckoutRequest;
-use App\Http\Resources\SaleResource;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Customer;
-use App\Models\Discount;
-use App\Models\Inventory;
-use App\Models\Sale;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Http\Resources\CategoryResource;
+use App\Http\Resources\PaymentResource;
 use App\Managers\CheckoutManager;
-Use App\Models\PaymentGateway;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
-
+use Illuminate\Http\Request;
+use App\Http\Resources\CheckoutResource;
 
 class CheckoutController extends Controller
 {
-    private CheckoutManager $checkout ;
+    protected CheckoutManager $checkout;
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    public function __construct(CheckoutManager $checkout){
-        $this->checkout = $checkout;
-        $this->checkout->initializeSession();
+    public function __construct()
+    {
+        $this->checkout = new CheckoutManager;
     }
 
-
-    /**
-     * Generate or update the current order summary.
-     *
-     * @return array
-     */
-    public function summary(): array
+    public function summary()
     {
-        return $this->checkout->getSummary();
+        return (new CheckoutResource($this->checkout->getSummary()))->additional([
+            'message' => 'Checkout summary',
+        ]);
     }
 
-    public function addCoupon(Request $request)
+    public function syncItems()
     {
+        $this->checkout->syncItems();
 
-        $this->checkout->applyDiscount($request->discount_code);
+        return (new CheckoutResource($this->checkout->getSummary()))->additional([
+            'message' => 'Checkout items sync',
+        ]);
+    }
 
+    public function setBillingAddress(Request $request)
+    {
+        $this->checkout->setBillingAddress($request->validate([
+            'full_name' => 'required|string',
+            'phone' => 'required|string',
+            'address_line' => 'required|string',
+            'city' => 'required|string',
+            'country' => 'required|string',
+        ]));
 
-        return $this->checkout->getSummary();
+        return response()->json($this->checkout->getSummary());
+    }
 
+    public function setDeliveryAddress(Request $request)
+    {
+        $this->checkout->setDeliveryAddress($request->validate([
+            'full_name' => ['required', 'string'],
+            'phone_number' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'address' => ['required', 'string'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'state_id' => ['required', 'exists:states,id'],
+            'country_id' => ['required', 'exists:countries,id'],
+        ]));
+
+        return (new CheckoutResource($this->checkout->getSummary()))->additional([
+            'message' => 'Delivery address set successfully',
+        ]);
+    }
+
+    public function setPaymentGateway(Request $request)
+    {
+        $this->checkout->setPaymentGateway(
+            $request->validate(['payment_gateway_id' => 'required|exists:payment_gateways,id'])['payment_gateway_id']
+        );
+
+        return (new CheckoutResource($this->checkout->getSummary()))->additional([
+            'message' => 'Payment gateway set successfully',
+        ]);
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $this->checkout->applyCoupon(
+            $request->validate(['coupon_code' => 'required|string'])['coupon_code']
+        );
+
+        return (new CheckoutResource($this->checkout->getSummary()))->additional([
+            'message' => 'Coupon applied successfully',
+        ]);
+    }
+
+    public function removeCoupon()
+    {
+        $this->checkout->removeCoupon();
+
+        return (new CheckoutResource($this->checkout->getSummary()))->additional([
+            'message' => 'Coupon removed successfully',
+        ]);
     }
 
     /**
-     * Handle the incoming request.
+     * @throws \Throwable
      */
-    public function __invoke(POSCheckoutRequest $request)
+    public function confirmOrder(Request $request)
     {
-        $items = Cart::all();
+        $payment = $this->checkout->proceedToPayment(
+            $request->validate([
+                'payment_gateway_id' => 'nullable|exists:payment_gateways,id',
+                'callback_url' => 'nullable|url',
+                'cancel_url' => 'nullable|url',
+            ])
+        );
 
-        if (count($items) == 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'POS checkout failed, cart is empty',
-            ], 422);
-        }
-
-        $validated = $request->validated();
-
-        DB::beginTransaction();
-
-        try {
-
-            $subtotal_price = Cart::total();
-
-            $discount = Discount::where('code', $validated['discount_code'] ?? null)->first();
-
-            if ($discount) {
-                $total_price = $subtotal_price - ($subtotal_price * (1 / 100 * $discount->percentage ?? 0));
-            } else {
-                $total_price = $subtotal_price;
-            }
-
-            // Calculate tax and total
-            $sale = Sale::create([
-                'payment_method' => $request->payment_method,
-                'buyerable_id' => $request->customer_id,
-                'buyerable_type' => Customer::class,
-                'discount_id' => is_null($discount) ? null : $discount->id,
-                'tax' => $request->tax ?? 0,
-                'subtotal_price' => $subtotal_price,
-                'total_price' => $total_price,
-            ]);
-
-            $metadata['discount'] = $discount;
-            $sale->metadata = $metadata;
-            $sale->save();
-
-            $inventories = Inventory::whereIn('id', array_column($items, 'id'))->get();
-
-            $sale_item_data = [];
-            foreach ($items as $key => $item) {
-                $invent = $inventories->firstWhere('id', $item['id']);
-
-                if (blank($invent)) {
-                    continue;
-                }
-
-                if ($invent->quantity > $item['quantity']) {
-                    $invent->decrement('quantity', $item['quantity']);
-                } else {
-                    $invent->update([
-                        'quantity' => 0,
-                    ]);
-                }
-
-                $sale_item_data[] = [
-                    'inventory_id' => $invent->id,
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total_price' => $item['price'] * $item['quantity'],
-                ];
-            }
-
-            $sale->saleInventories()->createMany($sale_item_data);
-
-            DB::commit();
-
-            Cart::clear();
-
-            $sale->load([
-                'buyerable',
-                'saleInventories.inventory.productVariant',
-                'discount',
-                'cashier.user',
-            ]);
-
-            return (new SaleResource($sale))->additional([
-                'message' => 'Checkout successfully',
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error($e);
-
-            return response()->json([
-                'message' => 'Failed to create sale.',
-                'errors' => ['create_sale' => $e->getMessage()],
-            ], 500);
-        }
-
+        return (new PaymentResource($payment))->additional([
+            'message' => 'Redirect to payment gateway url',
+        ]);
     }
 }
+

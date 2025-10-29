@@ -13,16 +13,20 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')
+            $table->foreignUuid('user_id')
                 ->nullable()
                 ->contrained('users')
                 ->cascadeOnUpdate()
                 ->nullOnDelete();
 
+            $table->string('full_name')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone_number')->nullable();
+
             $table->string('currency')->nullable();
             $table->decimal('amount', $total = 19, $places = 2);
             $table->text('description')->nullable();
-            $table->foreignId('payment_gateway_id')
+            $table->foreignUuid('payment_gateway_id')
                 ->nullable()
                 ->contrained('payment_gateways')
                 ->cascadeOnUpdate()

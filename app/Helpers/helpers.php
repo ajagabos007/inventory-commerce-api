@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Str;
 use App\Models\Store;
+use Illuminate\Support\Str;
 
 if (! function_exists('current_store')) {
 
@@ -11,18 +11,16 @@ if (! function_exists('current_store')) {
     }
 }
 
-
 if (! function_exists('set_current_store')) {
 
     /**
      * Set the current store in the application container.
      *
      * @param  \App\Models\Store|int|null  $store
-     * @return void
      */
     function set_current_store($store): void
     {
-        if (!$store instanceof Store)  {
+        if (! $store instanceof Store) {
             $store = \App\Models\Store::find($store);
         }
 

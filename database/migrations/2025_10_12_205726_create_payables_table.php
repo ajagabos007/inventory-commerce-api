@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payables', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->foreignUuid('payment_id')
                 ->constrained('payments')
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
-            $table->morphs('payable');
+            $table->uuidMorphs('payable');
             $table->decimal('amount', $total = 19, $places = 2);
             $table->json('metadata')->nullable();
             $table->foreignUuid('verifier_id')->nullable()

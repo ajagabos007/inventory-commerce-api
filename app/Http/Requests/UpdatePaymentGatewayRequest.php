@@ -34,6 +34,7 @@ class UpdatePaymentGatewayRequest extends FormRequest
             ],
             'is_disabled' => ['nullable', 'boolean'],
             'mode' => ['string', new In(PaymentMode::values())],
+            'is_default' => ['boolean'],
         ];
     }
 }

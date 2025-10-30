@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\DB;
 
 #[ObservedBy([ProductObserver::class])]
 class Product extends Model
@@ -170,7 +171,7 @@ class Product extends Model
 
 
     /**
-     * Scope: Popular products based on total sales across all variants
+     * Scope: Popular products - OPTIMIZED VERSION (No GROUP BY issues)
      *
      * @param Builder $query
      * @param bool $ordered If true, order by most sold. If false, just get products with sales.
@@ -178,29 +179,64 @@ class Product extends Model
      */
     public function scopePopular(Builder $query, bool $ordered = true): Builder
     {
-        // Get all column names from products table
-        $productColumns = $this->getConnection()
-            ->getSchemaBuilder()
-            ->getColumnListing($this->getTable());
-
-        // Build select statement with all columns
-        $selectColumns = array_map(fn($col) => "products.{$col}", $productColumns);
-
-        $query->select('products.*')
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
             ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
-            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
-            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
-            ->leftJoin('sales', function ($join) {
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) {
                 $join->on('sales.id', '=', 'sale_inventories.sale_id');
             })
-            ->groupBy(...array_map(fn($col) => "products.{$col}", $productColumns));
+            ->groupBy('product_variants.product_id');
+
+        $query->leftJoinSub($salesSubquery, 'popular_sales', function ($join) {
+            $join->on('products.id', '=', 'popular_sales.product_id');
+        })
+        ->addSelect('products.*')
+        ->addSelect(DB::raw('COALESCE(popular_sales.total_sold, 0) as popular_total_sold'))
+        ->when($ordered, function ($q) {
+            $q->orderByDesc('popular_total_sold');
+        }, function ($q) {
+            $q->havingRaw('COALESCE(popular_total_sold, 0) > 0');
+        });
+
+
+
+        return $query;
+    }
+
+    /**
+     * ALTERNATIVE: More efficient version using subquery
+     * RECOMMENDED for better performance and no GROUP BY issues
+     *
+     * @param Builder $query
+     * @param bool $ordered
+     * @return Builder
+     */
+    public function scopePopularOptimized(Builder $query, bool $ordered = true): Builder
+    {
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id');
+            })
+            ->groupBy('product_variants.product_id');
+
+        $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
+            $join->on('products.id', '=', 'sales_data.product_id');
+        })
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'));
 
         if ($ordered) {
             $query->orderByDesc('total_sold');
         } else {
-            $query->having('total_sold', '>', 0);
+            $query->havingRaw('COALESCE(sales_data.total_sold, 0) > 0');
         }
+
         return $query;
     }
 
@@ -215,18 +251,24 @@ class Product extends Model
     {
         $startDate = now()->subDays($days)->toDateTimeString();
 
-        return $query->select('products.*')
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
             ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
-            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
-            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
-            ->leftJoin('sales', function ($join) use ($startDate) {
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) use ($startDate) {
                 $join->on('sales.id', '=', 'sale_inventories.sale_id')
                     ->where('sales.created_at', '>=', $startDate);
             })
-            ->groupBy('products.id')
-            ->having('total_sold', '>', 0)
-            ->orderByDesc('total_sold');
+            ->groupBy('product_variants.product_id');
+
+        return $query->leftJoinSub($salesSubquery, 'trending_sales', function ($join) {
+            $join->on('products.id', '=', 'trending_sales.product_id');
+        })
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(trending_sales.total_sold, 0) as trending_total_sold'))
+            ->havingRaw('COALESCE(trending_total_sold, 0) > 0')
+            ->orderByDesc('trending_total_sold');
     }
 
     /**
@@ -238,14 +280,14 @@ class Product extends Model
     public function scopeHasSales(Builder $query): Builder
     {
         return $query->whereHas('variants.inventories.saleInventories', function ($q) {
-            $q->whereHas('sale', function ($sq) {
-                $sq->where('status', 'completed');
-            });
+            $q->whereHas('sale');
         });
     }
 
+
     /**
      * Scope: Top selling products (limited)
+     * FIXED: Now uses the optimized popular scope
      *
      * @param Builder $query
      * @param int $limit Number of products to return
@@ -253,7 +295,24 @@ class Product extends Model
      */
     public function scopeTopSelling(Builder $query, int $limit = 10): Builder
     {
-        return $query->popular(true)->limit($limit);
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id');
+            })
+            ->groupBy('product_variants.product_id');
+
+        return $query->leftJoinSub($salesSubquery, 'top_selling_sales', function ($join) {
+            $join->on('products.id', '=', 'top_selling_sales.product_id');
+        })
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(top_selling_sales.total_sold, 0) as total_top_selling_sold'))
+            ->havingRaw('COALESCE(total_top_selling_sold, 0) > 0')
+            ->orderByDesc('total_top_selling_sold')
+            ->limit($limit);
     }
 
     /**
@@ -265,17 +324,23 @@ class Product extends Model
      */
     public function scopePopularFrom(Builder $query, string $date): Builder
     {
-        return $query->select('products.*')
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
             ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
-            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
-            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
-            ->leftJoin('sales', function ($join) use ($date) {
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) use ($date) {
                 $join->on('sales.id', '=', 'sale_inventories.sale_id')
                     ->where('sales.created_at', '>=', $date);
             })
-            ->groupBy('products.id')
-            ->having('total_sold', '>', 0)
+            ->groupBy('product_variants.product_id');
+
+        return $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
+            $join->on('products.id', '=', 'sales_data.product_id');
+        })
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'))
+            ->havingRaw('COALESCE(sales_data.total_sold, 0) > 0')
             ->orderByDesc('total_sold');
     }
 
@@ -288,17 +353,23 @@ class Product extends Model
      */
     public function scopePopularTo(Builder $query, string $date): Builder
     {
-        return $query->select('products.*')
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
             ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
-            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
-            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
-            ->leftJoin('sales', function ($join) use ($date) {
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) use ($date) {
                 $join->on('sales.id', '=', 'sale_inventories.sale_id')
                     ->where('sales.created_at', '<=', $date);
             })
-            ->groupBy('products.id')
-            ->having('total_sold', '>', 0)
+            ->groupBy('product_variants.product_id');
+
+        return $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
+            $join->on('products.id', '=', 'sales_data.product_id');
+        })
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'))
+            ->havingRaw('COALESCE(sales_data.total_sold, 0) > 0')
             ->orderByDesc('total_sold');
     }
 
@@ -312,17 +383,23 @@ class Product extends Model
      */
     public function scopePopularInPeriod(Builder $query, string $startDate, string $endDate): Builder
     {
-        return $query->select('products.*')
+        $salesSubquery = DB::table('sale_inventories')
+            ->select('product_variants.product_id')
             ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
-            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
-            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
-            ->leftJoin('sales', function ($join) use ($startDate, $endDate) {
+            ->join('inventories', 'inventories.id', '=', 'sale_inventories.inventory_id')
+            ->join('product_variants', 'product_variants.id', '=', 'inventories.product_variant_id')
+            ->join('sales', function ($join) use ($startDate, $endDate) {
                 $join->on('sales.id', '=', 'sale_inventories.sale_id')
                     ->whereBetween('sales.created_at', [$startDate, $endDate]);
             })
-            ->groupBy('products.id')
-            ->having('total_sold', '>', 0)
+            ->groupBy('product_variants.product_id');
+
+        return $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
+            $join->on('products.id', '=', 'sales_data.product_id');
+        })
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'))
+            ->havingRaw('COALESCE(sales_data.total_sold, 0) > 0')
             ->orderByDesc('total_sold');
     }
 
@@ -353,6 +430,7 @@ class Product extends Model
 
         return $query->popularInPeriod($startOfMonth, $endOfMonth);
     }
+
 
     /**
      * Scope inventories low in stock

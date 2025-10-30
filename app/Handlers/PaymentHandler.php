@@ -170,6 +170,27 @@ class PaymentHandler {
         }
     }
 
+    public function verifyPayment(): array {
+        try {
+            $verificationResult = $this->gateway->verify($this->payment);
+
+            // Update payment based on verification
+            $this->updatePaymentFromVerification($verificationResult);
+
+            return [
+                'success' => true,
+                'message' => 'Payment verified successfully',
+                'data' => [
+                    'payment_id' => $this->payment->id,
+                    'status' => $this->payment->status,
+                    'transaction_status' => $this->payment->transaction_status,
+                ],
+            ];
+
+        } catch (\Exception $e) {
+            throw new PaymentException("Payment verification failed: " . $e->getMessage(), 500, $e);
+        }
+    }
     /**
      * Verify payment from webhook
      */
@@ -201,6 +222,7 @@ class PaymentHandler {
     public function verifyFromCallback(array $callbackData): array {
 
         try {
+
             $verificationResult = $this->gateway->verifyCallback($callbackData, $this->payment);
 
 
@@ -244,7 +266,7 @@ class PaymentHandler {
             $result['paid_at'] = $result['paid_at'] ?? now();
             $result['verifier_id'] = $result['verifier_id']
                 ?? auth()->id()
-                ?? optional(auth('sanctum')->user())->id;
+                ?? auth('sanctum')->id();
             $result['verified_at'] = now();
         } elseif ($result['status'] === 'failed') {
             $result['status'] = 'failed';

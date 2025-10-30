@@ -16,6 +16,9 @@ use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
+use App\Sorts\ProductPopularSort;
+use App\Sorts\ProductTrendingSort;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
@@ -44,6 +47,8 @@ class ProductController extends Controller
                 'barcode',
                 'created_at',
                 'updated_at',
+                AllowedSort::custom('popular', new ProductPopularSort()),
+                AllowedSort::custom('trending', new ProductTrendingSort()),
             )
             ->allowedIncludes([
                 'images',

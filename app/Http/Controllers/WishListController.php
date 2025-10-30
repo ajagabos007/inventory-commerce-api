@@ -2,65 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreWishListRequest;
-use App\Http\Requests\UpdateWishListRequest;
+use App\Http\Controllers\ECommerce\Cart;
+use App\Http\Resources\WishListResource;
+use App\Managers\WishListManager;
 use App\Models\WishList;
+use Illuminate\Http\Request;
 
 class WishListController extends Controller
 {
+
+    protected WishListManager $wishListManager;
+
+    public function __construct()
+    {
+        $this->authorizeResource(WishList::class, 'wishList');
+        $this->wishListManager = new WishListManager;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $items = $this->wishListManager->all();
+
+        return WishListResource::collection($items)
+            ->additional([
+                'message' => 'wish list retrieved successfully',
+            ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+
+    public function store(Request $request)
     {
-        //
+        $wishlist = $this->wishListManager->add(
+            $request->item_type,
+            $request->item_id,
+            $request->only('name', 'price', 'image'),
+            $request->input('options', [])
+        );
+
+        return WishListResource::collection($wishlist)
+            ->additional([
+                'message' => 'wish list retrieved successfully',
+            ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreWishListRequest $request)
-    {
-        //
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(WishList $wishList)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(WishList $wishList)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateWishListRequest $request, WishList $wishList)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(WishList $wishList)
     {
-        //
+        $wishList->delete();
+
+        return (new WishListResource(null))->additional([
+            'message' => 'Store deleted successfully',
+        ]);
     }
+
 }

@@ -31,9 +31,6 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $paginate = request()->has('paginate') ? request()->paginate : true;
-        $perPage = request()->has('per_page') ? request()->per_page : 15;
-
         $payments = QueryBuilder::for(Payment::class)
             ->defaultSort('-created_at')
             ->allowedSorts(
@@ -42,31 +39,32 @@ class PaymentController extends Controller
                 'updated_at',
             )
             ->allowedIncludes([
-                'payables',
+                'payables.payable',
+                'gateway',
                 'user',
             ])
             ->allowedFilters([
                 'user_id',
+                'status',
+                'payment_gateway_id',
                 AllowedFilter::scope('is_paid', 'isPaid'),
                 AllowedFilter::scope('is_verified', 'isVerified'),
+
+                // Date filters
+               AllowedFilter::scope('period', 'period'),
+                AllowedFilter::scope('last_days', 'lastDays'),
             ])
+            // perform search if 'q' is present in request
             ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);
+            })
+           // paginate based on 'paginate' parameter
+            ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+                $perPage = ! is_numeric(request()->per_page) ? 15 : max(intval(request()->per_page), 1);
+                return $query->paginate($perPage)->appends(request()->query());
+            }, function($query){
+               return $query->get();
             });
-
-        /**
-         * Check if pagination is not disabled
-         */
-        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
-
-            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
-
-            $payments = $payments->paginate($perPage)
-                ->appends(request()->query());
-
-        } else {
-            $payments = $payments->get();
-        }
 
         return PaymentResource::collection($payments)->additional([
             'status' => 'success',
@@ -171,6 +169,19 @@ class PaymentController extends Controller
         }
     }
 
+
+    /**
+     * Display the specified resource.
+     */
+    public function verify(Payment $payment): PaymentResource
+    {
+        $handler = new PaymentHandler($payment);
+        $handler->verifyPayment();
+
+        return (new PaymentResource($payment))->additional([
+            'message' => 'Payment retrieved successfully',
+        ]);
+    }
 
     /**
     * Handle callback from payment gateway
@@ -295,6 +306,42 @@ class PaymentController extends Controller
                 'currency' => $payment->currency,
                 'is_paid' => $payment->is_paid,
                 'paid_at' => $payment->paid_at,
+            ],
+        ]);
+    }
+
+
+    /**
+     * Get payment analytics/statistics
+     */
+    public function analytics()
+    {
+        $totalRevenue = Payment::successful()->sum('amount');
+        $totalTransactions = Payment::successful()->count();
+        $averageAmount = Payment::successful()->avg('amount');
+        $todayRevenue = Payment::successful()->today()->sum('amount');
+        $monthRevenue = Payment::successful()->thisMonth()->sum('amount');
+
+        $statusCounts = Payment::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $revenueByGateway = Payment::revenueByGateway()->get();
+        $dailyRevenue = Payment::dailyRevenue(30)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'overview' => [
+                    'total_revenue' => $totalRevenue,
+                    'total_transactions' => $totalTransactions,
+                    'average_amount' => $averageAmount,
+                    'today_revenue' => $todayRevenue,
+                    'month_revenue' => $monthRevenue,
+                ],
+                'status_breakdown' => $statusCounts,
+                'revenue_by_gateway' => $revenueByGateway,
+                'daily_revenue' => $dailyRevenue,
             ],
         ]);
     }

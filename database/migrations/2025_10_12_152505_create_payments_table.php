@@ -46,7 +46,8 @@ return new class extends Migration
 
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('verified_at')->nullable();
-            $table->foreignId('verifier_id')->nullable();
+            $table->foreignUuid('verifier_id')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestamps();
         });
     }

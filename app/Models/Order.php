@@ -4,8 +4,11 @@ namespace App\Models;
 
 use App\Observers\OrderObserver;
 use App\Traits\HasPayments;
+use App\Traits\ModelRequestLoader;
+use App\Traits\Scopeable;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +25,8 @@ class Order extends Model
 
     use HasPayments;
     use HasUuids;
+    use Scopeable;
+    use ModelRequestLoader;
 
     /**
      * The attributes that are mass assignable.
@@ -58,6 +63,14 @@ class Order extends Model
         ];
     }
 
+    /**
+     * Scope: Filter by user
+     */
+    public function scopeForUser(Builder $query, string $userId): Builder
+    {
+        return $query->where('user_id', $userId);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -89,4 +102,5 @@ class Order extends Model
 
         return $ref;
     }
+
 }

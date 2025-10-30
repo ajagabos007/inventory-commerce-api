@@ -30,7 +30,7 @@ class CheckoutManager
     {
         $token = request()->header('x-session-token') ?? Str::uuid()->toString();
 
-        $user = auth()->user();
+        $user = auth()->user() ?? auth()->guard('sanctum')->user();
 
         $this->session = match (true) {
             $token && ($existing = CheckoutSession::find($token)) => $existing,

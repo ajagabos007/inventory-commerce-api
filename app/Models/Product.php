@@ -8,6 +8,7 @@ use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
 use App\Traits\HasCategories;
 use App\Traits\ModelRequestLoader;
+use App\Traits\Scopeable;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -27,6 +28,7 @@ class Product extends Model
     use HasAttachments;
     use HasAttributeValues;
     use HasCategories;
+    use Scopeable;
 
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
@@ -335,12 +337,12 @@ class Product extends Model
             })
             ->groupBy('product_variants.product_id');
 
-        return $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
-            $join->on('products.id', '=', 'sales_data.product_id');
+        return $query->leftJoinSub($salesSubquery, 'popular_from', function ($join) {
+            $join->on('products.id', '=', 'popular_from.product_id');
         })
             ->addSelect('products.*')
-            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'))
-            ->havingRaw('COALESCE(sales_data.total_sold, 0) > 0')
+            ->addSelect(DB::raw('COALESCE(popular_from.total_sold, 0) as popular_from_total_sold'))
+            ->havingRaw('COALESCE(popular_from_total_sold, 0) > 0')
             ->orderByDesc('total_sold');
     }
 
@@ -364,12 +366,12 @@ class Product extends Model
             })
             ->groupBy('product_variants.product_id');
 
-        return $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
-            $join->on('products.id', '=', 'sales_data.product_id');
+        return $query->leftJoinSub($salesSubquery, 'popular_to', function ($join) {
+            $join->on('products.id', '=', 'popular_to.product_id');
         })
             ->addSelect('products.*')
-            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'))
-            ->havingRaw('COALESCE(sales_data.total_sold, 0) > 0')
+            ->addSelect(DB::raw('COALESCE(popular_to.total_sold, 0) as popular_to_total_sold'))
+            ->havingRaw('COALESCE(popular_to_total_sold, 0) > 0')
             ->orderByDesc('total_sold');
     }
 
@@ -381,7 +383,7 @@ class Product extends Model
      * @param string $endDate
      * @return Builder
      */
-    public function scopePopularInPeriod(Builder $query, string $startDate, string $endDate): Builder
+    public function scopePopularInPeriod(Builder $query, string $startDate, string $endDate, string $alias): Builder
     {
         $salesSubquery = DB::table('sale_inventories')
             ->select('product_variants.product_id')
@@ -393,13 +395,13 @@ class Product extends Model
                     ->whereBetween('sales.created_at', [$startDate, $endDate]);
             })
             ->groupBy('product_variants.product_id');
-
-        return $query->leftJoinSub($salesSubquery, 'sales_data', function ($join) {
-            $join->on('products.id', '=', 'sales_data.product_id');
+        $alias = $alias ?: 'popular_in_period';
+        return $query->leftJoinSub($salesSubquery, "$alias", function ($join)use ($alias) {
+            $join->on('products.id', '=', "{$alias}.product_id");
         })
             ->addSelect('products.*')
-            ->addSelect(DB::raw('COALESCE(sales_data.total_sold, 0) as total_sold'))
-            ->havingRaw('COALESCE(sales_data.total_sold, 0) > 0')
+            ->addSelect(DB::raw("COALESCE({$alias}.total_sold, 0) as {$alias}_total_sold"))
+            ->havingRaw("COALESCE({$alias}_total_sold, 0) > 0")
             ->orderByDesc('total_sold');
     }
 
@@ -409,12 +411,16 @@ class Product extends Model
      * @param Builder $query
      * @return Builder
      */
-    public function scopeBestSellersThisWeek(Builder $query): Builder
+    public function scopeBestSellersThisWeek(Builder $query, bool $true=true): Builder
     {
+        if(!$true){
+            return $query;
+        }
+
         $startOfWeek = now()->startOfWeek()->toDateTimeString();
         $endOfWeek = now()->endOfWeek()->toDateTimeString();
 
-        return $query->popularInPeriod($startOfWeek, $endOfWeek);
+        return $query->popularInPeriod($startOfWeek, $endOfWeek, 'best_sellers_this_week');
     }
 
     /**
@@ -423,12 +429,16 @@ class Product extends Model
      * @param Builder $query
      * @return Builder
      */
-    public function scopeBestSellersThisMonth(Builder $query): Builder
+    public function scopeBestSellersThisMonth(Builder $query, bool $true=true): Builder
     {
+        if(!$true){
+            return $query;
+        }
+
         $startOfMonth = now()->startOfMonth()->toDateTimeString();
         $endOfMonth = now()->endOfMonth()->toDateTimeString();
 
-        return $query->popularInPeriod($startOfMonth, $endOfMonth);
+        return $query->popularInPeriod($startOfMonth, $endOfMonth, 'best_sellers_this_month');
     }
 
 

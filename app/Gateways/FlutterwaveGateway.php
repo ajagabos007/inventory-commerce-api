@@ -65,6 +65,11 @@ class FlutterwaveGateway implements Payable {
         ];
     }
 
+    public function verify(Payment $payment): array
+    {
+        return $this->verifyReference($payment->gateway_reference);
+    }
+
     public function verifyWebhook(array $webhookData, Payment $payment): array {
         $transactionId = $webhookData['data']['id'] ?? null;
 
@@ -114,6 +119,28 @@ class FlutterwaveGateway implements Payable {
             throw new PaymentException("Transaction verification failed", $response->status());
         }
 
+        return $this->extracted($response);
+    }
+
+    public function verifyReference(string $reference): array {
+        $url = "{$this->baseUrl}/transactions/verify_by_reference?tx_ref={$reference}";
+
+        $response = Http::withToken($this->config['credentials']['secret_key'])
+            ->get($url);
+
+        if (!$response->successful()) {
+            throw new PaymentException("Reference verification failed", $response->status());
+        }
+
+        return $this->extracted($response);
+    }
+
+    /**
+     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
+     * @return array
+     */
+    public function extracted(\GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response): array
+    {
         $data = $response->json()['data'];
 
         return [
@@ -125,7 +152,10 @@ class FlutterwaveGateway implements Payable {
             'reference' => $data['tx_ref'],
             'paid_at' => $data['created_at'] ?? now(),
             'verified_at' => now(),
-            'ip_address' => $data['ip'] ?? null
+            'ip_address' => $data['ip'] ?? null,
+            'metadata' => [
+                'transaction' => $data,
+            ],
         ];
     }
 }

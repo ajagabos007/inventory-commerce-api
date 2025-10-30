@@ -12,7 +12,7 @@ class WishListPolicy
      */
     public function before(User $user, string $ability): ?bool
     {
-        return $user->hasAnyRole('admin') ? true : null;
+        return true;
     }
 
     /**

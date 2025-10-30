@@ -24,4 +24,6 @@ interface Payable {
     public function validateWebhookSignature(array $headers, string $payload): bool;
 
     public function verifyCallback(array $query, Payment $payment): array;
+
+    public function verify(Payment $payment): array;
 }

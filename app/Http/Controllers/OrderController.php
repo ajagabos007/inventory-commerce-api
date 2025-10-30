@@ -26,10 +26,10 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $paginate = request()->has('paginate') ? request()->paginate : true;
-        $perPage = request()->has('per_page') ? request()->per_page : 15;
+        $orderQ = Order::query();
+//                    ->forUser(auth()->user());
 
-        $orders = QueryBuilder::for(Order::class)
+      $orders = QueryBuilder::for($orderQ)
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',
@@ -58,20 +58,6 @@ class OrderController extends Controller
             }, function ($query) {
                 return $query->get();
             });
-
-        /**
-         * Check if pagination is not disabled
-         */
-        if (! in_array($paginate, [false, 'false', 0, '0', 'no'], true)) {
-
-            $perPage = ! is_numeric($perPage) ? 15 : max(intval($perPage), 1);
-
-            $orders = $orders->paginate($perPage)
-                ->appends(request()->query());
-
-        } else {
-            $orders = $orders->get();
-        }
 
         return OrderResource::collection($orders)->additional([
             'status' => 'success',

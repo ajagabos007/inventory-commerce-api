@@ -9,19 +9,22 @@ class ProductPopularSort implements Sort
 {
     public function __invoke(Builder $query, bool $descending, string $property): Builder
     {
-        $query->select('products.*')
-            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
-            ->leftJoin('product_variants', 'product_variants.product_id', '=', 'products.id')
-            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
-            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
-            ->leftJoin('sales', function ($join) {
-                $join->on('sales.id', '=', 'sale_inventories.sale_id')
-                    ->where('sales.status', '=', 'completed');
-            })
-            ->groupBy('products.id');
+        // Subquery that computes total_sold per product
+        $salesSubquery = \DB::table('product_variants')
+            ->selectRaw('product_variants.product_id, COALESCE(SUM(sale_inventories.quantity), 0) AS total_sold')
+            ->join('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->join('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->join('sales', 'sales.id', '=', 'sale_inventories.sale_id')
+            ->groupBy('product_variants.product_id');
 
-        return $descending
-            ? $query->orderByDesc('total_sold')
-            : $query->orderBy('total_sold');
+        // Join subquery to products and sort by total_sold
+        $query->leftJoinSub($salesSubquery, 'product_popular_sort', function ($join) {
+            $join->on('products.id', '=', 'product_popular_sort.product_id');
+        })
+            ->select('products.*')
+            ->addSelect(\DB::raw('COALESCE(product_popular_sort.total_sold, 0) AS total_sold'))
+            ->orderBy('total_sold', $descending ? 'desc' : 'asc');
+
+        return $query;
     }
 }

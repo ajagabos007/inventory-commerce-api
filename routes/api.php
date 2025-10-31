@@ -83,6 +83,9 @@ Route::apiResource('product-variants', ProductVariantController::class)
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
+Route::apiResource('payment-gateways', PaymentGatewayController::class)
+    ->only(['index', 'show']);
+
 Route::prefix('e-commerce/checkout')->name('e-commerce.checkout.')->group(function () {
     Route::controller(CheckoutECommerceController::class)->group(function () {
         Route::get('', 'summary')->name('checkout.index');
@@ -158,7 +161,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('payments', PaymentController::class)
         ->only(['index', 'show']);
 
-    Route::apiResource('payment-gateways', PaymentGatewayController::class);
+    Route::apiResource('payment-gateways', PaymentGatewayController::class)
+        ->only(['update']);
     Route::apiResource('payment-gateway-configs', PaymentGatewayConfigController::class);
     Route::apiResource('delivery-locations', DeliveryLocationController::class);
 

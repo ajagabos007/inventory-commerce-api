@@ -114,7 +114,7 @@ class Category extends Model
      * @param  string  $storagePath
      * @return void
      */
-    public function updateImage(UploadedFile|string $image, $storagePath = 'images')
+    public function updateImage(UploadedFile|string $image, $storagePath = 'images'): void
     {
         if (is_string($image)) {
             $parts = explode(';base64,', $image);

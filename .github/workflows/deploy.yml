@@ -39,12 +39,14 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
             composer dumpautoload
             echo "⚙️ Running Laravel setup..."
-            php artisan migrate:rollback --step=7 --force
             php artisan migrate --force
             php artisan optimize:clear
+
             chown www-data:www-data storage -R
+            chmod -R 775 storage
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
+
             php artisan app:update-metadata
             php artisan config:cache
 
@@ -84,9 +86,12 @@ jobs:
 
             php artisan migrate --force
             php artisan optimize:clear
+
             chown www-data:www-data storage -R
+            chmod -R 775 storage
             chown -R www-data:www-data bootstrap/cache
             chmod -R 775 bootstrap/cache
+
             php artisan app:update-metadata
             php artisan config:cache
 

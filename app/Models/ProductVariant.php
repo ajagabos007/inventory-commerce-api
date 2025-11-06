@@ -27,15 +27,14 @@ class ProductVariant extends Model
 {
     use HasAttachments;
     use HasAttributeValues;
+    use FlexibleRouteBinding;
 
     /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
 
     use HasUuids;
     use ModelRequestLoader;
-    use FlexibleRouteBinding;
     use Sluggable;
-
 
     /**
      * The attributes that are mass assignable.

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Cviebrock\EloquentSluggable\Services\SlugService;
 use Illuminate\Console\Command;
 use App\Models\ProductVariant;
 
@@ -44,7 +45,7 @@ class SlugifyProductVariant extends Command
             ->chunkById($chunkSize, function ($variants) use ($bar) {
                 foreach ($variants as $variant) {
                     // Let Eloquent Sluggable handle slug creation
-                    $variant->slug = null;
+                    $variant->slug = SlugService::createSlug(ProductVariant::class, 'slug', $variant->name);
                     $variant->saveQuietly();
 
                     $bar->advance();

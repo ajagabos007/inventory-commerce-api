@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ProductVariant;
 use Cviebrock\EloquentSluggable\Services\SlugService;
 use Illuminate\Console\Command;
-use App\Models\ProductVariant;
 
 class SlugifyProductVariant extends Command
 {
@@ -33,6 +33,7 @@ class SlugifyProductVariant extends Command
 
         if ($count === 0) {
             $this->info('No product variants found.');
+
             return 0;
         }
 

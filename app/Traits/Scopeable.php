@@ -20,7 +20,7 @@ trait Scopeable
     /**
      * Scope: Last N days
      */
-    public function scopeLastDays(Builder $query, int $days, $column='created_at'): Builder
+    public function scopeLastDays(Builder $query, int $days, $column = 'created_at'): Builder
     {
         return $query->where($query->qualifyColumn($column), '>=', now()->subDays($days));
     }
@@ -28,7 +28,7 @@ trait Scopeable
     /**
      * Scope: Filter by predefined periods
      */
-    public function scopePeriod(Builder $query, $period, $column='created_at'): Builder
+    public function scopePeriod(Builder $query, $period, $column = 'created_at'): Builder
     {
         return match ($period) {
             'today' => $query->whereDate($query->qualifyColumn($column), Carbon::today()),
@@ -48,7 +48,7 @@ trait Scopeable
     /**
      * Scope: Filter between two dates
      */
-    public function scopeDateBetween(Builder $query, $startDate, $endDate, $column='created_at'): Builder
+    public function scopeDateBetween(Builder $query, $startDate, $endDate, $column = 'created_at'): Builder
     {
         return $query->whereBetween($query->qualifyColumn($column), [Carbon::parse($startDate), Carbon::parse($endDate)]);
     }

@@ -6,12 +6,10 @@ use App\Exceptions\CheckoutValidationException;
 use App\Exceptions\PaymentException;
 use App\Handlers\PaymentHandler;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CategoryResource;
-use App\Http\Resources\PaymentResource;
+use App\Http\Resources\CheckoutResource;
 use App\Managers\CheckoutManager;
 use App\Models\Payment;
 use Illuminate\Http\Request;
-use App\Http\Resources\CheckoutResource;
 
 class CheckoutController extends Controller
 {
@@ -143,10 +141,9 @@ class CheckoutController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while processing your checkout. Please try again.'. $e->getMessage(),
+                'message' => 'An error occurred while processing your checkout. Please try again.'.$e->getMessage(),
             ], 500);
         }
 
     }
 }
-

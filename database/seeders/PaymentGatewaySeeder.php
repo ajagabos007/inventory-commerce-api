@@ -13,8 +13,9 @@ class PaymentGatewaySeeder extends Seeder
      */
     public function run(): void
     {
-        if(PaymentGateway::query()->exists()){
+        if (PaymentGateway::query()->exists()) {
             $this->command->warn('Payment gateways already seeded. Skipping seeder.');
+
             return;
         }
         $now = now()->format('Y-m-d H:i:s');

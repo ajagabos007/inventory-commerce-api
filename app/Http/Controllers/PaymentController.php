@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PaymentException;
+use App\Handlers\PaymentHandler;
 use App\Http\Requests\StorePaymentRequest;
 use App\Http\Requests\UpdatePaymentRequest;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
-use App\Handlers\PaymentHandler;
-use App\Exceptions\PaymentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class PaymentController extends Controller
 {
@@ -51,7 +51,7 @@ class PaymentController extends Controller
                 AllowedFilter::scope('is_verified', 'isVerified'),
 
                 // Date filters
-               AllowedFilter::scope('period', 'period'),
+                AllowedFilter::scope('period', 'period'),
                 AllowedFilter::scope('last_days', 'lastDays'),
             ])
             // perform search if 'q' is present in request
@@ -61,9 +61,10 @@ class PaymentController extends Controller
            // paginate based on 'paginate' parameter
             ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
                 $perPage = ! is_numeric(request()->per_page) ? 15 : max(intval(request()->per_page), 1);
+
                 return $query->paginate($perPage)->appends(request()->query());
-            }, function($query){
-               return $query->get();
+            }, function ($query) {
+                return $query->get();
             });
 
         return PaymentResource::collection($payments)->additional([
@@ -118,7 +119,8 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function initialize(Request $request) {
+    public function initialize(Request $request)
+    {
         $validated = $request->validate([
             'payment_gateway_id' => 'required|exists:payment_gateways,id',
             'amount' => 'required|numeric|min:0.01',
@@ -151,6 +153,7 @@ class PaymentController extends Controller
 
         } catch (PaymentException $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -169,6 +172,39 @@ class PaymentController extends Controller
         }
     }
 
+    public function reinitialize(Payment $payment)
+    {
+
+        DB::beginTransaction();
+        try {
+
+            $handler = new PaymentHandler($payment);
+            $result = $handler->initializePayment();
+
+            DB::commit();
+
+            return response()->json($result);
+
+        } catch (PaymentException $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Payment reinitialization error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while reinitializing payment',
+            ], 500);
+        }
+    }
 
     /**
      * Display the specified resource.
@@ -176,17 +212,16 @@ class PaymentController extends Controller
     public function verify(Payment $payment): PaymentResource
     {
         $handler = new PaymentHandler($payment);
-        $handler->verifyPayment();
+        $response = $handler->verifyPayment();
 
-        return (new PaymentResource($payment))->additional([
-            'message' => 'Payment retrieved successfully',
-        ]);
+        return new PaymentResource($response);
     }
 
     /**
-    * Handle callback from payment gateway
-    */
-    public function callback(Request $request, string $gateway) {
+     * Handle callback from payment gateway
+     */
+    public function callback(Request $request, string $gateway)
+    {
 
         $callbackData = $request->query();
         $headers = $request->headers->all();
@@ -213,8 +248,8 @@ class PaymentController extends Controller
             ]);
 
             return response()->json([
-                'success'=> true,
-                'message' => 'Callback processed successful'
+                'success' => true,
+                'message' => 'Callback processed successful',
             ], 200);
 
         } catch (\Exception $e) {
@@ -226,7 +261,7 @@ class PaymentController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Callback processing failed'
+                'message' => 'Callback processing failed',
             ], 500);
         }
     }
@@ -234,7 +269,8 @@ class PaymentController extends Controller
     /**
      * Handle webhook from payment gateway
      */
-    public function webhook(Request $request, string $gateway) {
+    public function webhook(Request $request, string $gateway)
+    {
         $payload = $request->all();
         $headers = $request->headers->all();
 
@@ -249,11 +285,12 @@ class PaymentController extends Controller
             $handler = new PaymentHandler($payment);
 
             // Validate webhook signature
-            if (!$handler->getGateway()->validateWebhookSignature($headers, json_encode($payload))) {
+            if (! $handler->getGateway()->validateWebhookSignature($headers, json_encode($payload))) {
                 Log::warning('Invalid webhook signature', [
                     'gateway' => $gateway,
                     'payment_id' => $payment->id,
                 ]);
+
                 return response()->json(['message' => 'Invalid signature'], 401);
             }
 
@@ -266,7 +303,6 @@ class PaymentController extends Controller
                 'status' => $payment->status,
                 'payload' => $payload,
             ]);
-
 
             return response(200);
 
@@ -284,18 +320,20 @@ class PaymentController extends Controller
     /**
      * Extract reference from webhook data based on gateway
      */
-    private function extractReference(array $data, string $gateway): ?string {
-        return match(strtolower($gateway)) {
-            'paystack' => $data['data']['reference'] ?? null,
+    private function extractReference(array $data, string $gateway): ?string
+    {
+        return match (strtolower($gateway)) {
+            'paystack' => $data['data']['reference'] ?? $data['reference'] ?? $data['trxref'] ?? null,
             'flutterwave' => $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
-            default =>$data['data']['reference'] ?? $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
+            default => $data['data']['reference'] ?? $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
         };
     }
 
     /**
      * Get payment status (for React polling)
      */
-    public function status(Payment $payment) {
+    public function status(Payment $payment)
+    {
         return response()->json([
             'success' => true,
             'data' => [
@@ -309,7 +347,6 @@ class PaymentController extends Controller
             ],
         ]);
     }
-
 
     /**
      * Get payment analytics/statistics

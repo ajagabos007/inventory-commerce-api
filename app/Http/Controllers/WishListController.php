@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\ECommerce\Cart;
 use App\Http\Resources\WishListResource;
 use App\Managers\WishListManager;
 use App\Models\WishList;
@@ -10,7 +9,6 @@ use Illuminate\Http\Request;
 
 class WishListController extends Controller
 {
-
     protected WishListManager $wishListManager;
 
     public function __construct()
@@ -18,6 +16,7 @@ class WishListController extends Controller
         $this->authorizeResource(WishList::class, 'wishList');
         $this->wishListManager = new WishListManager;
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -30,7 +29,6 @@ class WishListController extends Controller
                 'message' => 'wish list retrieved successfully',
             ]);
     }
-
 
     public function store(Request $request)
     {
@@ -47,7 +45,6 @@ class WishListController extends Controller
             ]);
     }
 
-
     public function destroy(WishList $wishList)
     {
         $wishList->delete();
@@ -56,5 +53,4 @@ class WishListController extends Controller
             'message' => 'Store deleted successfully',
         ]);
     }
-
 }

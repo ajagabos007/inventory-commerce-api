@@ -2,9 +2,9 @@
 
 namespace App\Gateways;
 
+use App\Exceptions\PaymentException;
 use App\Interfaces\Payable;
 use App\Models\Payment;
-use App\Exceptions\PaymentException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 class PaystackGateway implements Payable
 {
     protected array $config;
+
     protected string $baseUrl = 'https://api.paystack.co';
 
     public function __construct(array $config)
@@ -24,8 +25,6 @@ class PaystackGateway implements Payable
     /**
      * Initialize payment with Paystack
      *
-     * @param Payment $payment
-     * @return array
      * @throws PaymentException|ConnectionException
      */
     public function initialize(Payment $payment): array
@@ -48,15 +47,15 @@ class PaystackGateway implements Payable
         ];
 
         // Add optional fields if configured
-        if (!empty($this->config['settings']['channels'])) {
+        if (! empty($this->config['settings']['channels'])) {
             $payload['channels'] = $this->config['settings']['channels'];
         }
 
-        if (!empty($this->config['settings']['split_code'])) {
+        if (! empty($this->config['settings']['split_code'])) {
             $payload['split_code'] = $this->config['settings']['split_code'];
         }
 
-        if (!empty($this->config['settings']['subaccount'])) {
+        if (! empty($this->config['settings']['subaccount'])) {
             $payload['subaccount'] = $this->config['settings']['subaccount'];
         }
 
@@ -64,7 +63,7 @@ class PaystackGateway implements Payable
             ->timeout($this->config['settings']['timeout'] ?? 30)
             ->post($url, $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::error('Paystack initialization failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
@@ -72,7 +71,7 @@ class PaystackGateway implements Payable
             ]);
 
             throw new PaymentException(
-                "Paystack initialization failed: " . ($response->json()['message'] ?? 'Unknown error'),
+                'Paystack initialization failed: '.($response->json()['message'] ?? 'Unknown error'),
                 $response->status()
             );
         }
@@ -89,8 +88,6 @@ class PaystackGateway implements Payable
     /**
      * Verify payment by reference
      *
-     * @param Payment $payment
-     * @return array
      * @throws PaymentException
      */
     public function verify(Payment $payment): array
@@ -101,17 +98,14 @@ class PaystackGateway implements Payable
     /**
      * Verify payment from webhook data
      *
-     * @param array $webhookData
-     * @param Payment $payment
-     * @return array
      * @throws PaymentException
      */
     public function verifyWebhook(array $webhookData, Payment $payment): array
     {
         $reference = $webhookData['data']['reference'] ?? null;
 
-        if (!$reference) {
-            throw new PaymentException("Invalid webhook data: missing reference", 400);
+        if (! $reference) {
+            throw new PaymentException('Invalid webhook data: missing reference', 400);
         }
 
         return $this->verifyReference($reference);
@@ -119,16 +113,12 @@ class PaystackGateway implements Payable
 
     /**
      * Validate webhook signature from Paystack
-     *
-     * @param array $headers
-     * @param string $payload
-     * @return bool
      */
     public function validateWebhookSignature(array $headers, string $payload): bool
     {
         $signature = $headers['x-paystack-signature'][0] ?? null;
 
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
@@ -140,17 +130,14 @@ class PaystackGateway implements Payable
     /**
      * Verify payment from callback query parameters
      *
-     * @param array $query
-     * @param Payment $payment
-     * @return array
      * @throws PaymentException|ConnectionException
      */
     public function verifyCallback(array $query, Payment $payment): array
     {
         $reference = data_get($query, 'reference', null);
 
-        if (!$reference) {
-            throw new PaymentException("Invalid callback data: missing reference", 400);
+        if (! $reference) {
+            throw new PaymentException('Invalid callback data: missing reference', 400);
         }
 
         return $this->verifyReference($reference);
@@ -159,8 +146,6 @@ class PaystackGateway implements Payable
     /**
      * Verify transaction by reference
      *
-     * @param string $reference
-     * @return array
      * @throws ConnectionException
      * @throws PaymentException
      */
@@ -172,7 +157,7 @@ class PaystackGateway implements Payable
             ->timeout($this->config['settings']['timeout'] ?? 30)
             ->get($url);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::error('Paystack verification failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
@@ -180,7 +165,7 @@ class PaystackGateway implements Payable
             ]);
 
             throw new PaymentException(
-                "Transaction verification failed: " . ($response->json()['message'] ?? 'Unknown error'),
+                'Transaction verification failed: '.($response->json()['message'] ?? 'Unknown error'),
                 $response->status()
             );
         }
@@ -190,9 +175,6 @@ class PaystackGateway implements Payable
 
     /**
      * Extract and format verification data from Paystack response
-     *
-     * @param PromiseInterface|Response $response
-     * @return array
      */
     protected function extractVerificationData(PromiseInterface|Response $response): array
     {
@@ -221,9 +203,6 @@ class PaystackGateway implements Payable
     /**
      * Charge authorization (for recurring payments)
      *
-     * @param Payment $payment
-     * @param string $authorizationCode
-     * @return array
      * @throws PaymentException
      */
     public function chargeAuthorization(Payment $payment, string $authorizationCode): array
@@ -246,7 +225,7 @@ class PaystackGateway implements Payable
             ->timeout($this->config['settings']['timeout'] ?? 30)
             ->post($url, $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::error('Paystack charge authorization failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
@@ -254,7 +233,7 @@ class PaystackGateway implements Payable
             ]);
 
             throw new PaymentException(
-                "Charge authorization failed: " . ($response->json()['message'] ?? 'Unknown error'),
+                'Charge authorization failed: '.($response->json()['message'] ?? 'Unknown error'),
                 $response->status()
             );
         }
@@ -265,8 +244,6 @@ class PaystackGateway implements Payable
     /**
      * Get transaction timeline
      *
-     * @param string $reference
-     * @return array
      * @throws PaymentException|ConnectionException
      */
     public function getTransactionTimeline(string $reference): array
@@ -276,8 +253,8 @@ class PaystackGateway implements Payable
         $response = Http::withToken($this->config['credentials']['secret_key'])
             ->get($url);
 
-        if (!$response->successful()) {
-            throw new PaymentException("Failed to fetch transaction timeline", $response->status());
+        if (! $response->successful()) {
+            throw new PaymentException('Failed to fetch transaction timeline', $response->status());
         }
 
         return $response->json()['data'];
@@ -285,14 +262,12 @@ class PaystackGateway implements Payable
 
     /**
      * Check if transaction is pending
-     *
-     * @param string $reference
-     * @return bool
      */
     public function isTransactionPending(string $reference): bool
     {
         try {
             $data = $this->verifyReference($reference);
+
             return in_array($data['transaction_status'], ['pending', 'ongoing']);
         } catch (\Exception $e) {
             return false;
@@ -302,14 +277,10 @@ class PaystackGateway implements Payable
     /**
      * Get transaction details
      *
-     * @param string $reference
-     * @return array
      * @throws PaymentException|ConnectionException
      */
     public function getTransaction(string $reference): array
     {
         return $this->verifyReference($reference);
     }
-
-
 }

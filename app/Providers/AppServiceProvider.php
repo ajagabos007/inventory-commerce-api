@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Listeners\UserEventSubscriber;
 use App\Managers\CartManager;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
@@ -38,7 +37,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
-        Event::subscribe(UserEventSubscriber::class);
 
         $this->app->singleton('currentStore', function ($app) {
             $user = Auth::user();
@@ -67,4 +65,5 @@ class AppServiceProvider extends ServiceProvider
             require_once $helpers;
         }
     }
+
 }

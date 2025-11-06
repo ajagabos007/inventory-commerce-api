@@ -25,9 +25,9 @@ use Milon\Barcode\DNS1D;
 #[ObservedBy([ProductVariantObserver::class])]
 class ProductVariant extends Model
 {
+    use FlexibleRouteBinding;
     use HasAttachments;
     use HasAttributeValues;
-    use FlexibleRouteBinding;
 
     /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
@@ -71,7 +71,6 @@ class ProductVariant extends Model
             'metadata' => 'json',
         ];
     }
-
 
     /**
      * Return the sluggable configuration array for this model.

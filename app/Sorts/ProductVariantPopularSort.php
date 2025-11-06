@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Sorts;
 
 use Illuminate\Database\Eloquent\Builder;

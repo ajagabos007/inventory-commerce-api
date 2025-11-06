@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Sorts;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -20,9 +21,9 @@ class ProductTrendingSort implements Sort
             ->where('sales.created_at', '>=', $startDate)
             ->groupBy('product_variants.product_id');
 
-            $query->leftJoinSub($salesSubquery, 'product_trending_sort', function ($join) {
-                $join->on('products.id', '=', 'product_trending_sort.product_id');
-            });
+        $query->leftJoinSub($salesSubquery, 'product_trending_sort', function ($join) {
+            $join->on('products.id', '=', 'product_trending_sort.product_id');
+        });
 
         // Select products and aggregated sales
         $query->select('products.*')

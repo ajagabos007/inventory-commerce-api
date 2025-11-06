@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 class CheckoutValidationException extends Exception
 {
     protected array $errors;
+
     protected int $statusCode = 422;
 
     public function __construct(array $errors, string $message = 'Validation failed')

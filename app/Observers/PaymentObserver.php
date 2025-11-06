@@ -11,10 +11,11 @@ class PaymentObserver
      */
     public function creating(Payment $payment): void
     {
-        if(blank($payment->transaction_reference)){
+        if (blank($payment->transaction_reference)) {
             $payment->transaction_reference = Payment::genTranxRef();
         }
     }
+
     /**
      * Handle the Payment "created" event.
      */

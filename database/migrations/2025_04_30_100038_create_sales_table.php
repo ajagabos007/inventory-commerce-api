@@ -34,6 +34,7 @@ return new class extends Migration
                 ->constrained('discounts')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
+            $table->decimal('discount_amount', 10, 2)->default(0);
             $table->decimal('tax', 10, 2)->default(0);
             $table->decimal('subtotal_price', 10, 2)->default(0);
             $table->decimal('total_price', 10, 2)->default(0);

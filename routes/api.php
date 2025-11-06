@@ -37,7 +37,6 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WishListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,13 +98,11 @@ Route::prefix('e-commerce/checkout')->name('e-commerce.checkout.')->group(functi
     });
 });
 
-
 Route::get('/callbacks/payment/{gateway}', [PaymentController::class, 'callback'])
     ->name('payment.callback');
 
 Route::post('/webhooks/payment/{gateway}', [PaymentController::class, 'webhook'])
     ->name('payment.webhook');
-
 
 Route::controller(CartECommerceController::class)->group(function () {
     Route::name('e-commerce.cart-items')->prefix('e-commerce/cart-items')->group(function () {
@@ -156,6 +153,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::name('payments.')->prefix('payments/')->group(function () {
             Route::get('analytics', 'analytics')->name('analytics');
             Route::post('{payment}/verify', 'verify')->name('verify');
+            Route::post('{payment}/reinitialize', 'reinitialize')->name('initialize');
         });
     });
     Route::resource('payments', PaymentController::class)

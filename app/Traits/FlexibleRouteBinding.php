@@ -18,7 +18,6 @@ trait FlexibleRouteBinding
      *
      * @param  mixed  $value
      * @param  string|null  $field
-     * @return Model|null
      */
     public function resolveRouteBinding($value, $field = null): ?Model
     {

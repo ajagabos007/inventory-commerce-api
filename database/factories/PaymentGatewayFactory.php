@@ -21,14 +21,13 @@ class PaymentGatewayFactory extends Factory
     /**
      * Create a gateway instance
      *
-     * @param string $gatewayName
-     * @return Payable
      * @throws PaymentException
      */
-    public static function createGateway(string $gatewayName): Payable {
+    public static function createGateway(string $gatewayName): Payable
+    {
         $gatewayName = strtolower(trim($gatewayName));
 
-        if (!isset(self::$gateways[$gatewayName])) {
+        if (! isset(self::$gateways[$gatewayName])) {
             throw new PaymentException(
                 "Unsupported payment gateway: {$gatewayName}",
                 400
@@ -36,18 +35,18 @@ class PaymentGatewayFactory extends Factory
         }
 
         $gatewayClass = self::$gateways[$gatewayName];
-        return new $gatewayClass();
+
+        return new $gatewayClass;
     }
 
     /**
      * Register a new gateway
-     *
-     * @param string $name
-     * @param string $class
      */
-    public static function register(string $name, string $class): void {
+    public static function register(string $name, string $class): void
+    {
         self::$gateways[strtolower($name)] = $class;
     }
+
     /**
      * Define the model's default state.
      *

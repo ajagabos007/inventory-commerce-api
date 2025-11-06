@@ -4,8 +4,8 @@ namespace App\Interfaces;
 
 use App\Models\Payment;
 
-interface Payable {
-
+interface Payable
+{
     public function __construct(array $config);
 
     /**

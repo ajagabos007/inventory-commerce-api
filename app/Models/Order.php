@@ -25,8 +25,8 @@ class Order extends Model
 
     use HasPayments;
     use HasUuids;
-    use Scopeable;
     use ModelRequestLoader;
+    use Scopeable;
 
     /**
      * The attributes that are mass assignable.
@@ -37,6 +37,7 @@ class Order extends Model
         'user_id',
         'store_id',
         'discount_id',
+        'discount_amount',
         'reference',
         'full_name',
         'phone_number',
@@ -97,10 +98,9 @@ class Order extends Model
     public static function genReference(): string
     {
         do {
-            $ref =  'ORD-' . Str::upper(Str::random(8));
+            $ref = 'ORD-'.Str::upper(Str::random(8));
         } while (static::where('reference', $ref)->exists());
 
         return $ref;
     }
-
 }

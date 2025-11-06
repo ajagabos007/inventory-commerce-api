@@ -11,7 +11,7 @@ class OrderObserver
      */
     public function creating(Order $order): void
     {
-        if(blank($order->reference)) {
+        if (blank($order->reference)) {
             $order->reference = Order::genReference();
         }
     }

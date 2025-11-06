@@ -5,12 +5,13 @@ namespace App\Managers;
 use App\Facades\Cart;
 use App\Models\User;
 use App\Models\WishList;
-use \Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Str;
 
 class WishListManager
 {
     protected ?string $sessionToken;
+
     protected Authenticatable|null|User $user;
 
     public function __construct()
@@ -50,13 +51,13 @@ class WishListManager
         }
 
         return WishList::create([
-            'item_id'       => $itemId,
-            'item_type'     => $itemType,
-            'item_name'     => $snapshot['name'] ?? null,
-            'item_image'    => $snapshot['image'] ?? null,
-            'item_price'    => $snapshot['price'] ?? null,
-            'options'       => $options,
-            'user_id'       => $this->user?->id,
+            'item_id' => $itemId,
+            'item_type' => $itemType,
+            'item_name' => $snapshot['name'] ?? null,
+            'item_image' => $snapshot['image'] ?? null,
+            'item_price' => $snapshot['price'] ?? null,
+            'options' => $options,
+            'user_id' => $this->user?->id,
             'session_token' => $this->user ? null : $this->sessionToken,
         ]);
     }
@@ -86,7 +87,7 @@ class WishListManager
     {
         return WishList::query()
             ->when($this->user, fn ($q) => $q->where('user_id', $this->user->id))
-            ->when(!$this->user, fn ($q) => $q->where('session_token', $this->sessionToken))
+            ->when(! $this->user, fn ($q) => $q->where('session_token', $this->sessionToken))
             ->get();
     }
 
@@ -97,23 +98,23 @@ class WishListManager
     {
         $item = WishList::query()
             ->when($this->user, fn ($q) => $q->where('user_id', $this->user->id))
-            ->when(!$this->user, fn ($q) => $q->where('session_token', $this->sessionToken))
+            ->when(! $this->user, fn ($q) => $q->where('session_token', $this->sessionToken))
             ->where('item_id', $itemId)
             ->where('item_type', $itemType)
             ->first();
 
-        if (!$item) {
+        if (! $item) {
             return false;
         }
 
         // Add to cart (assuming Cart facade supports it)
         Cart::add([
-            'item_id'   => $item->item_id,
+            'item_id' => $item->item_id,
             'item_type' => $item->item_type,
-            'name'      => $item->item_name,
-            'price'     => $item->item_price,
-            'image'     => $item->item_image,
-            'options'   => $item->options ?? [],
+            'name' => $item->item_name,
+            'price' => $item->item_price,
+            'image' => $item->item_image,
+            'options' => $item->options ?? [],
         ]);
 
         // Remove from wishlist
@@ -129,7 +130,7 @@ class WishListManager
     {
         $query = WishList::query()
             ->when($this->user, fn ($q) => $q->where('user_id', $this->user->id))
-            ->when(!$this->user, fn ($q) => $q->where('session_token', $this->sessionToken));
+            ->when(! $this->user, fn ($q) => $q->where('session_token', $this->sessionToken));
 
         return $query->delete();
     }

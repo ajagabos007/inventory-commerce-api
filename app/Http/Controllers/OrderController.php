@@ -27,9 +27,9 @@ class OrderController extends Controller
     public function index()
     {
         $orderQ = Order::query();
-//                    ->forUser(auth()->user());
+        //                    ->forUser(auth()->user());
 
-      $orders = QueryBuilder::for($orderQ)
+        $orders = QueryBuilder::for($orderQ)
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',

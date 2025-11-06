@@ -69,7 +69,7 @@ class ProductVariantController extends Controller
                 AllowedFilter::scope('popular_from', 'popularFrom'),
                 AllowedFilter::scope('popular_to', 'popularTo'),
             ])
-            ->when(request()->filled('q'),function($query){
+            ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);
             })
             ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
@@ -77,7 +77,7 @@ class ProductVariantController extends Controller
 
                 return $query->paginate($perPage)
                     ->appends(request()->query());
-            }, function($query){
+            }, function ($query) {
                 return $query->get();
             });
 

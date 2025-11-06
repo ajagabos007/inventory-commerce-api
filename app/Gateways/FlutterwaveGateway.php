@@ -2,32 +2,35 @@
 
 namespace App\Gateways;
 
+use App\Exceptions\PaymentException;
 use App\Interfaces\Payable;
 use App\Models\Payment;
-use App\Exceptions\PaymentException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class FlutterwaveGateway implements Payable {
-
+class FlutterwaveGateway implements Payable
+{
     protected array $config;
+
     protected string $baseUrl = 'https://api.flutterwave.com/v3';
 
-    public function __construct(array $config) {
+    public function __construct(array $config)
+    {
         $this->config = $config;
     }
 
-    public function initialize(Payment $payment): array {
+    public function initialize(Payment $payment): array
+    {
         $url = "{$this->baseUrl}/payments";
 
         $payload = [
             'tx_ref' => $payment->transaction_reference,
             'amount' => $payment->amount,
             'currency' => $payment->currency ?? 'NGN',
-            'redirect_url' => $payment->callback_url ?? route('api.payment.callback','flutterwave'),
+            'redirect_url' => $payment->callback_url ?? route('api.payment.callback', 'flutterwave'),
             'customer' => [
                 'email' => $payment->user?->email ?? $payment->email,
                 'phone_number' => $payment->user?->phone_number ?? $payment->phone_number,
@@ -46,7 +49,7 @@ class FlutterwaveGateway implements Payable {
             ->timeout($this->config['settings']['timeout'] ?? 30)
             ->post($url, $payload);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::error('Flutterwave initialization failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
@@ -54,7 +57,7 @@ class FlutterwaveGateway implements Payable {
             ]);
 
             throw new PaymentException(
-                "Flutterwave initialization failed: " . ($response->json()['message'] ?? 'Unknown error'),
+                'Flutterwave initialization failed: '.($response->json()['message'] ?? 'Unknown error'),
                 $response->status()
             );
         }
@@ -72,21 +75,23 @@ class FlutterwaveGateway implements Payable {
         return $this->verifyReference($payment->gateway_reference);
     }
 
-    public function verifyWebhook(array $webhookData, Payment $payment): array {
+    public function verifyWebhook(array $webhookData, Payment $payment): array
+    {
         $transactionId = $webhookData['data']['id'] ?? null;
 
-        if (!$transactionId) {
-            throw new PaymentException("Invalid webhook data: missing transaction ID", 400);
+        if (! $transactionId) {
+            throw new PaymentException('Invalid webhook data: missing transaction ID', 400);
         }
 
-        return  $this->verifyTransaction($transactionId);
+        return $this->verifyTransaction($transactionId);
     }
 
-    public function validateWebhookSignature(array $headers, string $payload): bool {
+    public function validateWebhookSignature(array $headers, string $payload): bool
+    {
         $signature = $headers['verif-hash'][0] ?? null;
         $secretHash = $this->config['credentials']['secret_hash'] ?? $this->config['credentials']['encryption_key'] ?? null;
 
-        if (!$signature) {
+        if (! $signature) {
             return false;
         }
 
@@ -97,50 +102,46 @@ class FlutterwaveGateway implements Payable {
     {
         $transactionId = data_get($query, 'transaction_id', null);
 
-        if (!$transactionId) {
-            throw new PaymentException("Invalid callback data: missing transaction id", 400);
+        if (! $transactionId) {
+            throw new PaymentException('Invalid callback data: missing transaction id', 400);
         }
 
-        return  $this->verifyTransaction($transactionId);
+        return $this->verifyTransaction($transactionId);
     }
 
     /**
-     * @param string $transactionId
-     * @return array
      * @throws ConnectionException
      * @throws PaymentException
      */
-    public function verifyTransaction(string $transactionId): array {
+    public function verifyTransaction(string $transactionId): array
+    {
 
         $url = "{$this->baseUrl}/transactions/{$transactionId}/verify";
 
         $response = Http::withToken($this->config['credentials']['secret_key'])
             ->get($url);
 
-        if (!$response->successful()) {
-            throw new PaymentException("Transaction verification failed", $response->status());
+        if (! $response->successful()) {
+            throw new PaymentException('Transaction verification failed', $response->status());
         }
 
         return $this->extracted($response);
     }
 
-    public function verifyReference(string $reference): array {
+    public function verifyReference(string $reference): array
+    {
         $url = "{$this->baseUrl}/transactions/verify_by_reference?tx_ref={$reference}";
 
         $response = Http::withToken($this->config['credentials']['secret_key'])
             ->get($url);
 
-        if (!$response->successful()) {
-            throw new PaymentException("Reference verification failed", $response->status());
+        if (! $response->successful()) {
+            throw new PaymentException('Reference verification failed', $response->status());
         }
 
         return $this->extracted($response);
     }
 
-    /**
-     * @param PromiseInterface|Response $response
-     * @return array
-     */
     public function extracted(PromiseInterface|Response $response): array
     {
         $data = $response->json()['data'];

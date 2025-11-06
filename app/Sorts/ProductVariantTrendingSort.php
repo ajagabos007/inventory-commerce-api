@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Sorts;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -6,7 +7,6 @@ use Spatie\QueryBuilder\Sorts\Sort;
 
 class ProductVariantTrendingSort implements Sort
 {
-
     public function __invoke(Builder $query, bool $descending, string $property): Builder
     {
         $days = request()->input('trending_days', 30);

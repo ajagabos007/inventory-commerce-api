@@ -22,14 +22,13 @@ use Illuminate\Support\Facades\Storage;
 #[ObservedBy([CategoryObserver::class])]
 class Category extends Model
 {
+    use FlexibleRouteBinding;
+
     /** @use HasFactory<CategoryFactory> */
     use HasFactory;
-
     use HasUuids;
     use ModelRequestLoader;
     use Sluggable;
-    use FlexibleRouteBinding;
-
 
     /**
      * The attributes that are mass assignable.
@@ -115,7 +114,6 @@ class Category extends Model
      * Update the user's profile photo.
      *
      * @param  string  $storagePath
-     * @return void
      */
     public function updateImage(UploadedFile|string $image, $storagePath = 'images'): void
     {

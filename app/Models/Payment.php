@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use App\Observers\PaymentObserver;
@@ -21,6 +22,7 @@ class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
     use Scopeable;
@@ -208,7 +210,7 @@ class Payment extends Model
     }
 
     /**
-     * Scope: Verified payments
+     * Scope: PaymentVerified payments
      */
     public function scopeIsVerified(Builder $query, bool $isVerified = true): Builder
     {
@@ -279,7 +281,7 @@ class Payment extends Model
     {
         return $query->whereBetween('created_at', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -290,7 +292,7 @@ class Payment extends Model
     {
         return $query->whereBetween('created_at', [
             now()->startOfMonth(),
-            now()->endOfMonth()
+            now()->endOfMonth(),
         ]);
     }
 
@@ -301,7 +303,6 @@ class Payment extends Model
     {
         return $query->whereYear('created_at', now()->year);
     }
-
 
     // ============================================
     // AMOUNT SCOPES
@@ -499,7 +500,6 @@ class Payment extends Model
             ->where('created_at', '>=', now()->subHours($hours));
     }
 
-
     /**
      * Scope: Suspicious payments (multiple pending/failed)
      */
@@ -587,7 +587,7 @@ class Payment extends Model
      */
     public static function genTranxRef(): string
     {
-        return 'TXN_' . strtoupper((string) Str::ulid());
+        return 'TXN_'.strtoupper((string) Str::ulid());
     }
 
     /**
@@ -615,7 +615,7 @@ class Payment extends Model
     /**
      * Mark payment as failed
      */
-    public function markAsFailed(string $reason = null): bool
+    public function markAsFailed(?string $reason = null): bool
     {
         $data = ['status' => 'failed'];
 

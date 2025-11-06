@@ -14,6 +14,7 @@ class WishList extends Model
 {
     /** @use HasFactory<WishListFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
     use Scopeable;
@@ -38,7 +39,7 @@ class WishList extends Model
     protected function casts(): array
     {
         return [
-            'options' => 'array'
+            'options' => 'array',
         ];
     }
 
@@ -57,5 +58,4 @@ class WishList extends Model
             default => $query->whereRaw('1 = 0'), // No match
         };
     }
-
 }

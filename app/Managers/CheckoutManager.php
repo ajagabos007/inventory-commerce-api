@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Managers;
 
+use App\Exceptions\CheckoutValidationException;
 use App\Facades\Cart;
 use App\Models\CheckoutSession;
 use App\Models\Coupon;
@@ -8,7 +10,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PaymentGateway;
-use App\Exceptions\CheckoutValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -279,36 +280,36 @@ class CheckoutManager
 
         // Validate cart items
         $itemErrors = $this->validateItems($data);
-        if (!empty($itemErrors)) {
+        if (! empty($itemErrors)) {
             $errors['items'] = $itemErrors;
         }
 
         // Validate billing address
         $billingErrors = $this->validateBillingAddress($data);
-        if (!empty($billingErrors)) {
+        if (! empty($billingErrors)) {
             $errors['billing_address'] = $billingErrors;
         }
 
         // Validate delivery address
         $deliveryErrors = $this->validateDeliveryAddress($data);
-        if (!empty($deliveryErrors)) {
+        if (! empty($deliveryErrors)) {
             $errors['delivery_address'] = $deliveryErrors;
         }
 
         // Validate payment gateway
         $gatewayErrors = $this->validatePaymentGateway($data);
-        if (!empty($gatewayErrors)) {
+        if (! empty($gatewayErrors)) {
             $errors['payment_gateway_id'] = $gatewayErrors;
         }
 
         // Validate order totals
         $amountErrors = $this->validateOrderAmount($data);
-        if (!empty($amountErrors)) {
+        if (! empty($amountErrors)) {
             $errors['amount'] = $amountErrors;
         }
 
         // If there are validation errors, throw exception
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             throw new CheckoutValidationException(
                 $errors,
                 'Please complete all required information before proceeding to payment.'
@@ -323,13 +324,15 @@ class CheckoutManager
     {
         $errors = [];
 
-        if (empty($data['items']) || !is_array($data['items'])) {
+        if (empty($data['items']) || ! is_array($data['items'])) {
             $errors[] = 'Your cart is empty. Please add items before proceeding to checkout.';
+
             return $errors;
         }
 
         if (count($data['items']) === 0) {
             $errors[] = 'Your cart is empty. Please add items before proceeding to checkout.';
+
             return $errors;
         }
 
@@ -340,11 +343,11 @@ class CheckoutManager
                 $errors[] = "Item #{$itemPosition}: Product information is missing.";
             }
 
-            if (empty($item['quantity']) || !is_numeric($item['quantity']) || $item['quantity'] < 1) {
+            if (empty($item['quantity']) || ! is_numeric($item['quantity']) || $item['quantity'] < 1) {
                 $errors[] = "Item #{$itemPosition}: Invalid quantity.";
             }
 
-            if (!isset($item['price']) || !is_numeric($item['price']) || $item['price'] < 0) {
+            if (! isset($item['price']) || ! is_numeric($item['price']) || $item['price'] < 0) {
                 $errors[] = "Item #{$itemPosition}: Invalid price.";
             }
 
@@ -365,6 +368,7 @@ class CheckoutManager
 
         if (empty($data['billing_address'])) {
             $errors[] = 'Billing address is required. Please provide your billing information.';
+
             return [];
         }
 
@@ -387,13 +391,13 @@ class CheckoutManager
         }
 
         // Validate email format
-        if (!empty($billing['email']) && !filter_var($billing['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Invalid email format in billing address.";
+        if (! empty($billing['email']) && ! filter_var($billing['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Invalid email format in billing address.';
         }
 
         // Validate phone number format
-        if (!empty($billing['phone_number']) && !preg_match('/^[\d\s\+\-\(\)]+$/', $billing['phone_number'])) {
-            $errors[] = "Invalid phone number format in billing address.";
+        if (! empty($billing['phone_number']) && ! preg_match('/^[\d\s\+\-\(\)]+$/', $billing['phone_number'])) {
+            $errors[] = 'Invalid phone number format in billing address.';
         }
 
         return [];
@@ -408,6 +412,7 @@ class CheckoutManager
 
         if (empty($data['delivery_address'])) {
             $errors[] = 'Delivery address is required. Please provide your delivery information.';
+
             return $errors;
         }
 
@@ -431,13 +436,13 @@ class CheckoutManager
         }
 
         // Validate email format
-        if (!empty($delivery['email']) && !filter_var($delivery['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Invalid email format in delivery address.";
+        if (! empty($delivery['email']) && ! filter_var($delivery['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Invalid email format in delivery address.';
         }
 
         // Validate phone number format
-        if (!empty($delivery['phone_number']) && !preg_match('/^[\d\s\+\-\(\)]+$/', $delivery['phone_number'])) {
-            $errors[] = "Invalid phone number format in delivery address.";
+        if (! empty($delivery['phone_number']) && ! preg_match('/^[\d\s\+\-\(\)]+$/', $delivery['phone_number'])) {
+            $errors[] = 'Invalid phone number format in delivery address.';
         }
 
         return $errors;
@@ -452,19 +457,22 @@ class CheckoutManager
 
         if (empty($data['payment_gateway_id'])) {
             $errors[] = 'Please select a payment method to continue.';
+
             return $errors;
         }
 
         // Check if gateway exists and is enabled
         $gateway = PaymentGateway::find($data['payment_gateway_id']);
 
-        if (!$gateway) {
+        if (! $gateway) {
             $errors[] = 'Selected payment method does not exist. Please choose another payment option.';
+
             return $errors;
         }
 
         if ($gateway->is_disabled) {
             $errors[] = 'Selected payment method is currently unavailable. Please choose another payment option.';
+
             return $errors;
         }
 
@@ -472,7 +480,7 @@ class CheckoutManager
         $mode = $gateway->mode;
         $config = $gateway->configs()->where('mode', $mode)->first();
 
-        if (!$config) {
+        if (! $config) {
             $errors[] = 'Payment method is not properly configured. Please contact support or choose another payment option.';
         }
 
@@ -491,19 +499,20 @@ class CheckoutManager
 
         if ($amount <= 0) {
             $errors[] = 'Order total must be greater than zero.';
+
             return $errors;
         }
 
         // Validate minimum amount
         $minAmount = config('payment.minimum_amount', 100);
         if ($amount < $minAmount) {
-            $errors[] = "Order total must be at least ₦".number_format($minAmount, 2).".";
+            $errors[] = 'Order total must be at least ₦'.number_format($minAmount, 2).'.';
         }
 
         // Validate maximum amount
         $maxAmount = config('payment.maximum_amount', 10000000);
         if ($amount > $maxAmount) {
-            $errors[] = "Order total cannot exceed ₦".number_format($maxAmount, 2).".";
+            $errors[] = 'Order total cannot exceed ₦'.number_format($maxAmount, 2).'.';
         }
 
         return $errors;
@@ -515,11 +524,12 @@ class CheckoutManager
     private function getNestedValue(array $address, string $field): mixed
     {
         // Direct field access
-        if (isset($address[$field]) && !empty($address[$field])) {
+        if (isset($address[$field]) && ! empty($address[$field])) {
             // If it's an array (nested object like country/state/city), check for name
             if (is_array($address[$field])) {
                 return $address[$field]['name'] ?? $address[$field]['id'] ?? null;
             }
+
             return $address[$field];
         }
 

@@ -30,8 +30,10 @@ class Product extends Model
     use HasAttachments;
     use HasAttributeValues;
     use HasCategories;
+
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
+
     use HasUuids;
     use ModelRequestLoader;
     use Scopeable;
@@ -171,13 +173,10 @@ class Product extends Model
         });
     }
 
-
     /**
      * Scope: Popular products - OPTIMIZED VERSION (No GROUP BY issues)
      *
-     * @param Builder $query
-     * @param bool $ordered If true, order by most sold. If false, just get products with sales.
-     * @return Builder
+     * @param  bool  $ordered  If true, order by most sold. If false, just get products with sales.
      */
     public function scopePopular(Builder $query, bool $ordered = true): Builder
     {
@@ -194,15 +193,13 @@ class Product extends Model
         $query->leftJoinSub($salesSubquery, 'popular_sales', function ($join) {
             $join->on('products.id', '=', 'popular_sales.product_id');
         })
-        ->addSelect('products.*')
-        ->addSelect(DB::raw('COALESCE(popular_sales.total_sold, 0) as popular_total_sold'))
-        ->when($ordered, function ($q) {
-            $q->orderByDesc('popular_total_sold');
-        }, function ($q) {
-            $q->havingRaw('COALESCE(popular_total_sold, 0) > 0');
-        });
-
-
+            ->addSelect('products.*')
+            ->addSelect(DB::raw('COALESCE(popular_sales.total_sold, 0) as popular_total_sold'))
+            ->when($ordered, function ($q) {
+                $q->orderByDesc('popular_total_sold');
+            }, function ($q) {
+                $q->havingRaw('COALESCE(popular_total_sold, 0) > 0');
+            });
 
         return $query;
     }
@@ -210,10 +207,6 @@ class Product extends Model
     /**
      * ALTERNATIVE: More efficient version using subquery
      * RECOMMENDED for better performance and no GROUP BY issues
-     *
-     * @param Builder $query
-     * @param bool $ordered
-     * @return Builder
      */
     public function scopePopularOptimized(Builder $query, bool $ordered = true): Builder
     {
@@ -245,9 +238,7 @@ class Product extends Model
     /**
      * Scope: Trending products (recent sales across all variants)
      *
-     * @param Builder $query
-     * @param int $days Number of days to look back
-     * @return Builder
+     * @param  int  $days  Number of days to look back
      */
     public function scopeTrending(Builder $query, int $days = 30): Builder
     {
@@ -275,9 +266,6 @@ class Product extends Model
 
     /**
      * Scope: Products that have at least one sale
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeHasSales(Builder $query): Builder
     {
@@ -286,14 +274,11 @@ class Product extends Model
         });
     }
 
-
     /**
      * Scope: Top selling products (limited)
      * FIXED: Now uses the optimized popular scope
      *
-     * @param Builder $query
-     * @param int $limit Number of products to return
-     * @return Builder
+     * @param  int  $limit  Number of products to return
      */
     public function scopeTopSelling(Builder $query, int $limit = 10): Builder
     {
@@ -320,9 +305,7 @@ class Product extends Model
     /**
      * Scope: Popular products from specific date
      *
-     * @param Builder $query
-     * @param string $date Start date
-     * @return Builder
+     * @param  string  $date  Start date
      */
     public function scopePopularFrom(Builder $query, string $date): Builder
     {
@@ -349,9 +332,7 @@ class Product extends Model
     /**
      * Scope: Popular products up to specific date
      *
-     * @param Builder $query
-     * @param string $date End date
-     * @return Builder
+     * @param  string  $date  End date
      */
     public function scopePopularTo(Builder $query, string $date): Builder
     {
@@ -377,11 +358,6 @@ class Product extends Model
 
     /**
      * Scope: Popular products in date range
-     *
-     * @param Builder $query
-     * @param string $startDate
-     * @param string $endDate
-     * @return Builder
      */
     public function scopePopularInPeriod(Builder $query, string $startDate, string $endDate, string $alias): Builder
     {
@@ -396,7 +372,8 @@ class Product extends Model
             })
             ->groupBy('product_variants.product_id');
         $alias = $alias ?: 'popular_in_period';
-        return $query->leftJoinSub($salesSubquery, "$alias", function ($join)use ($alias) {
+
+        return $query->leftJoinSub($salesSubquery, "$alias", function ($join) use ($alias) {
             $join->on('products.id', '=', "{$alias}.product_id");
         })
             ->addSelect('products.*')
@@ -407,13 +384,10 @@ class Product extends Model
 
     /**
      * Scope: Best sellers this week
-     *
-     * @param Builder $query
-     * @return Builder
      */
-    public function scopeBestSellersThisWeek(Builder $query, bool $true=true): Builder
+    public function scopeBestSellersThisWeek(Builder $query, bool $true = true): Builder
     {
-        if(!$true){
+        if (! $true) {
             return $query;
         }
 
@@ -425,13 +399,10 @@ class Product extends Model
 
     /**
      * Scope: Best sellers this month
-     *
-     * @param Builder $query
-     * @return Builder
      */
-    public function scopeBestSellersThisMonth(Builder $query, bool $true=true): Builder
+    public function scopeBestSellersThisMonth(Builder $query, bool $true = true): Builder
     {
-        if(!$true){
+        if (! $true) {
             return $query;
         }
 
@@ -440,7 +411,6 @@ class Product extends Model
 
         return $query->popularInPeriod($startOfMonth, $endOfMonth, 'best_sellers_this_month');
     }
-
 
     /**
      * Scope inventories low in stock

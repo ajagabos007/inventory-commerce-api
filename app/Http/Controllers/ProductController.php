@@ -13,12 +13,12 @@ use App\Models\AttributeValue;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Store;
+use App\Sorts\ProductPopularSort;
+use App\Sorts\ProductTrendingSort;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
-use App\Sorts\ProductPopularSort;
-use App\Sorts\ProductTrendingSort;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
@@ -47,8 +47,8 @@ class ProductController extends Controller
                 'barcode',
                 'created_at',
                 'updated_at',
-                AllowedSort::custom('popular', new ProductPopularSort()),
-                AllowedSort::custom('trending', new ProductTrendingSort()),
+                AllowedSort::custom('popular', new ProductPopularSort),
+                AllowedSort::custom('trending', new ProductTrendingSort),
             )
             ->allowedIncludes([
                 'images',
@@ -79,7 +79,7 @@ class ProductController extends Controller
                 AllowedFilter::scope('best_sellers_month', 'bestSellersThisMonth'),
 
             ])
-            ->when(request()->filled('q'),function($query){
+            ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);
             })
             ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
@@ -87,9 +87,10 @@ class ProductController extends Controller
 
                 return $query->paginate($perPage)
                     ->appends(request()->query());
-            }, function($query){
+            }, function ($query) {
                 return $query->get();
             });
+
         return ProductResource::collection($products)->additional([
             'status' => 'success',
             'message' => 'Products retrieved successfully',

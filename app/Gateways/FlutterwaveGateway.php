@@ -5,7 +5,9 @@ namespace App\Gateways;
 use App\Interfaces\Payable;
 use App\Models\Payment;
 use App\Exceptions\PaymentException;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -136,10 +138,10 @@ class FlutterwaveGateway implements Payable {
     }
 
     /**
-     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
+     * @param PromiseInterface|Response $response
      * @return array
      */
-    public function extracted(\GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response): array
+    public function extracted(PromiseInterface|Response $response): array
     {
         $data = $response->json()['data'];
 

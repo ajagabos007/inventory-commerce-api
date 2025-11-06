@@ -8,6 +8,7 @@ use App\Traits\FlexibleRouteBinding;
 use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
 use App\Traits\ModelRequestLoader;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,7 +33,8 @@ class ProductVariant extends Model
 
     use HasUuids;
     use ModelRequestLoader;
-    use FlexibleRouteBinding;
+//    use FlexibleRouteBinding;
+    use Sluggable;
 
 
     /**
@@ -44,6 +46,7 @@ class ProductVariant extends Model
         'product_id',
         'name',
         'sku',
+        'slug',
         'barcode',
         'price',
         'compare_price',
@@ -67,6 +70,19 @@ class ProductVariant extends Model
     {
         return [
             'metadata' => 'json',
+        ];
+    }
+
+
+    /**
+     * Return the sluggable configuration array for this model.
+     */
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+            ],
         ];
     }
 

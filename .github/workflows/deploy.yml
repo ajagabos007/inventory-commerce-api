@@ -41,6 +41,7 @@ jobs:
             echo "⚙️ Running Laravel setup..."
             php artisan migrate --force
             php artisan world:install
+            php artisan app:slugify-product-variant
             php artisan optimize:clear
 
             chown www-data:www-data storage -R
@@ -89,6 +90,7 @@ jobs:
             php artisan db:seed --class=PaymentGatewaySeeder --force
             php artisan world:install
             php artisan optimize:clear
+            php artisan app:slugify-product-variant
 
             chown www-data:www-data storage -R
             chmod -R 775 storage

@@ -33,7 +33,7 @@ class ProductVariant extends Model
 
     use HasUuids;
     use ModelRequestLoader;
-//    use FlexibleRouteBinding;
+    use FlexibleRouteBinding;
     use Sluggable;
 
 

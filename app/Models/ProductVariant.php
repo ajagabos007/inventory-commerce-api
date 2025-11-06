@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\InventoryStatus;
 use App\Observers\ProductVariantObserver;
+use App\Traits\FlexibleRouteBinding;
 use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
 use App\Traits\ModelRequestLoader;
@@ -31,6 +32,8 @@ class ProductVariant extends Model
 
     use HasUuids;
     use ModelRequestLoader;
+    use FlexibleRouteBinding;
+
 
     /**
      * The attributes that are mass assignable.
@@ -222,7 +225,6 @@ class ProductVariant extends Model
             ->groupBy('product_variants.id')
             ->orderByDesc('total_sold');
     }
-
 
     /**
      * Get the item's name

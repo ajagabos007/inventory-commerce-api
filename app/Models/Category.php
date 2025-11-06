@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\CategoryObserver;
+use App\Traits\FlexibleRouteBinding;
 use App\Traits\ModelRequestLoader;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\CategoryFactory;
@@ -27,6 +28,8 @@ class Category extends Model
     use HasUuids;
     use ModelRequestLoader;
     use Sluggable;
+    use FlexibleRouteBinding;
+
 
     /**
      * The attributes that are mass assignable.

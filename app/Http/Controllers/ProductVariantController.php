@@ -53,6 +53,7 @@ class ProductVariantController extends Controller
 
                 'attributeValues.id',
                 'attributeValues.attribute.id',
+                'product.categories.id',
                 'product.attributeValues.id',
                 'product.attributeValues.attribute.id',
                 AllowedFilter::scope('low_stock', 'lowStock'),

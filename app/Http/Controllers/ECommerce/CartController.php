@@ -65,6 +65,7 @@ class CartController extends Controller
             'image_url' => $image_url,
             'itemable_id' => $inventory->id,
             'itemable_type' => get_class($inventory),
+            'itemable' => $inventory->toArray(),
             'price' => $inventory->productVariant->price,
         ];
 

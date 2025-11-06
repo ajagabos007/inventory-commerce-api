@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\InventoryStatus;
 use App\Observers\ProductObserver;
+use App\Traits\FlexibleRouteBinding;
 use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
 use App\Traits\HasCategories;
@@ -25,16 +26,15 @@ use Illuminate\Support\Facades\DB;
 #[ObservedBy([ProductObserver::class])]
 class Product extends Model
 {
+    use FlexibleRouteBinding;
     use HasAttachments;
     use HasAttributeValues;
     use HasCategories;
-    use Scopeable;
-
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
-
     use HasUuids;
     use ModelRequestLoader;
+    use Scopeable;
     use Sluggable;
 
     /**

@@ -325,7 +325,12 @@ class PaymentController extends Controller
         return match (strtolower($gateway)) {
             'paystack' => $data['data']['reference'] ?? $data['reference'] ?? $data['trxref'] ?? null,
             'flutterwave' => $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
-            default => $data['data']['reference'] ?? $data['data']['tx_ref'] ?? $data['tx_ref'] ?? null,
+            default => $data['data']['reference']
+                ?? $data['data']['tx_ref']
+                ?? $data['tx_ref']
+                ?? $data['trxref']
+                ?? $data['reference']
+                ?? null ,
         };
     }
 

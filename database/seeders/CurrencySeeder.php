@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Currency;
 use Illuminate\Database\Seeder;
 
 class CurrencySeeder extends Seeder
@@ -12,6 +12,18 @@ class CurrencySeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        if (Currency::exists()) {
+            return;
+        }
+
+        $naira = Currency::factory()->create([
+            'name' => 'Naira',
+            'code' => 'NGN',
+            'symbol' => '₦',
+            'exchange_rate' => 1472.15,
+            'is_default' => true,
+            'disabled_at' => null,
+            'disabled_reason' => null,
+        ]);
     }
 }

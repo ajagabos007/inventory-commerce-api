@@ -100,11 +100,10 @@ class CheckoutController extends Controller
                 'discount',
                 'cashier.user',
             ]);
-            $sale_resource = (new SaleResource($sale))->additional([
-                'message' => 'Checkout successfuly successfully',
-            ]);
 
-            return $sale_resource;
+            return (new SaleResource($sale))->additional([
+                'message' => 'Checkout  successfully',
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();

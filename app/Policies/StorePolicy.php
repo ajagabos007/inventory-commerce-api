@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Store;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class StorePolicy
 {
@@ -18,7 +19,7 @@ class StorePolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
         return true;
     }
@@ -26,7 +27,7 @@ class StorePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, store $store): bool
+    public function view(?User $user, store $store): bool
     {
         return true;
     }
@@ -74,8 +75,11 @@ class StorePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function switch(User $user): bool
+    public function switch(?User $user): Response
     {
-        return $user->hasAnyPermission(['store.switch']);
+        return Response::allow();
+        //       return  $user->hasAnyPermission(['store.switch'])
+        //                ?Response::allow()
+        //                : Response::deny('You do not have permission to access this page.');
     }
 }

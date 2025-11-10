@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\InventoryStatus;
 use App\Observers\ProductVariantObserver;
+use App\Traits\FlexibleRouteBinding;
 use App\Traits\HasAttachments;
 use App\Traits\HasAttributeValues;
 use App\Traits\ModelRequestLoader;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +25,7 @@ use Milon\Barcode\DNS1D;
 #[ObservedBy([ProductVariantObserver::class])]
 class ProductVariant extends Model
 {
+    use FlexibleRouteBinding;
     use HasAttachments;
     use HasAttributeValues;
 
@@ -31,6 +34,7 @@ class ProductVariant extends Model
 
     use HasUuids;
     use ModelRequestLoader;
+    use Sluggable;
 
     /**
      * The attributes that are mass assignable.
@@ -41,6 +45,7 @@ class ProductVariant extends Model
         'product_id',
         'name',
         'sku',
+        'slug',
         'barcode',
         'price',
         'compare_price',
@@ -49,15 +54,68 @@ class ProductVariant extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['available_quantity'];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'json',
+        ];
+    }
+
+    /**
+     * Return the sluggable configuration array for this model.
+     */
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+            ],
+        ];
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('store', function (Builder $builder) {
+            $builder->when(! app()->runningInConsole(), function ($builder) {
+                $builder->whereHas('inventories', function ($query) {
+                    $query->where('store_id', current_store()?->id);
+                });
+            });
+        });
+    }
+
+    /**
      * Get the item's name
      */
     protected function quantity(): Attribute
     {
         return Attribute::make(
             get: function () {
-                $this->inventories()
-                    ->where('status', InventoryStatus::AVAILABLE)
+                $metadata = $this->metada ?? [];
+                if (array_key_exists('quantity', $metadata)) {
+                    return $metadata['quantity'];
+                }
+                $metadata['quantity'] = $this->inventories()
+//                    ->where('inventories.status', InventoryStatus::AVAILABLE)
                     ->sum('quantity');
+                $this->metadata = $metadata;
+                $this->saveQuietly();
+
+                return $metadata['quantity'];
             }
         );
     }
@@ -85,6 +143,104 @@ class ProductVariant extends Model
     }
 
     /**
+     * Scope: Popular variants based on total sales
+     */
+    public function scopePopular(Builder $query, $ordered = true): Builder
+    {
+        $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.status', '=', 'completed');
+            })
+            ->groupBy('product_variants.id');
+
+        if ($ordered) {
+            $query->orderByDesc('total_sold');
+        } else {
+            $query->having('total_sold', '>', 0);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope: Trending variants (recent sales)
+     */
+    public function scopeTrending(Builder $query, $days = 30): Builder
+    {
+        $startDate = now()->subDays($days)->toDateTimeString();
+
+        return $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($startDate) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '>=', $startDate);
+            })
+            ->groupBy('product_variants.id')
+            ->having('total_sold', '>', 0)
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Variants that have at least one sale
+     */
+    public function scopeHasSales(Builder $query): Builder
+    {
+        return $query->whereHas('inventories.saleInventories', function ($q) {
+            $q->whereHas('sale', function ($sq) {
+                $sq->where('status', 'completed');
+            });
+        });
+    }
+
+    /**
+     * Scope: Top selling variants (limited)
+     */
+    public function scopeTopSelling(Builder $query, $limit = 10): Builder
+    {
+        return $query->popular(true)->limit($limit);
+    }
+
+    /**
+     * Scope: Popular from specific date
+     */
+    public function scopePopularFrom(Builder $query, $date): Builder
+    {
+        return $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($date) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '>=', $date);
+            })
+            ->groupBy('product_variants.id')
+            ->orderByDesc('total_sold');
+    }
+
+    /**
+     * Scope: Popular up to specific date
+     */
+    public function scopePopularTo(Builder $query, $date): Builder
+    {
+        return $query->select('product_variants.*')
+            ->selectRaw('COALESCE(SUM(sale_inventories.quantity), 0) as total_sold')
+            ->leftJoin('inventories', 'inventories.product_variant_id', '=', 'product_variants.id')
+            ->leftJoin('sale_inventories', 'sale_inventories.inventory_id', '=', 'inventories.id')
+            ->leftJoin('sales', function ($join) use ($date) {
+                $join->on('sales.id', '=', 'sale_inventories.sale_id')
+                    ->where('sales.created_at', '<=', $date);
+            })
+            ->groupBy('product_variants.id')
+            ->orderByDesc('total_sold');
+    }
+
+    /**
      * Get the item's name
      */
     protected function name(): Attribute
@@ -99,6 +255,27 @@ class ProductVariant extends Model
             }
         );
 
+    }
+
+    /**
+     * Get the available quantity
+     */
+    protected function availableQuantity(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $metadata = $this->metadata ?? [];
+
+                $availableQuantity = data_get($metadata, 'available_quantity', 0);
+
+                if (current_store()) {
+                    $storeId = current_store()->id;
+                    $availableQuantity = data_get($metadata, 'stores.'.$storeId.'.available_quantity');
+                }
+
+                return $availableQuantity;
+            }
+        );
     }
 
     /**
@@ -174,5 +351,24 @@ class ProductVariant extends Model
         }
 
         return $sku;
+    }
+
+    public function updateAvailableQuantity(): void
+    {
+        $availableQuantity = $this->inventories()
+            ->where('inventories.status', InventoryStatus::AVAILABLE)
+            ->sum('quantity');
+
+        $medata = $this->metadata ?? [];
+
+        if (current_store()) {
+            $medata['stores'][current_store()->id]['id'] = current_store()->id;
+            $medata['stores'][current_store()->id]['available_quantity'] = $availableQuantity;
+        } else {
+            $medata['available_quantity'] = $availableQuantity;
+        }
+
+        $this->metadata = $medata;
+        $this->saveQuietly();
     }
 }

@@ -49,7 +49,7 @@ class StoreProductRequest extends FormRequest
             ],
             'is_serialized' => ['boolean'],
             'serial_number' => ['exclude_unless:variants.*.is_serialized,true', 'required_if:is_serialized,true', 'unique:inventories,serial_number'],
-            'batch_number' => ['nullable'],
+            'batch_number' => ['nullable', 'string', 'max:191'],
 
             'variants' => ['nullable', 'array'],
             'variants.*.name' => ['required', 'string', 'max:191'],
@@ -61,7 +61,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.attribute_value_ids.*' => ['required', 'exists:attribute_values,id'],
             'variants.*.is_serialized' => ['boolean'],
             'variants.*.serial_number' => ['exclude_unless:variants.*.is_serialized,true', 'required_if:variants.*.is_serialized,true', 'unique:inventories,serial_number'],
-            'variants.*.batch_number' => ['nullable'],
+            'variants.*.batch_number' => ['nullable', 'string', 'max:191'],
             'variants.*.images' => ['required', 'array', 'min:1', 'max:4'],
             'variants.*.images*' => [
                 'required',

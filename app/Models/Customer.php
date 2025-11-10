@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Observers\CustomerObserver;
 use App\Traits\ModelRequestLoader;
+use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[ObservedBy([CustomerObserver::class])]
 class Customer extends Model
 {
-    /** @use HasFactory<\Database\Factories\CustomerFactory> */
+    /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 
     use HasUuids;

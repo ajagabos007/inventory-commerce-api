@@ -45,7 +45,7 @@ class CategorySeeder extends Seeder
             'Sports & Outdoors' => [
                 'Fitness' => ['Gym Equipment', 'Dumbbells', 'Yoga Mats'],
                 'Outdoor & Adventure' => ['Bicycles', 'Camping Gear', 'Hiking Boots'],
-                'Team Sports' => ['Football', 'Basketball', 'Cricket'],
+                'TeamMember Sports' => ['Football', 'Basketball', 'Cricket'],
             ],
 
             'Books & Media' => [

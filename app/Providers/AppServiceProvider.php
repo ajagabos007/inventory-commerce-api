@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Listeners\UserEventSubscriber;
 use App\Managers\CartManager;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,14 +37,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
-        Event::subscribe(UserEventSubscriber::class);
 
         $this->app->singleton('currentStore', function ($app) {
             $user = Auth::user();
 
             $store = $user?->store;
 
-            if ($user && $user->can('switch', Store::class)) {
+            $canSwitchStore = Gate::allows('switch', Store::class);
+
+            if ($canSwitchStore) {
                 $xStore = request()->header('X-Store');
                 if (! blank($xStore)) {
                     $store = Store::find($xStore);
@@ -64,4 +65,5 @@ class AppServiceProvider extends ServiceProvider
             require_once $helpers;
         }
     }
+
 }

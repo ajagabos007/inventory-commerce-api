@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\CategoryObserver;
+use App\Traits\FlexibleRouteBinding;
 use App\Traits\ModelRequestLoader;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\CategoryFactory;
@@ -21,9 +22,10 @@ use Illuminate\Support\Facades\Storage;
 #[ObservedBy([CategoryObserver::class])]
 class Category extends Model
 {
+    use FlexibleRouteBinding;
+
     /** @use HasFactory<CategoryFactory> */
     use HasFactory;
-
     use HasUuids;
     use ModelRequestLoader;
     use Sluggable;
@@ -112,9 +114,8 @@ class Category extends Model
      * Update the user's profile photo.
      *
      * @param  string  $storagePath
-     * @return void
      */
-    public function updateImage(UploadedFile|string $image, $storagePath = 'images')
+    public function updateImage(UploadedFile|string $image, $storagePath = 'images'): void
     {
         if (is_string($image)) {
             $parts = explode(';base64,', $image);

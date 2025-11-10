@@ -35,7 +35,7 @@ class StoreProductVariantRequest extends FormRequest
             'attribute_value_ids.*' => ['required', 'exists:attribute_values,id'],
             'is_serialized' => ['boolean'],
             'serial_number' => ['required_if:is_serialized,true'],
-            'batch_number' => ['nullable'],
+            'batch_number' => ['nullable', 'string', 'max:191'],
             'images' => ['required', 'array', 'min:1', 'max:4'],
             'images*' => [
                 'required',

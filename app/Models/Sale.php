@@ -35,6 +35,7 @@ class Sale extends Model
         'barcode',
         'cashier_staff_id',
         'discount_id',
+        'discount_amount',
         'buyerable_id',
         'buyerable_type',
         'tax',
@@ -112,7 +113,7 @@ class Sale extends Model
     }
 
     /**
-     * Get the Sale
+     * Get the discount
      */
     public function discount(): BelongsTo
     {

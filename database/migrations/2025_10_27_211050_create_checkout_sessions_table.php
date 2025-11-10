@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('currencies', function (Blueprint $table) {
+        Schema::create('checkout_sessions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name');
-            $table->string('code')->unique();
-            $table->string('symbol');
-            $table->boolean('is_default')->default(false);
-            $table->timestamp('disabled_at');
-            $table->string('disabled_reason');
+            $table->foreignUuid('user_id')->nullable()->index();
+            $table->json('data')->nullable(); // will store your checkout array structure
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('currencies');
+        Schema::dropIfExists('checkout_sessions');
     }
 };

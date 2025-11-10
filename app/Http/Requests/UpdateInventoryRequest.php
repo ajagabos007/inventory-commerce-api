@@ -25,7 +25,7 @@ class UpdateInventoryRequest extends FormRequest
         return [
             'quantity' => ['sometimes', 'integer', 'min:0'],
             'serial_number' => ['nullable', 'max:255', 'unique:inventories,serial_number,'.$this->inventory->id],
-            'batch_number' => ['sometimes', 'string', 'max:255'],
+            'batch_number' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', 'in:in_stock,out_of_stock,low_stock'],
         ];
     }

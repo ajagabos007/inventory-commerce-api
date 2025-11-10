@@ -8,10 +8,8 @@ enum PaymentMethod: string
 {
     use Enumerable;
 
-    case ATM = 'ATM';
-    case CHEQUE = 'Cheque';
-    case CASH = 'Cash';
-    case TRANSFER = 'Transfer';
     case POS = 'POS';
-    case OTHER = 'Other';
+    case TRANSFER = 'Transfer';
+    case CHEQUE = 'Cheque';
+
 }

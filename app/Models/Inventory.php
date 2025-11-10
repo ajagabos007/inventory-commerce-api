@@ -102,10 +102,8 @@ class Inventory extends Pivot
         return $this->belongsToMany(Sale::class, SaleInventory::class, 'inventory_id', 'sale_id')
             ->withPivot(
                 'quantity',
-                'weight',
-                'price_per_gram',
+                'price',
                 'total_price',
-                'daily_gold_price_id',
                 'metadata',
             );
     }
@@ -168,7 +166,7 @@ class Inventory extends Pivot
     /**
      * Scope inventories out of stock
      */
-    public function scopeOutOfStock($query, $out_of_stock = true)
+    public function scopeOutOfStock(Builder $query, $out_of_stock = true): Builder
     {
         $out_of_stock = filter_var($out_of_stock, FILTER_VALIDATE_BOOLEAN);
 

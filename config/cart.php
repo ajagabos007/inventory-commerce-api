@@ -13,7 +13,7 @@ return [
     | Supported: "database", "session", "both"
     |
     */
-    'driver' => env('CART_DRIVER', 'both'),
+    'driver' => env('CART_DRIVER', 'database'),
 
     /*
     |--------------------------------------------------------------------------

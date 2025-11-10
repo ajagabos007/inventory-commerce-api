@@ -6,6 +6,8 @@ use App\Facades\Cart;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
 
 class UserEventSubscriber
 {

@@ -17,6 +17,7 @@ class SaleObserver
             if (blank($sale->cashier_staff_id)) {
                 $sale->cashier_staff_id = $user->staff?->id;
             }
+
             if (blank($sale->buyerable_id) || blank($sale->buyerable_type)) {
                 $sale->buyerable_id = $user->id;
                 $sale->buyerable_type = get_class($user);

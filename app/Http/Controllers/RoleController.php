@@ -155,11 +155,9 @@ class RoleController extends Controller
     {
         $role->delete();
 
-        $role_resource = (new RoleResource(null))->additional([
+        return (new RoleResource(null))->additional([
             'message' => 'Role deleted successfully',
         ]);
-
-        return $role_resource;
     }
 
     /**

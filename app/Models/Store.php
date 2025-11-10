@@ -80,11 +80,11 @@ class Store extends Model
     }
 
     /**
-     * Scope and get only ware houses
+     * Scope and get only warehouses
      */
-    public function scopeWarehouses(Builder $query)
+    public function scopeWarehouses(Builder $query): Builder
     {
-        $query->where('is_warehouse', true);
+        return $query->where('is_warehouse', true);
     }
 
     /**

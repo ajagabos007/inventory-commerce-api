@@ -23,7 +23,7 @@ class CartController extends Controller
             ->additional([
                 'sub_total' => Cart::total(),
                 'status' => 'success',
-                'message' => 'Cart products retrieved successfully',
+                'message' => 'Cart items retrieved successfully',
             ]);
     }
 
@@ -109,7 +109,7 @@ class CartController extends Controller
             ->additional([
                 'sub_total' => Cart::total(),
                 'status' => 'success',
-                'message' => 'Product increased successfully',
+                'message' => 'Item increased successfully',
             ]);
 
         return $cart_collection;
@@ -126,14 +126,13 @@ class CartController extends Controller
 
         $products = Cart::all();
 
-        $cart_collection = CartResource::collection($products)
+        return CartResource::collection($products)
             ->additional([
                 'sub_total' => Cart::total(),
                 'status' => 'success',
-                'message' => 'Product increased successfully',
+                'message' => 'Item decreased successfully',
             ]);
 
-        return $cart_collection;
     }
 
     public function remove(string $id, Request $request)

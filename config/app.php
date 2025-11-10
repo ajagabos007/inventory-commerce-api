@@ -129,7 +129,22 @@ return [
     |--------------------------------
      */
     'front_end' => [
-        'url' => env('APP_FRONT_END_URL', 'http://localhost:3000'),
+        'store' => [
+            'url' => env('APP_FRONT_END_STORE_URL', 'http://localhost:3000'),
+        ],
+        'ecommerce' => [
+            'url' => env('APP_FRONT_END_ECOMMERCE_URL', 'http://localhost:3000'),
+        ],
     ],
 
+    /*
+   |--------------------------------
+   | ORDERS
+   |--------------------------------
+    */
+    'order' => [
+        'session' => [
+            'key' => env('APP_ORDER_SESSION_KEY', 'app.order.session.key'),
+        ],
+    ],
 ];

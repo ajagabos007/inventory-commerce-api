@@ -18,17 +18,17 @@ class ProductPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Product $item): bool
+    public function view(?User $user, Product $product): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -36,13 +36,13 @@ class ProductPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return false;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Product $item): bool
+    public function update(User $user, Product $product): bool
     {
         return false;
     }
@@ -50,7 +50,7 @@ class ProductPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Product $item): bool
+    public function delete(User $user, Product $product): bool
     {
         return false;
     }
@@ -58,7 +58,7 @@ class ProductPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Product $item): bool
+    public function restore(User $user, Product $product): bool
     {
         return false;
     }
@@ -66,7 +66,7 @@ class ProductPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Product $item): bool
+    public function forceDelete(User $user, Product $product): bool
     {
         return false;
     }

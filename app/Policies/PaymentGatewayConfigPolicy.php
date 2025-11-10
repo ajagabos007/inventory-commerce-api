@@ -2,10 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\DailyGoldPrice;
+use App\Models\PaymentGatewayConfig;
 use App\Models\User;
 
-class DailyGoldPricePolicy
+class PaymentGatewayConfigPolicy
 {
     /**
      * Perform pre-authorization checks.
@@ -26,7 +26,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function view(User $user, PaymentGatewayConfig $paymentGatewayConfig): bool
     {
         return false;
     }
@@ -42,7 +42,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function update(User $user, PaymentGatewayConfig $paymentGatewayConfig): bool
     {
         return false;
     }
@@ -50,7 +50,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function delete(User $user, PaymentGatewayConfig $paymentGatewayConfig): bool
     {
         return false;
     }
@@ -58,7 +58,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function restore(User $user, PaymentGatewayConfig $paymentGatewayConfig): bool
     {
         return false;
     }
@@ -66,7 +66,7 @@ class DailyGoldPricePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, DailyGoldPrice $dailyGoldPrice): bool
+    public function forceDelete(User $user, PaymentGatewayConfig $paymentGatewayConfig): bool
     {
         return false;
     }

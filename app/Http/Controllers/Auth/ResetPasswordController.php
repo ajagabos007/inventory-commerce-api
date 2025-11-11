@@ -69,7 +69,7 @@ class ResetPasswordController extends Controller
      *
      * @method PUT|PATCH  api/verify-password-reset-token
      *
-     * @return Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function verifyPasswordResetToken(Request $request): JsonResponse
     {

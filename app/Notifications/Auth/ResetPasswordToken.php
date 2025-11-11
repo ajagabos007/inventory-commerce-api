@@ -7,8 +7,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class ResetPasswordToken extends Notification
+class ResetPasswordToken extends Notification implements ShouldQueue
 {
     use Queueable;
 

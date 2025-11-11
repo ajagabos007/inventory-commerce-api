@@ -31,6 +31,76 @@ class ProductController extends Controller
         $this->authorizeResource(Product::class, 'product');
     }
 
+
+    /**
+     * Display a listing of the resource via search.
+     *
+     * @method GET|HEAD /api/products/search
+     */
+    public function search()
+    {
+        $paginate = request()->has('paginate') ? request()->paginate : true;
+        $perPage = request()->has('per_page') ? request()->per_page : 15;
+
+        $products = QueryBuilder::for(Product::class)
+            ->defaultSort('-created_at')
+            ->allowedSorts(
+                'barcode',
+                'created_at',
+                'updated_at',
+                AllowedSort::custom('popular', new ProductPopularSort),
+                AllowedSort::custom('trending', new ProductTrendingSort),
+            )
+            ->allowedIncludes([
+                'images',
+                'variants',
+                'categories',
+                'attributeValues',
+            ])
+            ->allowedFilters([
+                'categories.id',
+                'attributeValues.id',
+                'attributeValues.attribute.id',
+                'variants.id',
+                'variants.sku',
+                'variants.categories.id',
+                'variants.attributeValues.id',
+                AllowedFilter::scope('low_stock', 'lowStock'),
+                AllowedFilter::scope('out_of_stock', 'outOfStock'),
+                // Popular/Trending filters
+                AllowedFilter::scope('popular', 'popular'),
+                AllowedFilter::scope('trending', 'trending'),
+                AllowedFilter::scope('has_sales', 'hasSales'),
+                AllowedFilter::scope('top_selling', 'topSelling'),
+
+                // Date range filters
+                AllowedFilter::scope('popular_from', 'popularFrom'),
+                AllowedFilter::scope('popular_to', 'popularTo'),
+                AllowedFilter::scope('best_sellers_week', 'bestSellersThisWeek'),
+                AllowedFilter::scope('best_sellers_month', 'bestSellersThisMonth'),
+
+            ])
+            ->when(request()->filled('q'), function ($query) {
+                $query->search(request()->q);
+            }, function ($query) {
+                $query->whereNull('id');
+            })
+            ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+                $perPage = ! is_numeric(request()->per_page) ? 15 : max(intval(request()->per_page), 1);
+
+                return $query->paginate($perPage)
+                    ->appends(request()->query());
+            }, function ($query) {
+                return $query->get();
+            });
+
+        return ProductResource::collection($products)->additional([
+            'status' => 'success',
+            'message' => 'Products retrieved successfully',
+        ]);
+    }
+
+
     /**
      * Display a listing of the resource.
      *

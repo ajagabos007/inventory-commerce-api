@@ -18,7 +18,7 @@ class RegisterController extends Controller
      *
      * @method POST api/register
      *
-     * @return \App\Http\Resources\UserResource
+     * @return UserResource
      */
     public function register(RegisterRequest $request)
     {
@@ -27,25 +27,14 @@ class RegisterController extends Controller
         $user = User::create($validated);
 
         defer(function () use ($user, $validated) {
-            if (array_key_exists('referral_code', $validated)) {
-                $refferal_code = \App\Models\ReferralCode::where('code', $validated['referral_code'])->first();
-                $user->referrer_user_id = $refferal_code->user_id ?? null;
-            }
-
-            $user->password = Hash::make($validated['password']);
-            $user->save();
-
             event(new Registered($user));
-
         });
 
         $token = $user->createToken($request->userAgent())->plainTextToken;
 
-        $user_resource = (new UserResource($user))->additional([
+        return (new UserResource($user))->additional([
             'token' => $token,
             'message' => 'User registered successfully',
         ]);
-
-        return $user_resource;
     }
 }

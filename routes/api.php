@@ -74,9 +74,15 @@ Route::prefix('sync')->name('sync')->group(function () {
 Route::apiResource('stores', StoreController::class)
     ->only(['index', 'show']);
 
+Route::prefix('products')->name('products.')->group(function () {
+    Route::get('search', [ProductController::class, 'search'])->name('search');
+});
 Route::apiResource('products', ProductController::class)
     ->only(['index', 'show']);
 
+Route::prefix('product-variants')->name('product-variants.')->group(function () {
+    Route::get('search', [ProductVariantController::class, 'search'])->name('search');
+});
 Route::apiResource('product-variants', ProductVariantController::class)
     ->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)

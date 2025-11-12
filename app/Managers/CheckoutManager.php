@@ -275,14 +275,12 @@ class CheckoutManager
 
         if ($this->currentUser = Auth::user() ?? Auth::guard('sanctum')->user()) {
             $order->user_id = $this->currentUser->id;
-            $order->full_name = $this->currentUser->full_name;
-            $order->email = $this->currentUser->email;
-            $order->phone_number = $this->currentUser->phone_number;
-        } else {
-            $order->full_name = data_get($data, 'delivery_address.full_name', 'Guest User');
-            $order->email = data_get($data, 'delivery_address.email');
-            $order->phone_number = data_get($data, 'delivery_address.phone_number');
         }
+
+        $order->full_name = data_get($data, 'delivery_address.full_name', 'Guest User');
+        $order->email = data_get($data, 'delivery_address.email');
+        $order->phone_number = data_get($data, 'delivery_address.phone_number', 'NIL');
+
         $order->store_id = current_store()?->id;
         $order->coupon_id = $data['coupon_id'] ?? null;
         $order->delivery_address = $data['delivery_address'] ?? null;

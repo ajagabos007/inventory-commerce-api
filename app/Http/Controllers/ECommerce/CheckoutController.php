@@ -40,7 +40,7 @@ class CheckoutController extends Controller
     {
         $this->checkout->setBillingAddress($request->validate([
             'full_name' => 'required|string',
-            'phone' => 'required|string',
+            'phone_number' => 'required|string',
             'address_line' => 'required|string',
             'city' => 'required|string',
             'country' => 'required|string',

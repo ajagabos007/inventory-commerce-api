@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('guest:clear-sessions')->daily()
     ->runInBackground()->withoutOverlapping();
 
+Schedule::command('analytics:aggregate-model-views')->daily()
+    ->runInBackground()->withoutOverlapping();
+
+

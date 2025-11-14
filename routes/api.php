@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActiveSessionController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\Auth\LoginController;
@@ -151,6 +152,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('attributes', AttributeController::class);
     Route::apiResource('attribute-values', AttributeValueController::class);
     Route::apiResource('currencies', CurrencyController::class);
+
+    Route::resource('activities', ActivityController::class)
+        ->only(['index']);
+
 
     Route::resource('orders', OrderController::class)
         ->only(['index', 'show']);

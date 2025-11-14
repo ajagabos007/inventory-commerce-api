@@ -144,9 +144,9 @@ trait HasAttachments
     /**
      * Attach Attachment to a Model
      *
-     * @param Illuminate\Http\UploadedAttacFilee
-     * @param  array <string, string>  $options
-     * @return App\Models\Attachment
+     * @param UploadedFile $file
+     * @param  array<string, string>  $options
+     * @return Attachment
      */
     public function updateUploadedFile(UploadedFile $file, array $options = [], string $baseFolder = ''): Attachment
     {

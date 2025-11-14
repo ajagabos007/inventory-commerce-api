@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Milon\Barcode\DNS1D;
+Use App\Traits\HasViews;
 
 #[ObservedBy([ProductVariantObserver::class])]
 class ProductVariant extends Model
@@ -36,6 +37,7 @@ class ProductVariant extends Model
     use HasUuids;
     use ModelRequestLoader;
     use Sluggable;
+    use HasViews;
 
     /**
      * The attributes that are mass assignable.

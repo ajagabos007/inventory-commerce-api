@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 #[ObservedBy([OrderObserver::class])]
 
@@ -27,6 +29,7 @@ class Order extends Model
     use HasUuids;
     use ModelRequestLoader;
     use Scopeable;
+//    use LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -49,6 +52,24 @@ class Order extends Model
         'payment_method',
         'total_price',
         'subtotal_price',
+
+    /**
+     * Status of order
+     * Ongoing: an order waiting payment
+     * New: when payment is made and verified
+     * Processing: once an order being review
+     * Dispatched : sent out for delivery
+     * Delivered : delivered and received by the customer
+     *
+     * Order_status
+     * id
+     * user_id
+     * from_status
+     * to_status
+     * time_stamp
+     *
+     */
+
     ];
 
     /**
@@ -62,6 +83,13 @@ class Order extends Model
             'delivery_address' => 'array',
             'pickup_address' => 'array',
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status']);
+        // Chain fluent methods for configuration options
     }
 
     /**

@@ -127,6 +127,7 @@ class ProductVariantController extends Controller
                 AllowedFilter::scope('trending', 'trending'),
                 AllowedFilter::scope('has_sales', 'hasSales'),
                 AllowedFilter::scope('top_selling', 'topSelling'),
+                AllowedFilter::scope('recently_viewed', 'recentlyViewed'),
 
                 // Date range for popularity
                 AllowedFilter::scope('popular_from', 'popularFrom'),

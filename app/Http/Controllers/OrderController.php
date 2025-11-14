@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
+use App\Http\Resources\ActivityResource;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -27,7 +29,7 @@ class OrderController extends Controller
     public function index()
     {
         $orderQ = Order::query();
-        //                    ->forUser(auth()->user());
+        //            ->forUser(auth()->user());
 
         $orders = QueryBuilder::for($orderQ)
             ->defaultSort('-created_at')
@@ -78,6 +80,7 @@ class OrderController extends Controller
      */
     public function show(Order $order): OrderResource
     {
+        $order->update(['status' => str()->random()]);
         $order->loadFromRequest();
 
         return (new OrderResource($order))->additional([
@@ -110,4 +113,5 @@ class OrderController extends Controller
             'message' => 'Order deleted successfully',
         ]);
     }
+
 }

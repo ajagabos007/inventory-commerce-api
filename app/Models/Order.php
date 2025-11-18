@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use App\Observers\OrderObserver;
 use App\Traits\HasPayments;
 use App\Traits\ModelRequestLoader;
@@ -85,12 +86,30 @@ class Order extends Model
         ];
     }
 
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status']);
-        // Chain fluent methods for configuration options
+            ->logOnly(['status'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('order_status')
+            ->setDescriptionForEvent(function () {
+                $original = $this->getOriginal('status');   // old status
+                $current  = $this->status?->value;          // new status
+
+                $from = $original
+                    ? OrderStatus::from($original)->description()
+                    : 'N/A';
+
+                $to = $current
+                    ? OrderStatus::from($current)->description()
+                    : 'N/A';
+
+                return "Order status changed from '{$from}' to '{$to}'";
+            });
     }
+
 
     /**
      * Scope: Filter by user

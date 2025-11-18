@@ -38,6 +38,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WishListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,6 +73,7 @@ Route::prefix('sync')->name('sync')->group(function () {
     Route::get('product-variants/{productVariant}', [SyncController::class, 'showProductVariant'])->name('sync.productVariants.show');
 });
 
+Route::apiResource('wish-lists', WishListController::class);
 Route::apiResource('stores', StoreController::class)
     ->only(['index', 'show']);
 

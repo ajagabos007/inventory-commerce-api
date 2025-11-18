@@ -44,13 +44,13 @@ class CartController extends Controller
                 $query->where('product_id', $productId);
             });
         })
-            ->with('productVariant')
-            ->first();
+        ->with('productVariant')
+        ->first();
 
         if (blank($inventory)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No item in  found inventory',
+                'message' => 'No item in found inventory',
             ], 422);
         }
 

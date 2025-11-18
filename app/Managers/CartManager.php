@@ -19,7 +19,7 @@ class CartManager extends BaseCartManager
     }
 
     /**
-     * Check that a user is authenticate either by auth web:sanctum
+     * Check that a user is authenticated either by auth web:sanctum
      */
     protected function authCheck(): bool
     {

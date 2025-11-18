@@ -40,6 +40,7 @@ class OrderController extends Controller
             )
             ->allowedIncludes([
                 'payables',
+                'items',
                 'user',
             ])
             ->allowedFilters([

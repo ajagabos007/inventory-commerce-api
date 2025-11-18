@@ -40,7 +40,6 @@ jobs:
             composer dumpautoload
             echo "⚙️ Running Laravel setup..."
 
-            php artisan migrate:rollback --step=8
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
             php artisan world:install
@@ -89,7 +88,6 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
 
-            php artisan migrate:rollback --step=8
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
             php artisan world:install

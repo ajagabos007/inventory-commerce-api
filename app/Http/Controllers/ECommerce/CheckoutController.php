@@ -40,7 +40,7 @@ class CheckoutController extends Controller
     {
         $this->checkout->setBillingAddress($request->validate([
             'full_name' => 'required|string',
-            'phone' => 'required|string',
+            'phone_number' => 'required|string',
             'address_line' => 'required|string',
             'city' => 'required|string',
             'country' => 'required|string',
@@ -105,7 +105,10 @@ class CheckoutController extends Controller
         try {
             // This will validate and throw CheckoutValidationException if invalid
             $payment = $this->checkout->proceedToPayment($request->validate(
-                ['callback_url' => 'nullable|url', 'cancel_url' => 'nullable|url']
+                [
+                    'create_account' => 'nullable|boolean',
+                    'callback_url' => 'nullable|url', 'cancel_url' => 'nullable|url'
+                ]
             ));
 
             // Initialize payment with gateway

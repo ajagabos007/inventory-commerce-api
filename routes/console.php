@@ -8,5 +8,10 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->daily();
 
-Schedule::command('queue:work --stop-when-empty')->everyMinute()
+Schedule::command('guest:clear-sessions')->daily()
     ->runInBackground()->withoutOverlapping();
+
+Schedule::command('analytics:aggregate-model-views')->daily()
+    ->runInBackground()->withoutOverlapping();
+
+

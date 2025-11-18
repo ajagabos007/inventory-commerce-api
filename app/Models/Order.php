@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use App\Observers\OrderObserver;
 use App\Traits\HasPayments;
 use App\Traits\ModelRequestLoader;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 #[ObservedBy([OrderObserver::class])]
 
@@ -27,6 +30,7 @@ class Order extends Model
     use HasUuids;
     use ModelRequestLoader;
     use Scopeable;
+//    use LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -49,6 +53,24 @@ class Order extends Model
         'payment_method',
         'total_price',
         'subtotal_price',
+
+    /**
+     * Status of order
+     * Ongoing: an order waiting payment
+     * New: when payment is made and verified
+     * Processing: once an order being review
+     * Dispatched : sent out for delivery
+     * Delivered : delivered and received by the customer
+     *
+     * Order_status
+     * id
+     * user_id
+     * from_status
+     * to_status
+     * time_stamp
+     *
+     */
+
     ];
 
     /**
@@ -63,6 +85,31 @@ class Order extends Model
             'pickup_address' => 'array',
         ];
     }
+
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('order_status')
+            ->setDescriptionForEvent(function () {
+                $original = $this->getOriginal('status');   // old status
+                $current  = $this->status?->value;          // new status
+
+                $from = $original
+                    ? OrderStatus::from($original)->description()
+                    : 'N/A';
+
+                $to = $current
+                    ? OrderStatus::from($current)->description()
+                    : 'N/A';
+
+                return "Order status changed from '{$from}' to '{$to}'";
+            });
+    }
+
 
     /**
      * Scope: Filter by user

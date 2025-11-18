@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActiveSessionController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\AttributeValueController;
 use App\Http\Controllers\Auth\LoginController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WishListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,12 +73,19 @@ Route::prefix('sync')->name('sync')->group(function () {
     Route::get('product-variants/{productVariant}', [SyncController::class, 'showProductVariant'])->name('sync.productVariants.show');
 });
 
+Route::apiResource('wish-lists', WishListController::class);
 Route::apiResource('stores', StoreController::class)
     ->only(['index', 'show']);
 
+Route::prefix('products')->name('products.')->group(function () {
+    Route::get('search', [ProductController::class, 'search'])->name('search');
+});
 Route::apiResource('products', ProductController::class)
     ->only(['index', 'show']);
 
+Route::prefix('product-variants')->name('product-variants.')->group(function () {
+    Route::get('search', [ProductVariantController::class, 'search'])->name('search');
+});
 Route::apiResource('product-variants', ProductVariantController::class)
     ->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)
@@ -146,8 +155,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('attribute-values', AttributeValueController::class);
     Route::apiResource('currencies', CurrencyController::class);
 
+    Route::resource('activities', ActivityController::class)
+        ->only(['index']);
+
+
     Route::resource('orders', OrderController::class)
-        ->only(['index', 'show']);
+        ->only(['index', 'show','update']);
 
     Route::controller(PaymentController::class)->group(function () {
         Route::name('payments.')->prefix('payments/')->group(function () {

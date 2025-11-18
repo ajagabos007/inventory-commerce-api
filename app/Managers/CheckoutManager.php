@@ -10,8 +10,11 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PaymentGateway;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Nnjeim\World\Models\City;
 use Nnjeim\World\Models\Country;
@@ -20,25 +23,26 @@ use Nnjeim\World\Models\State;
 class CheckoutManager
 {
     protected CheckoutSession $session;
+    protected  $currentUser;
 
     public function __construct()
     {
         $this->loadSession();
         $this->syncItems();
+        $this->currentUser = Auth::user() ?? Auth::guard('sanctum')->user();
     }
 
     protected function loadSession(): void
     {
         $token = request()->header('x-session-token') ?? Str::uuid()->toString();
 
-        $user = auth()->user() ?? auth()->guard('sanctum')->user();
 
         $this->session = match (true) {
             $token && ($existing = CheckoutSession::find($token)) => $existing,
-            $user && ($existing = CheckoutSession::where('user_id', $user->id)->first()) => $existing,
+            $this->currentUser && ($existing = CheckoutSession::where('user_id', $this->currentUser->id)->first()) => $existing,
             default => CheckoutSession::create([
                 'id' => $token,
-                'user_id' => $user?->id,
+                'user_id' => $this->currentUser?->id,
                 'data' => $this->initialData(),
             ]),
         };
@@ -186,6 +190,8 @@ class CheckoutManager
     {
         $this->validate();
 
+        $create_account = data_get($options, 'create_account');
+
         try {
             DB::beginTransaction();
 
@@ -195,12 +201,41 @@ class CheckoutManager
             $email = $order->email;
             $phone_number = $order->phone_number;
 
-            if ($order->user) {
-                $full_name = $order->user->full_name;
-                $email = $order->user->email;
-                $phone_number = $order->user->phone_number;
+            // 🧠 Step 1: Check if account creation is allowed and no user is logged in
+            if ($create_account && !$this->currentUser) {
+                $user = User::where('email', $email)->first();
+
+                if (!$user) {
+                    // ✳️ Step 2: Create new user
+                    $password = Str::random(10);
+                    $names = explode(' ', $full_name);
+
+                    $user = User::create([
+                        'first_name' => $names[0],
+                        'last_name' => $names[1]?? $names[0],
+                        'middle_name' => $names[2]?? null,
+                        'email' => $email,
+                        'phone_number' => $phone_number,
+                        'password' => Hash::make($password),
+                    ]);
+
+                    Notification::send(
+                        $user,
+                        (new \App\Notifications\AccountCreated($password))->afterCommit()
+                    );
+                }
+                $order->user_id = $user->id;
+                $order->save();
             }
 
+            // Use user details for payment if available
+            if ($order->user) {
+                $full_name = $order->user->full_name ?? $order->full_name;
+                $email = $order->user->email;
+                $phone_number = $order->user->phone_number ?? $order->phone_number;
+            }
+
+            // 🧾 Step 3: Create payment
             $payment = Payment::create([
                 'user_id' => $order->user_id,
                 'full_name' => $full_name,
@@ -209,7 +244,7 @@ class CheckoutManager
                 'payment_gateway_id' => data_get($data, 'payment_gateway_id'),
                 'amount' => $order->total_price,
                 'currency' => 'NGN',
-                'description' => 'Payment for order  '.$order->reference,
+                'description' => 'Payment for order ' . $order->reference,
                 'callback_url' => data_get($options, 'callback_url'),
             ]);
 
@@ -228,26 +263,24 @@ class CheckoutManager
 
         } catch (\Throwable $th) {
             DB::rollBack();
-
             throw $th;
         }
     }
+
 
     protected function createOrder(array $data): Order
     {
 
         $order = new Order($data['order']);
 
-        if ($user = Auth::user() ?? Auth::guard('sanctum')->user()) {
-            $order->user_id = $user->id;
-            $order->full_name = $user->full_name;
-            $order->email = $user->email;
-            $order->phone_number = $user->phone_number;
-        } else {
-            $order->full_name = data_get($data, 'delivery_address.full_name', 'Guest User');
-            $order->email = data_get($data, 'delivery_address.email');
-            $order->phone_number = data_get($data, 'delivery_address.phone_number');
+        if ($this->currentUser = Auth::user() ?? Auth::guard('sanctum')->user()) {
+            $order->user_id = $this->currentUser->id;
         }
+
+        $order->full_name = data_get($data, 'delivery_address.full_name', 'Guest User');
+        $order->email = data_get($data, 'delivery_address.email');
+        $order->phone_number = data_get($data, 'delivery_address.phone_number', 'NIL');
+
         $order->store_id = current_store()?->id;
         $order->coupon_id = $data['coupon_id'] ?? null;
         $order->delivery_address = $data['delivery_address'] ?? null;

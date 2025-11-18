@@ -31,9 +31,19 @@ class WishListManager
     /**
      * Add an item to wishlist
      */
-    public function add(string $itemType, string $itemId, array $snapshot = [], array $options = []): WishList
+    public function add( string $itemId, string $itemType, $name, $price, array $options = []): WishList
     {
         $query = WishList::query();
+
+        $data = [
+            'item_id' => $itemId,
+            'item_type' => $itemType,
+            'name' => $name,
+            'price' => $price,
+            'options' => $options,
+            'session_token' => $this->sessionToken,
+            'user_id' => $this->user?->id,
+        ];
 
         if ($this->user) {
             $query->where('user_id', $this->user->id);
@@ -42,23 +52,23 @@ class WishListManager
         }
 
         // Avoid duplicates
-        $existing = $query->where('item_id', $itemId)
+        $wishList = $query->where('item_id', $itemId)
             ->where('item_type', $itemType)
             ->first();
 
-        if ($existing) {
-            return $existing;
+        if ($wishList) {
+            $wishList->update($data);
+            return $wishList;
         }
 
         return WishList::create([
             'item_id' => $itemId,
             'item_type' => $itemType,
-            'item_name' => $snapshot['name'] ?? null,
-            'item_image' => $snapshot['image'] ?? null,
-            'item_price' => $snapshot['price'] ?? null,
+            'name' => $name,
+            'price' => $price,
             'options' => $options,
+            'session_token' => $this->sessionToken,
             'user_id' => $this->user?->id,
-            'session_token' => $this->user ? null : $this->sessionToken,
         ]);
     }
 
@@ -89,38 +99,6 @@ class WishListManager
             ->when($this->user, fn ($q) => $q->where('user_id', $this->user->id))
             ->when(! $this->user, fn ($q) => $q->where('session_token', $this->sessionToken))
             ->get();
-    }
-
-    /**
-     * Move item from wishlist to cart (then remove it)
-     */
-    public function moveToCart(string $itemType, string $itemId): bool
-    {
-        $item = WishList::query()
-            ->when($this->user, fn ($q) => $q->where('user_id', $this->user->id))
-            ->when(! $this->user, fn ($q) => $q->where('session_token', $this->sessionToken))
-            ->where('item_id', $itemId)
-            ->where('item_type', $itemType)
-            ->first();
-
-        if (! $item) {
-            return false;
-        }
-
-        // Add to cart (assuming Cart facade supports it)
-        Cart::add([
-            'item_id' => $item->item_id,
-            'item_type' => $item->item_type,
-            'name' => $item->item_name,
-            'price' => $item->item_price,
-            'image' => $item->item_image,
-            'options' => $item->options ?? [],
-        ]);
-
-        // Remove from wishlist
-        $item->delete();
-
-        return true;
     }
 
     /**

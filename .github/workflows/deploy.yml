@@ -39,9 +39,13 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
             composer dumpautoload
             echo "⚙️ Running Laravel setup..."
+
+            php artisan migrate:rollback --step=8
             php artisan migrate --force
+            php artisan db:seed --class=PaymentGatewaySeeder --force
             php artisan world:install
             php artisan optimize:clear
+            php artisan app:slugify-product-variant
 
             chown www-data:www-data storage -R
             chmod -R 775 storage
@@ -85,6 +89,7 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
 
+            php artisan migrate:rollback --step=8
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
             php artisan world:install

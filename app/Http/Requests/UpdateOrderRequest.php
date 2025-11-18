@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Order;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\OrderStatus;
 
 class UpdateOrderRequest extends FormRequest
 {
@@ -12,7 +14,7 @@ class UpdateOrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('update', $this->order);
     }
 
     /**
@@ -23,7 +25,7 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'in:' . implode(',', [])
+            'status' => 'in:' . implode(',', OrderStatus::values()),
         ];
     }
 }

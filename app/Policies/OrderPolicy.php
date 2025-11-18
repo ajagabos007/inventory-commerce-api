@@ -44,7 +44,7 @@ class OrderPolicy
      */
     public function update(User $user, Order $order): bool
     {
-        return false;
+        return true;
     }
 
     /**

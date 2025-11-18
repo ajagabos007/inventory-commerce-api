@@ -158,7 +158,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::resource('orders', OrderController::class)
-        ->only(['index', 'show']);
+        ->only(['index', 'show','update']);
 
     Route::controller(PaymentController::class)->group(function () {
         Route::name('payments.')->prefix('payments/')->group(function () {

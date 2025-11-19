@@ -99,4 +99,28 @@ class WishListController extends Controller
             'message' => 'wishlist deleted successfully',
         ]);
     }
+
+    public function remove($item){
+
+        $inventory = Inventory::whereHas('productVariant', function ($query) use ($item) {
+                        $query->where('id', $item)
+                            ->orWhere('product_id', $item);
+                        })
+                        ->first();
+
+        if(!blank($inventory)){
+            $this->wishListManager->remove($inventory->id);
+        }
+
+        return (new WishListResource(null))->additional([
+            'message' => 'Item remove from wish list successfully',
+        ]);
+    }
+
+    public function clear(){
+        $this->wishListManager->clear();
+        return (new WishListResource(null))->additional([
+            'message' => 'wishlist cleared successfully',
+        ]);
+    }
 }

@@ -73,7 +73,14 @@ Route::prefix('sync')->name('sync')->group(function () {
     Route::get('product-variants/{productVariant}', [SyncController::class, 'showProductVariant'])->name('sync.productVariants.show');
 });
 
+Route::prefix('wish-lists')->name('wish-lists.')->group(function () {
+    Route::controller(WishListController::class)->group(function () {
+        Route::delete('remove-item/{item}', 'remove')->name('remove-item');
+        Route::delete('clear', 'clear')->name('clear');
+    });
+});
 Route::apiResource('wish-lists', WishListController::class);
+
 Route::apiResource('stores', StoreController::class)
     ->only(['index', 'show']);
 

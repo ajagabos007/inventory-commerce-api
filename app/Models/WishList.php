@@ -31,6 +31,7 @@ class WishList extends Model
         'item_id',
         'item_type',
         'options',
+        'session_token',
     ];
 
     /**

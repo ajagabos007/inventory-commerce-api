@@ -44,10 +44,7 @@ class OrderController extends Controller
                 'user',
             ])
             ->allowedFilters([
-                'user_id',
-                AllowedFilter::scope('low_stock', 'lowStock'),
-                AllowedFilter::scope('out_of_stock', 'outOfStock'),
-
+                'status',
             ])
             ->when(request()->filled('q'), function ($query) {
                 $query->search(request()->q);

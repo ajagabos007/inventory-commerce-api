@@ -75,11 +75,13 @@ class WishListManager
     /**
      * Remove item from wishlist
      */
-    public function remove(string $itemType, string $itemId): bool
+    public function remove(string $itemId, string $itemType=null): bool
     {
         $query = WishList::query()
             ->where('item_id', $itemId)
-            ->where('item_type', $itemType);
+            ->when($itemType, function ($query, $itemType) {
+                return $query->where('item_type', $itemType);
+            });
 
         if ($this->user) {
             $query->where('user_id', $this->user->id);

@@ -54,23 +54,6 @@ class Order extends Model
         'total_price',
         'subtotal_price',
 
-    /**
-     * Status of order
-     * Ongoing: an order waiting payment
-     * New: when payment is made and verified
-     * Processing: once an order being review
-     * Dispatched : sent out for delivery
-     * Delivered : delivered and received by the customer
-     *
-     * Order_status
-     * id
-     * user_id
-     * from_status
-     * to_status
-     * time_stamp
-     *
-     */
-
     ];
 
     /**
@@ -149,5 +132,28 @@ class Order extends Model
         } while (static::where('reference', $ref)->exists());
 
         return $ref;
+    }
+
+    /**
+     * Search scope
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where(function (Builder $query) use ($term) {
+              $query->whereAny([
+                  'discount_amount',
+                  'reference',
+                  'full_name',
+                  'phone_number',
+                  'email',
+                  'delivery_method',
+                  'delivery_address',
+                  'pickup_address',
+                  'status',
+                  'payment_method',
+                  'total_price',
+                  'subtotal_price',
+              ] ,'LIKE', "%{$term}%");
+        });
     }
 }

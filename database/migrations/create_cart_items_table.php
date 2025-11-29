@@ -17,6 +17,11 @@ return new class extends Migration
             $table->string('item_id');
             $table->string('session_id')->nullable()->index();
             $table->uuid('user_id')->nullable()->index();
+            $table->foreignUuid('store_id')
+                ->nullable()
+                ->constrained('stores')
+                ->onUpdate('cascade')
+                ->nullOnDelete();
             $table->timestamps();
         });
     }

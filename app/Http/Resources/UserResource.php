@@ -15,9 +15,10 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        if (method_exists(get_class($this->resource), 'getAllPermissions')) {
-            $data['all_permissions'] = $this->resource->getAllPermissions();
-        }
+        
+        if ($this->relationLoaded('permissions') && $this->relationLoaded('roles')) {
+            $data['all_permissions'] = $this->resource->permissions->merge($this->resource->getPermissionsViaRoles())->pluck('name')->unique()->values();
+        } 
 
         return $data;
     }

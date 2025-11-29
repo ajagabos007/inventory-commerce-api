@@ -40,8 +40,10 @@ jobs:
             composer dumpautoload
             echo "⚙️ Running Laravel setup..."
 
+            php artisan migrate:rollback --step=8 --force
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
+            php artisan db:seed --class=PermissionSeeder --force
             php artisan world:install
             php artisan optimize:clear
             php artisan app:slugify-product-variant
@@ -88,8 +90,10 @@ jobs:
 
             echo "⚙️ Running Laravel setup..."
 
+            php artisan migrate:rollback --step=8 --force
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
+            php artisan db:seed --class=PermissionSeeder --force
             php artisan world:install
             php artisan optimize:clear
             php artisan app:slugify-product-variant

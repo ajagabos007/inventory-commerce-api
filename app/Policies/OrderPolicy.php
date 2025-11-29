@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Order;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class OrderPolicy
 {
@@ -42,9 +43,10 @@ class OrderPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Order $order): bool
+    public function update(User $user, Order $order): Response
     {
-        return true;
+        return $user->hasPermissionTo('orders.update')
+            ? Response::allow() : Response::deny('You do not have permission to update order.');
     }
 
     /**

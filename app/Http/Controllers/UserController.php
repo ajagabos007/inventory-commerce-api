@@ -11,7 +11,6 @@ use App\Notifications\AccountDeactivated;
 use App\Notifications\AccountReactivated;
 use App\Notifications\AdminMail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -21,15 +20,21 @@ use function Illuminate\Support\defer;
 
 class UserController extends Controller
 {
+
+    /**
+     * Create the controller instance.
+     */
+    public function __construct()
+    {
+        $this->authorizeResource(User::class, 'user');
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $paginate = request()->has('paginate') ? request()->paginate : true;
-        $perPage = request()->has('per_page') ? request()->per_page : 15;
-
-        $users = QueryBuilder::for(User::forRequestStores())
+        $users = QueryBuilder::for(User::class)
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'first_name',
@@ -51,6 +56,8 @@ class UserController extends Controller
                 'middle_name',
                 'phone_number',
                 'email',
+                'roles.permissions',
+                'permissions',
                 AllowedFilter::scope('created_after'),
                 AllowedFilter::scope('permission'),
                 AllowedFilter::scope('without_permission'),
@@ -58,58 +65,23 @@ class UserController extends Controller
                 AllowedFilter::scope('without_role'),
                 AllowedFilter::scope('deactivated'),
                 AllowedFilter::scope('created_before'),
-            ]);
-
-        if (request()->has('q')) {
-            $users->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
+                AllowedFilter::scope('is_staff', 'is_staff'),
+                AllowedFilter::scope('by_store', 'by_store'),
+            ])
+            ->when(request()->filled('q'), function ($query) {
+                $query->search(request()->q);
+            })
+            ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+                $perPage = ! is_numeric(request()->per_page) ? 15 : max(intval(request()->per_page), 1);
+                return $query->paginate($perPage)
+                    ->appends(request()->query());
+            }, function ($query) {
+                return $query->get();
             });
-        }
 
-        /**
-         * Check if pagination is not disabled
-         */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
-
-            $users = $users->paginate($perPage)
-                ->appends(request()->query());
-
-        } else {
-            $users = $users->get();
-        }
-
-        $users_collection = UserResource::collection($users)->additional([
+        return UserResource::collection($users)->additional([
             'message' => 'User retrieved successfully',
         ]);
-
-        return $users_collection;
     }
 
     /**

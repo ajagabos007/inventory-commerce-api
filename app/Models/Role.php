@@ -15,4 +15,15 @@ class Role extends SpatieRole
     use HasFactory;
     use HasUuids;
     use ModelRequestLoader;
+
+    public function scopeSearch($query, $term)
+    {
+        return $query->whereAny(
+            [
+                'name', 
+                'guard_name'
+            ], 
+            'like', "%{$term}%"
+        );
+    }
 }

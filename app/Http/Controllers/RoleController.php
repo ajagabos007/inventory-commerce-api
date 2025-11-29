@@ -7,8 +7,6 @@ use App\Http\Requests\SyncRolePermissionsRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Http\Resources\RoleResource;
 use App\Models\Role;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class RoleController extends Controller
@@ -28,9 +26,6 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $paginate = request()->has('paginate') ? request()->paginate : true;
-        $perPage = request()->has('per_page') ? request()->per_page : 15;
-
         $roles = QueryBuilder::for(Role::class)
             ->defaultSort('name')
             ->allowedSorts(
@@ -43,59 +38,23 @@ class RoleController extends Controller
             ])
             ->allowedIncludes([
                 'permissions',
-            ]);
+            ])
+            ->when(request()->filled('q'), function ($query) {
+                $query->search(request()->q);
+            })
+             ->when(! in_array(request()->paginate, [false, 'false', 0, '0', 'no'], true), function ($query) {
+                $perPage = ! is_numeric(request()->per_page) ? 15 : max(intval(request()->per_page), 1);
 
-        if (request()->has('q')) {
-            $roles->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
+                return $query->paginate($perPage)
+                    ->appends(request()->query());
+            }, function ($query) {
+                return $query->get();
             });
-        }
 
-        /**
-         * Check if pagination is not disabled
-         */
-        if (! in_array($paginate, [false, 'false', 0, '0'], true)) {
-            /**
-             * Ensure per_page is integer and >= 1
-             */
-            if (! is_numeric($perPage)) {
-                $perPage = 15;
-            } else {
-                $perPage = intval($perPage);
-                $perPage = $perPage >= 1 ? $perPage : 15;
-            }
-
-            $roles = $roles->paginate($perPage)
-                ->appends(request()->query());
-
-        } else {
-            $roles = $roles->get();
-        }
-
-        $roles_collection = RoleResource::collection($roles)->additional([
+        return RoleResource::collection($roles)->additional([
             'status' => 'success',
             'message' => 'Roles retrieved successfully',
         ]);
-
-        return $roles_collection;
     }
 
     /**

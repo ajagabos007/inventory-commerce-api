@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToStore;
 use App\Traits\ModelRequestLoader;
 use App\Traits\Scopeable;
 use Database\Factories\WishListFactory;
@@ -18,6 +19,7 @@ class WishList extends Model
     use HasUuids;
     use ModelRequestLoader;
     use Scopeable;
+    use BelongsToStore;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +34,7 @@ class WishList extends Model
         'item_type',
         'options',
         'session_token',
+        'store_id',
     ];
 
     /**

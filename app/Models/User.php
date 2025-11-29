@@ -308,6 +308,33 @@ class User extends Authenticatable implements MustVerifyEmail
         $query->whereNotNull('deactivated_at');
     }
 
+    public function scopeSearch(Builder $query, $term): void
+    {
+        $query->where(function ($query) use ($term) {
+            $query->where('first_name', 'like', "%{$term}%")
+                ->orWhere('last_name', 'like', "%{$term}%")
+                ->orWhere('email', 'like', "%{$term}%")
+                ->orWhere('phone_number', 'like', "%{$term}%");
+        });
+    }
+
+    public function scopeIsStaff(Builder $query, $is_staff = true): void
+    {
+        $is_staff = filter_var($is_staff, FILTER_VALIDATE_BOOLEAN);
+        if ($is_staff) {
+            $query->has('staff');
+        } else {
+            $query->doesntHave('staff');
+        }
+    }
+
+    public function scopeByStore(Builder $query, $store_id): void
+    {
+        $query->whereHas('staff', function ($query) use ($store_id) {
+            $query->where('store_id', $store_id);
+        });
+    }
+
     /**
      * Get the store managed by the user.
      */

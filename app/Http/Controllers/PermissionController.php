@@ -6,6 +6,7 @@ use App\Http\Resources\PermissionResource;
 use App\Models\Permission;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedInclude;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -38,37 +39,17 @@ class PermissionController extends Controller
             )
             ->allowedFilters([
                 'name',
+                AllowedFilter::scope('role', 'role') ,
             ])
             ->allowedIncludes([
                 'users',
                 'roles',
-                'roles.permissions',
-                //    AllowedInclude::count('usersCount', 'users'),
-            ]);
-
-        if (request()->has('q')) {
-            $permissions->where(function ($query) {
-                $table_cols_key = $query->getModel()->getTable().'_column_listing';
-
-                if (Cache::has($table_cols_key)) {
-                    $cols = Cache::get($table_cols_key);
-                } else {
-                    $cols = Schema::getColumnListing($query->getModel()->getTable());
-                    Cache::put($table_cols_key, $cols);
-                }
-
-                $counter = 0;
-                foreach ($cols as $col) {
-
-                    if ($counter == 0) {
-                        $query->where($col, 'LIKE', '%'.request()->q.'%');
-                    } else {
-                        $query->orWhere($col, 'LIKE', '%'.request()->q.'%');
-                    }
-                    $counter++;
-                }
+                AllowedInclude::count('usersCount', 'users'),
+            ])
+            ->when(request()->filled('q'), function ($query) {
+                $query->search(request()->q);
             });
-        }
+
 
         /**
          * Check if pagination is not disabled

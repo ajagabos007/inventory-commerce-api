@@ -18,10 +18,13 @@ return new class extends Migration
             $table->decimal('price', 8, 2)->nullable();
             $table->string('session_token')->nullable()->index();
             $table->uuid('user_id')->nullable()->index();
+            $table->foreignUuid('store_id')
+                ->nullable()
+                ->constrained('stores')
+                ->onUpdate('cascade')
+                ->nullOnDelete();
             $table->json('options')->nullable();
             $table->timestamps();
-            $table->unique(['user_id', 'item_id', 'item_type']);
-            $table->unique(['session_token', 'item_id', 'item_type']);
         });
     }
 

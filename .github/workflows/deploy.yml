@@ -24,7 +24,7 @@ jobs:
       - name: 🚀 Deploy to Staging Server
         run: |
           ssh -o StrictHostKeyChecking=no -p 22 \
-              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+              ${{ secrets.SSH_USER }}@50.116.38.113  << EOF
             set -e  # stop on first error
 
             echo "🔐 Logged in via SSH"

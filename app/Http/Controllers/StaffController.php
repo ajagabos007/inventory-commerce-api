@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class StaffController extends Controller
@@ -128,7 +129,7 @@ class StaffController extends Controller
 
             DB::beginTransaction();
 
-            $password = 'password';
+            $password = Str::random(8);
             $validated['password'] = Hash::make($password);
 
             $user = User::create($validated);

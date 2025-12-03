@@ -429,13 +429,13 @@ class StockTransferController extends Controller
                 $query->withOutGlobalScope('store')
                     ->where('staff.store_id', $stock_transfer->to_store_id);
             })
-        //        ->where(function ($query) {
-        //            $query->permission('stock_transfer.receive')
-        //                ->orWhereHas('roles', function ($query) {
-        //                    $query->where('name', 'admin');
-        //                });
-        //        })
-                ->get();
+            ->where(function ($query) {
+                $query->permission('stock_transfers.receive')
+                    ->orWhereHas('roles', function ($query) {
+                        $query->where('name', 'admin');
+                    });
+            })
+            ->get();
 
             if ($users->isNotEmpty()) {
                 defer(fn () => Notification::send($users, new StockTransferDispatchedNotification($stock_transfer)));

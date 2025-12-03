@@ -1,34 +1,37 @@
 <x-mail::message>
-    {{-- Greeting --}}
-# Dear {{$user->name}}
-A default password has been automatically generated for your new account. Below are your login credentials:
+# Hello {{ $user->name }},
+
+Your account has been successfully created, and a default password has been generated for you.
+Please find your login details below:
+
 <ul>
-    <li><strong>Email: </strong> {{$user->email}}</li>
-    <li><strong>Password: </strong> {{$password}}</li>
+    <li><strong>Email:</strong> {{ $user->email }}</li>
+    <li><strong>Password:</strong> {{ $password }}</li>
 </ul>
 
 @php
-    $action_text ="Login";
-    $action_url = config('app.front_end.store.url').'/auth/login'
+$actionText = "Login to Your Account";
+$ecommerceUrl = config('app.front_end.ecommerce.url').'/auth/login';
+$storeUrl = config('app.front_end.store.url').'/auth/login';
+
+$actionUrl = $user->is_staff ? $storeUrl : $ecommerceUrl;
 @endphp
 
-You can access your account by click the  "{{$action_text}}" button below
+Click the button below to access your dashboard:
 
-<x-mail::button :url="$action_url">
-    {{$action_text}}
+<x-mail::button :url="$actionUrl">
+    {{ $actionText }}
 </x-mail::button>
 
-Thanks,<br>
+Thank you,<br>
 {{ config('app.name') }}
 
 <x-slot:subcopy>
-    @lang(
-        "If you're having trouble clicking the \"$action_text\" button, copy and paste the URL below\n".
-        'into your web browser:',
-        [
-            'actionText' => $action_text,
-        ]
-) <span class="break-all">[{{ $action_url }}]({{ $action_url }})</span>
+@lang(
+    "If you’re having trouble clicking the \":actionText\" button, copy and paste the URL below into your browser:",
+    ['actionText' => $actionText]
+)
+<br>
+<span class="break-all">[{{ $actionUrl }}]({{ $actionUrl }})</span>
 </x-slot:subcopy>
-
 </x-mail::message>

@@ -26,9 +26,6 @@ class PermissionSeeder extends Seeder
             update: []
         );
 
-        return ;
-        Permission::whereNotIn('name', data_get($permissions, '*.name'))->delete();
-
         // ----------------------------------------
         // Create Roles
         // ----------------------------------------

@@ -41,7 +41,15 @@ class Permission extends SpatiePermission
     protected function label(): Attribute
     {
         return Attribute::make(
-            get: fn () => PermissionEnum::tryFrom($this->name)->label(),
+            get: function(){
+                try {
+                    return PermissionEnum::tryFrom($this->name)->label();
+                }
+                catch (\Exception $e) {
+                    return "Unknown Permission";
+                }
+            }
+
         );
     }
 }

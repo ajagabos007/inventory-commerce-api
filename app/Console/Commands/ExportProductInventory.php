@@ -175,7 +175,11 @@ class ExportProductInventory extends Command
             $storeIds = $stores->pluck('id')->toArray();
             $inventories = Inventory::withoutGlobalScope('store')
                 ->whereIn('store_id', $storeIds)
-                ->with(['productVariant.product.image', 'store'])
+                ->with([
+                    'productVariant.image',
+                    'productVariant.product.image',
+                    'store'
+                ])
                 ->get();
 
             $bar = $this->output->createProgressBar($inventories->count());
@@ -189,13 +193,17 @@ class ExportProductInventory extends Command
 
                 // Get image URL
                 $imageUrl = '';
-                if ($product->image) {
-                    $imageUrl = $product->image->url;
+                if ($inventory->productVariant->image) {
+                    try {
+                        $imageUrl = Storage::disk($inventory->productVariant->image->storage)->url($inventory->productVariant->image->path);
+                    } catch (\Exception $e) {
+                        $imageUrl = '';
+                    }
                 }
 
                 // Write row
                 $csv->insertOne([
-                    $product->name,
+                    $inventory->productVariant->name,
                     $inventory->productVariant->sku ?? 'N/A',
                     $inventory->store->name,
                     $inventory->quantity,

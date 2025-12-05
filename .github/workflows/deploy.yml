@@ -42,6 +42,7 @@ jobs:
 
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
+            php artisan db:seed --class=PermissionSeeder --force
             php artisan world:install
             php artisan optimize:clear
             php artisan app:slugify-product-variant
@@ -90,6 +91,7 @@ jobs:
 
             php artisan migrate --force
             php artisan db:seed --class=PaymentGatewaySeeder --force
+            php artisan db:seed --class=PermissionSeeder --force
             php artisan world:install
             php artisan optimize:clear
             php artisan app:slugify-product-variant

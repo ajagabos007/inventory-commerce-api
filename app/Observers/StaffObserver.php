@@ -19,6 +19,16 @@ class StaffObserver implements ShouldHandleEventsAfterCommit
     }
 
     /**
+     * Handle the Sale "created" event.
+     */
+    public function saving(Staff $staff): void
+    {
+        if (blank($staff->staff_no)) {
+            $staff->staff_no = Staff::generateStaffNo();
+        }
+    }
+
+    /**
      * Handle the Staff "created" event.
      */
     public function created(Staff $staff): void {}
@@ -26,7 +36,9 @@ class StaffObserver implements ShouldHandleEventsAfterCommit
     /**
      * Handle the Staff "updated" event.
      */
-    public function updated(Staff $staff): void {}
+    public function updated(Staff $staff): void {
+
+    }
 
     /**
      * Handle the Staff "deleted" event.

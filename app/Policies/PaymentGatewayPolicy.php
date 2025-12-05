@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\PaymentGateway;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class PaymentGatewayPolicy
 {
@@ -12,23 +13,28 @@ class PaymentGatewayPolicy
      */
     public function before(User $user, string $ability): ?bool
     {
+        if(in_array($ability, ['create', 'delete','restore', 'forceDelete'])) {
+            return null;
+        }
+
         return $user->hasAnyRole('admin') ? true : null;
     }
 
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user): Response
     {
-        return false;
+        return Response::allow();
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, PaymentGateway $paymentGateway): bool
+    public function view(User $user, PaymentGateway $paymentGateway): Response
     {
-        return false;
+        return $user->hasPermissionTo('payment_gateways.view')
+            ? Response::allow() : Response::deny('You do not have permission to view payment gateway details.');
     }
 
     /**
@@ -42,9 +48,10 @@ class PaymentGatewayPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, PaymentGateway $paymentGateway): bool
+    public function update(User $user, PaymentGateway $paymentGateway): Response
     {
-        return false;
+        return $user->hasPermissionTo('payment_gateways.update')
+            ? Response::allow() : Response::deny('You do not have permission to update payment gateways.');
     }
 
     /**

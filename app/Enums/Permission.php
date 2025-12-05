@@ -70,6 +70,14 @@ enum Permission: string
     case USERS_DELETE = 'users.delete';
     case USERS_UPDATE_PASSWORD = 'users.update-password';
 
+    case DELIVERY_LOCATIONS_CREATE = 'delivery_locations.create';
+    case DELIVERY_LOCATIONS_UPDATE = 'delivery_locations.update';
+    case DELIVERY_LOCATIONS_DELETE = 'delivery_locations.delete';
+
+    case PAYMENT_GATEWAYS_VIEW_ANY = 'payment_gateways.viewAny';
+    case PAYMENT_GATEWAYS_VIEW = 'payment_gateways.view';
+    case PAYMENT_GATEWAYS_UPDATE = 'payment_gateways.update';
+
 
     public function label(): string
     {
@@ -139,6 +147,15 @@ enum Permission: string
             self::USERS_UPDATE => 'Edit Users',
             self::USERS_DELETE => 'Delete Users',
             self::USERS_UPDATE_PASSWORD => 'Update User Password',
+
+            self::DELIVERY_LOCATIONS_CREATE => 'Add Delivery Locations',
+            self::DELIVERY_LOCATIONS_UPDATE => 'Edit Delivery Locations',
+            self::DELIVERY_LOCATIONS_DELETE => 'Delete Delivery Locations',
+
+            // PaymentGateways
+//            self::PAYMENT_GATEWAYS_VIEW_ANY => 'View All Payment Gateways',
+            self::PAYMENT_GATEWAYS_VIEW => 'View Payment Gateway Details',
+            self::PAYMENT_GATEWAYS_UPDATE => 'Update Payment Gateways',
         };
     }
 

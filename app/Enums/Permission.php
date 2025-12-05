@@ -74,7 +74,6 @@ enum Permission: string
     case DELIVERY_LOCATIONS_UPDATE = 'delivery_locations.update';
     case DELIVERY_LOCATIONS_DELETE = 'delivery_locations.delete';
 
-    case PAYMENT_GATEWAYS_VIEW_ANY = 'payment_gateways.viewAny';
     case PAYMENT_GATEWAYS_VIEW = 'payment_gateways.view';
     case PAYMENT_GATEWAYS_UPDATE = 'payment_gateways.update';
 
@@ -153,7 +152,6 @@ enum Permission: string
             self::DELIVERY_LOCATIONS_DELETE => 'Delete Delivery Locations',
 
             // PaymentGateways
-//            self::PAYMENT_GATEWAYS_VIEW_ANY => 'View All Payment Gateways',
             self::PAYMENT_GATEWAYS_VIEW => 'View Payment Gateway Details',
             self::PAYMENT_GATEWAYS_UPDATE => 'Update Payment Gateways',
         };

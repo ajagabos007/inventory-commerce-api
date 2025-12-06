@@ -35,7 +35,8 @@ class CartController extends Controller
         $validated = $request->validated();
 
         $inventory = Inventory::whereHas('productVariant', function ($query) use ($validated) {
-            $query->where('sku', $validated['sku']);
+            $query->where('sku', $validated['sku'])
+                ->orWhere('name', $validated['sku']);
         })
             ->with('productVariant')
             ->first();

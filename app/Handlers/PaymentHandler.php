@@ -248,6 +248,8 @@ class PaymentHandler
             // Update payment based on verification
             $this->updatePaymentFromVerification((array) $verificationResult);
 
+            PaymentVerified::dispatch($this->payment);
+
             return [
                 'success' => true,
                 'message' => 'Payment verified successfully',

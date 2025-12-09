@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\DeliveryMethod;
 use App\Models\Order;
 
 class OrderObserver
@@ -13,6 +14,10 @@ class OrderObserver
     {
         if (blank($order->reference)) {
             $order->reference = Order::genReference();
+        }
+
+        if (blank($order->delivery_method)) {
+            $order->delivery_method = DeliveryMethod::DOOR_DELIVERY;
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryMethod;
 use App\Enums\OrderStatus;
 use App\Observers\OrderObserver;
 use App\Traits\HasPayments;
@@ -64,6 +65,7 @@ class Order extends Model
     protected function casts(): array
     {
         return [
+            'delivery_method' => DeliveryMethod::class,
             'delivery_address' => 'array',
             'pickup_address' => 'array',
         ];

@@ -77,6 +77,15 @@ enum Permission: string
     case PAYMENT_GATEWAYS_VIEW = 'payment_gateways.view';
     case PAYMENT_GATEWAYS_UPDATE = 'payment_gateways.update';
 
+    // Reports
+    case REPORTS_VIEW_SALES = 'reports.view-sales';
+    case REPORTS_VIEW_ORDERS = 'reports.view-orders';
+    case REPORTS_VIEW_CUSTOMERS = 'reports.view-customers';
+    case REPORTS_VIEW_INVENTORY = 'reports.view-inventory';
+    case REPORTS_VIEW_STAFF = 'reports.view-staff';
+    case REPORTS_VIEW_PRODUCTS = 'reports.view-products';
+    case REPORTS_VIEW_FINANCIAL = 'reports.view-financial';
+
 
     public function label(): string
     {
@@ -154,6 +163,15 @@ enum Permission: string
             // PaymentGateways
             self::PAYMENT_GATEWAYS_VIEW => 'View Payment Gateway Details',
             self::PAYMENT_GATEWAYS_UPDATE => 'Update Payment Gateways',
+
+            // Reports
+            self::REPORTS_VIEW_SALES => 'View Sales Reports',
+            self::REPORTS_VIEW_ORDERS => 'View Orders Reports',
+            self::REPORTS_VIEW_CUSTOMERS => 'View Customer Reports',
+            self::REPORTS_VIEW_INVENTORY => 'View Inventory Reports',
+            self::REPORTS_VIEW_STAFF => 'View Staff Reports',
+            self::REPORTS_VIEW_PRODUCTS => 'View Product Reports',
+            self::REPORTS_VIEW_FINANCIAL => 'View Financial Reports',
         };
     }
 

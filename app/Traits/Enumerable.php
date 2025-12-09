@@ -90,16 +90,4 @@ trait Enumerable
     {
         return in_array($value, self::values(), true);
     }
-
-    /**
-     * Try to get enum from value
-     */
-    public static function tryFrom(mixed $value): ?static
-    {
-        try {
-            return parent::tryFrom($value);
-        } catch (\TypeError) {
-            return null;
-        }
-    }
 }

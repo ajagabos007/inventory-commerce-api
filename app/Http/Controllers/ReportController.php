@@ -16,11 +16,13 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Staff;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
+
 
 class ReportController extends Controller
 {
@@ -32,14 +34,10 @@ class ReportController extends Controller
     public function sales(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Sale::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view sales reports',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewSales', Report::class);
 
-        $period = $request->input('filter.period', null);
+        $groupBy = $request->input('filter.group_by', null);
 
         $salesQuery = QueryBuilder::for(Sale::class)
             ->with(['cashier.user', 'saleInventories.inventory.productVariant.product'])
@@ -52,7 +50,7 @@ class ReportController extends Controller
                 AllowedFilter::callback('end_date', function ($query, $value) {
                     $query->where('created_at', '<=', $value);
                 }),
-                AllowedFilter::callback('period', function ($query, $value) {
+                AllowedFilter::callback('group_by', function ($query, $value) {
                     // This is just a marker, actual grouping happens below
                 }),
             ]);
@@ -65,8 +63,8 @@ class ReportController extends Controller
 
         // Group by period if requested
         $salesByPeriod = [];
-        if ($period) {
-            $dateFormat = match ($period) {
+        if ($groupBy) {
+            $dateFormat = match ($groupBy) {
                 'day' => '%Y-%m-%d',
                 'week' => '%Y-%u',
                 'month' => '%Y-%m',
@@ -138,12 +136,7 @@ class ReportController extends Controller
     public function orders(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Order::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view orders reports',
-                'status' => 'error',
-            ], 403);
-        }
+        Gate::authorize('viewOrders', Report::class);
 
         $ordersQuery = QueryBuilder::for(Order::class)
             ->with(['user', 'store', 'items'])
@@ -167,19 +160,18 @@ class ReportController extends Controller
 
         // Status breakdown
         $statusBreakdown = $ordersQuery->clone()
+            ->setEagerLoads([])
             ->select('status', DB::raw('COUNT(*) as count'), DB::raw('SUM(total_price) as revenue'))
             ->groupBy('status')
             ->get();
 
-//        dd($statusBreakdown->toArray());
 
         // Delivery method breakdown
         $deliveryMethodBreakdown = $ordersQuery->clone()
+            ->setEagerLoads([])
             ->select('delivery_method', DB::raw('COUNT(*) as count'))
             ->groupBy('delivery_method')
             ->get();
-
-//        dd($deliveryMethodBreakdown->toArray());
 
         // Recent orders
         $recentOrders = $ordersQuery->clone()
@@ -211,12 +203,8 @@ class ReportController extends Controller
     public function staffPerformance(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Staff::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view staff performance reports',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewStaffPerformance', Report::class);
 
         $startDate = $request->input('filter.start_date');
         $endDate = $request->input('filter.end_date');
@@ -283,48 +271,37 @@ class ReportController extends Controller
     public function customers(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Customer::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view customer reports',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewCustomers', Report::class);
 
         $startDate = $request->input('filter.start_date');
         $endDate = $request->input('filter.end_date');
         $limit = $request->input('filter.limit', 50);
 
-        // Get customer purchase data
-        $customersQuery = Customer::query()
-            ->select('customers.*')
-            ->leftJoin('sales', function ($join) use ($startDate, $endDate) {
-                $join->on('sales.buyerable_id', '=', 'customers.id')
-                    ->where('sales.buyerable_type', '=', Customer::class);
-
-                if ($startDate) {
-                    $join->where('sales.created_at', '>=', $startDate);
-                }
-
-                if ($endDate) {
-                    $join->where('sales.created_at', '<=', $endDate);
-                }
-            })
-            ->groupBy('customers.id')
-            ->selectRaw('COUNT(sales.id) as purchase_count')
-            ->selectRaw('COALESCE(SUM(sales.total_price), 0) as total_spent')
-            ->selectRaw('COALESCE(AVG(sales.total_price), 0) as average_order_value');
-
-        $customersQuery = QueryBuilder::for($customersQuery)
+        // Get customer purchase data using subqueries to avoid GROUP BY issues
+        $customersQuery = QueryBuilder::for(Customer::class)
+            ->withCount(['sales as purchase_count' => function ($query) use ($startDate, $endDate) {
+                if ($startDate) $query->where('created_at', '>=', $startDate);
+                if ($endDate) $query->where('created_at', '<=', $endDate);
+            }])
+            ->withSum(['sales as total_spent' => function ($query) use ($startDate, $endDate) {
+                if ($startDate) $query->where('created_at', '>=', $startDate);
+                if ($endDate) $query->where('created_at', '<=', $endDate);
+            }], 'total_price')
+            ->withAvg(['sales as average_order_value' => function ($query) use ($startDate, $endDate) {
+                if ($startDate) $query->where('created_at', '>=', $startDate);
+                if ($endDate) $query->where('created_at', '<=', $endDate);
+            }], 'total_price')
             ->allowedFilters([
                 AllowedFilter::exact('id', 'customer_id'),
                 AllowedFilter::callback('start_date', function ($query, $value) {
-                    // Already handled in the join above
+                    // Handled in subqueries
                 }),
                 AllowedFilter::callback('end_date', function ($query, $value) {
-                    // Already handled in the join above
+                    // Handled in subqueries
                 }),
                 AllowedFilter::callback('limit', function ($query, $value) {
-                    // Limit is applied separately below
+                    // Handled below
                 }),
             ]);
 
@@ -350,12 +327,8 @@ class ReportController extends Controller
     public function inventory(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Inventory::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view inventory reports',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewInventory', Report::class);
 
         $stockStatus = $request->input('filter.stock_status', 'all');
         $threshold = $request->input('filter.threshold', 5);
@@ -425,12 +398,8 @@ class ReportController extends Controller
     public function productPerformance(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Product::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view product performance reports',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewProductPerformance', Report::class);
 
         $startDate = $request->input('filter.start_date');
         $endDate = $request->input('filter.end_date');
@@ -487,12 +456,8 @@ class ReportController extends Controller
     public function revenueAnalytics(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Sale::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view revenue analytics',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewRevenueAnalytics', Report::class);
 
         $period = $request->input('filter.period', 'month');
         $dateFormat = match ($period) {
@@ -565,12 +530,8 @@ class ReportController extends Controller
     public function profitAnalysis(Request $request)
     {
         // Authorization check
-        if (!Gate::allows('viewAny', Sale::class)) {
-            return response()->json([
-                'message' => 'Unauthorized to view profit analysis',
-                'status' => 'error',
-            ], 403);
-        }
+        // Authorization check
+        Gate::authorize('viewProfitAnalysis', Report::class);
 
         $productId = $request->input('filter.product_id');
 

@@ -45,6 +45,14 @@ class Customer extends Model
     }
 
     /**
+     * Get the sales for the customer
+     */
+    public function sales()
+    {
+        return $this->morphMany(Sale::class, 'buyerable');
+    }
+
+    /**
      * Search scope
      */
     public function scopeSearch(Builder $query, string $term): Builder

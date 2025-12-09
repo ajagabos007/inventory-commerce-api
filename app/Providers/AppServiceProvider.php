@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Managers\CartManager;
 use App\Models\Store;
+use App\Models\Report;
+use App\Policies\ReportPolicy;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -38,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        Gate::policy(Report::class, ReportPolicy::class);
+        
         $this->app->singleton('currentStore', function ($app) {
             $user = Auth::user();
 

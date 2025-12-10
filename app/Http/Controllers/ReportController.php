@@ -330,8 +330,7 @@ class ReportController extends Controller
         // Authorization check
         Gate::authorize('viewInventory', Report::class);
 
-        $stockStatus = $request->input('filter.stock_status', 'all');
-        $threshold = $request->input('filter.threshold', 5);
+        $threshold = $request->input('filter.low_stock', 5);
 
         $inventoryQuery = QueryBuilder::for(Inventory::class)
             ->with([
@@ -345,26 +344,11 @@ class ReportController extends Controller
                         $q->where('product_id', $value);
                     });
                 }),
-                AllowedFilter::callback('stock_status', function ($query, $value) {
-                    // Status filtering happens below
-                }),
-                AllowedFilter::callback('threshold', function ($query, $value) {
-                    // Threshold is used in status filtering
-                }),
+                AllowedFilter::scope('low_stock', 'lowStock'),
+                AllowedFilter::scope('out_of_stock', 'outOfStock'),
+
             ]);
 
-        // Apply stock status filter
-        switch ($stockStatus) {
-            case 'low':
-                $inventoryQuery->lowStock($threshold);
-                break;
-            case 'out_of_stock':
-                $inventoryQuery->outOfStock(true);
-                break;
-            case 'available':
-                $inventoryQuery->where('quantity', '>', $threshold);
-                break;
-        }
 
         // Get all inventory items
         $inventoryItems = $inventoryQuery->get();

@@ -334,7 +334,11 @@ class ReportController extends Controller
         $threshold = $request->input('filter.threshold', 5);
 
         $inventoryQuery = QueryBuilder::for(Inventory::class)
-            ->with(['productVariant.product', 'store'])
+            ->with([
+                'productVariant.image',
+                'productVariant.product.image',
+                'store'
+            ])
             ->allowedFilters([
                 AllowedFilter::callback('product_id', function ($query, $value) {
                     $query->whereHas('productVariant', function ($q) use ($value) {
@@ -369,7 +373,7 @@ class ReportController extends Controller
         $totalItems = Inventory::count();
         $lowStockItems = Inventory::lowStock($threshold)->count();
         $outOfStockItems = Inventory::outOfStock(true)->count();
-        $totalStockValue = Inventory::with('productVariant')
+        $totalStockValue = Inventory::with(['productVariant.image','productVariant.product.image'])
             ->get()
             ->sum(function ($inventory) {
                 return $inventory->quantity * ($inventory->productVariant?->cost_price ?? 0);
@@ -420,7 +424,8 @@ class ReportController extends Controller
                 AllowedFilter::callback('type', function ($query, $value) {
                     // Used below
                 }),
-            ]);
+            ])
+            ->with('image');
 
         if ($type === 'trending' && $startDate && $endDate) {
             // Calculate days between dates
@@ -434,9 +439,11 @@ class ReportController extends Controller
                 $startDate,
                 $endDate,
                 'performance_period'
-            )->limit($limit)->get();
+            )
+                ->with('image')
+            ->limit($limit)->get();
         } else {
-            $products = Product::topSelling($limit)->get();
+            $products = Product::with('image')->topSelling($limit)->get();
         }
 
         return response()->json([

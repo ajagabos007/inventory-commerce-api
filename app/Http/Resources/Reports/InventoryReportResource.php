@@ -19,11 +19,13 @@ class InventoryReportResource extends JsonResource
             'product' => [
                 'id' => $this->productVariant?->product?->id,
                 'name' => $this->productVariant?->product?->name,
+                'image' => $this->productVariant->product->image,
             ],
             'variant' => [
                 'id' => $this->productVariant?->id,
                 'name' => $this->productVariant?->name,
                 'sku' => $this->productVariant?->sku,
+                'image' => $this->productVariant->image,
             ],
             'store' => [
                 'id' => $this->store?->id,

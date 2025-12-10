@@ -22,6 +22,7 @@ class ProductPerformanceReportResource extends JsonResource
             'total_sold' => (int) ($this->total_sold ?? $this->popular_total_sold ?? $this->trending_total_sold ?? $this->total_top_selling_sold ?? 0),
             'available_quantity' => (int) $this->available_quantity,
             'created_at' => $this->created_at?->toISOString(),
+            'image' => $this->image,
         ];
     }
 }

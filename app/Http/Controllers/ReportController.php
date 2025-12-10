@@ -213,7 +213,7 @@ class ReportController extends Controller
         $staffQuery = QueryBuilder::for(Staff::class)
             ->with(['user', 'store'])
             ->allowedFilters([
-                AllowedFilter::exact('id', 'staff_id'),
+                AllowedFilter::exact('staff_id', 'id'),
                 AllowedFilter::callback('start_date', function ($query, $value) {
                     // Date filtering happens in the sales query below
                 }),

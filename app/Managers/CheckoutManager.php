@@ -2,6 +2,8 @@
 
 namespace App\Managers;
 
+use App\Enums\DeliveryMethod;
+use App\Enums\OrderStatus;
 use App\Exceptions\CheckoutValidationException;
 use App\Facades\Cart;
 use App\Models\CheckoutSession;
@@ -284,6 +286,10 @@ class CheckoutManager
         $order->store_id = current_store()?->id;
         $order->coupon_id = $data['coupon_id'] ?? null;
         $order->delivery_address = $data['delivery_address'] ?? null;
+        $order->delivery_method = $data['delivery_method'] ?? DeliveryMethod::DOOR_DELIVERY->value;
+        $order->payment_method = 'online';
+        $order->status = OrderStatus::ONGOING->value;
+
         $order->save();
 
         foreach ($data['items'] ?? [] as $item) {

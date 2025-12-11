@@ -140,6 +140,19 @@ Route::controller(CartECommerceController::class)->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
+    
+    // Report Routes
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('sales');
+        Route::get('orders', [\App\Http\Controllers\ReportController::class, 'orders'])->name('orders');
+        Route::get('staff-performance', [\App\Http\Controllers\ReportController::class, 'staffPerformance'])->name('staff-performance');
+        Route::get('customers', [\App\Http\Controllers\ReportController::class, 'customers'])->name('customers');
+        Route::get('inventory', [\App\Http\Controllers\ReportController::class, 'inventory'])->name('inventory');
+        Route::get('product-performance', [\App\Http\Controllers\ReportController::class, 'productPerformance'])->name('product-performance');
+        Route::get('revenue-analytics', [\App\Http\Controllers\ReportController::class, 'revenueAnalytics'])->name('revenue-analytics');
+        Route::get('profit-analysis', [\App\Http\Controllers\ReportController::class, 'profitAnalysis'])->name('profit-analysis');
+    });
+    
     Route::post('email/verification-token', [VerificationController::class, 'sendEmailVerificationToken'])
         ->withoutMiddleware('verified')
         ->name('email.verification-token');

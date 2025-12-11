@@ -226,6 +226,7 @@ class PaymentController extends Controller
         $callbackData = $request->query();
         $headers = $request->headers->all();
 
+
         try {
 
             $reference = $this->extractReference($callbackData, $gateway);

@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Enums\OrderStatus;
 use App\Events\Order\OrderPaid;
 use App\Events\Payment\PaymentVerified;
 use App\Models\Order;
@@ -40,12 +41,10 @@ class OrderEventSubscriber implements ShouldQueue
             return;
         }
 
-        //        if(!blank($payable->payable->status) && $payable->payable->status!="pending"){
-        //            return;
-        //        }
-
-        $payable->payable->status = 'paid';
-        $payable->payable->saveQuietly();
+        if(blank($payable->payable->status) || $payable->payable->status == OrderStatus::ONGOING->value){
+            $payable->payable->status = OrderStatus::NEW->value;
+            $payable->payable->saveQuietly();
+        }
 
         OrderPaid::dispatch($payable->payable);
     }

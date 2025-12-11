@@ -37,7 +37,7 @@ class ReportController extends Controller
         // Authorization check
         Gate::authorize('viewSales', Report::class);
 
-        $groupBy = $request->input('filter.group_by', null);
+        $groupBy = $request->input('filter.period', null);
 
         $salesQuery = QueryBuilder::for(Sale::class)
             ->with(['cashier.user', 'saleInventories.inventory.productVariant.product'])
@@ -50,7 +50,7 @@ class ReportController extends Controller
                 AllowedFilter::callback('end_date', function ($query, $value) {
                     $query->where('created_at', '<=', $value);
                 }),
-                AllowedFilter::callback('group_by', function ($query, $value) {
+                AllowedFilter::callback('period', function ($query, $value) {
                     // This is just a marker, actual grouping happens below
                 }),
             ]);
@@ -527,7 +527,10 @@ class ReportController extends Controller
         $productId = $request->input('filter.product_id');
 
         $salesQuery = QueryBuilder::for(Sale::class)
-            ->with(['saleInventories.inventory.productVariant.product'])
+            ->with([
+                'saleInventories.inventory.productVariant.product.image',
+                'saleInventories.inventory.productVariant.image',
+            ])
             ->allowedFilters([
                 AllowedFilter::callback('start_date', function ($query, $value) {
                     $query->where('created_at', '>=', $value);
@@ -571,7 +574,8 @@ class ReportController extends Controller
                     $productProfits[$productIdKey] = [
                         'product' => [
                             'id' => $product->id,
-                            'name' => $product->name,
+                            'name' => $productVariant->name ?? $product->name,
+                            'image' => $productVariant->image ?? $product->image,
                         ],
                         'revenue' => 0,
                         'cost' => 0,

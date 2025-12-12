@@ -39,7 +39,7 @@ class StaffController extends Controller
         $user = auth()->user();
 
         $staffQ = Staff::when(! $user || ! $user->is_admin, function ($query) {
-            $query->forCurrentStore();
+            $query->currentStore();
         });
 
         $staffs = QueryBuilder::for($staffQ)

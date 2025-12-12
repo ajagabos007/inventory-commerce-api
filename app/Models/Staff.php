@@ -39,16 +39,16 @@ class Staff extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(! app()->runningInConsole(), function ($builder) {
-                $builder->where('store_id', current_store()?->id);
-            });
+//            $builder->when(! app()->runningInConsole(), function ($builder) {
+//                $builder->where('store_id', current_store()?->id);
+//            });
         });
     }
 
     /**
      * Scope a query to only include staff for the current store.
      */
-    public function scopeForCurrentStore(Builder $query): Builder
+    public function scopeCurrentStore(Builder $query): Builder
     {
         return $query->where('store_id', current_store()?->id);
     }

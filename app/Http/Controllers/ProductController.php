@@ -42,7 +42,7 @@ class ProductController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $products = QueryBuilder::for(Product::class)
+        $products = QueryBuilder::for(Product::query()->currentStore())
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',
@@ -111,7 +111,7 @@ class ProductController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $products = QueryBuilder::for(Product::class)
+        $products = QueryBuilder::for(Product::query()->currentStore())
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',

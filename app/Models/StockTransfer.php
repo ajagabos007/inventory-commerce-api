@@ -59,11 +59,17 @@ class StockTransfer extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(! app()->runningInConsole(), function ($builder) {
-                $builder->where('to_store_id', current_store()?->id)
-                    ->orWhere('from_store_id', current_store()?->id);
-            });
+//            $builder->when(! app()->runningInConsole(), function ($builder) {
+//                $builder->where('to_store_id', current_store()?->id)
+//                    ->orWhere('from_store_id', current_store()?->id);
+//            });
         });
+    }
+
+    public function scopeCurrentStore(Builder $builder): Builder
+    {
+        return   $builder->where('to_store_id', current_store()?->id)
+            ->orWhere('from_store_id', current_store()?->id);
     }
 
     /**

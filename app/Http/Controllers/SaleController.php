@@ -35,7 +35,8 @@ class SaleController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $salesQ = Sale::query();
+        $salesQ = Sale::query()
+                    ->currentStore();
 
         $sales = QueryBuilder::for($salesQ)
             ->defaultSort('-created_at')

@@ -70,6 +70,12 @@ class Sale extends Model
         });
     }
 
+    public function scopeCurrentStore(Builder $builder): Builder
+    {
+        return  $builder->whereDoesntHave('inventories', function (Builder $builder) {
+            $builder->where('store_id', '<>', current_store()?->id);
+        });
+    }
     /**
      * Search scope
      */

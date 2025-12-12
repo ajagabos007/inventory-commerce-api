@@ -63,13 +63,17 @@ class Inventory extends Pivot
      */
     protected static function booted(): void
     {
-        static::addGlobalScope('store', function (Builder $builder) {
-            $builder->when(! app()->runningInConsole(), function ($builder) {
-                $builder->where('store_id', current_store()?->id);
-            });
-        });
+//        static::addGlobalScope('store', function (Builder $builder) {
+//            $builder->when(! app()->runningInConsole(), function ($builder) {
+//                $builder->where('store_id', current_store()?->id);
+//            });
+//        });
     }
 
+    public function scopeCurrentStore(Builder $builder): Builder
+    {
+        return $builder->where('store_id', current_store()?->id);
+    }
     /**
      * Get the parent type
      */

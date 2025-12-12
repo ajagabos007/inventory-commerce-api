@@ -21,7 +21,8 @@ class InventoryController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $inventoryQ = Inventory::query();
+        $inventoryQ = Inventory::query()
+                        ->currentStore();
 
         $inventories = QueryBuilder::for($inventoryQ)
             ->defaultSort('-created_at')

@@ -45,7 +45,8 @@ class StockTransferController extends Controller
         $paginate = request()->has('paginate') ? request()->paginate : true;
         $perPage = request()->has('per_page') ? request()->per_page : 15;
 
-        $stock_transfersQ = StockTransfer::query();
+        $stock_transfersQ = StockTransfer::query()
+                            ->currentStore();
 
         $stock_transfers = QueryBuilder::for($stock_transfersQ)
             ->defaultSort('-created_at')

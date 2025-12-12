@@ -33,7 +33,7 @@ class DashboardController extends Controller
         }
 
         $can_view_staff = Gate::allows('viewAny', Staff::class);
-        $staffQ = Staff::forCurrentStore();
+        $staffQ = Staff::currentStore();
 
         if ($can_view_staff) {
             $summary['staff'] = [

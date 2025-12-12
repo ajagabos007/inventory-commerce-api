@@ -32,7 +32,7 @@ class ProductVariantController extends Controller
      */
     public function search()
     {
-        $productVariants = QueryBuilder::for(ProductVariant::class)
+        $productVariants = QueryBuilder::for(ProductVariant::query()->currentStore())
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',
@@ -95,7 +95,7 @@ class ProductVariantController extends Controller
      */
     public function index()
     {
-        $productVariants = QueryBuilder::for(ProductVariant::class)
+        $productVariants = QueryBuilder::for(ProductVariant::query()->currentStore())
             ->defaultSort('-created_at')
             ->allowedSorts(
                 'barcode',
